@@ -1,11 +1,11 @@
 ﻿$ErrorActionPreference = 'Continue'
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
-# ===== 饭饭web 一键上传到 GitHub（账号 zhemgcm-maker）=====
-# 双击 上传到GitHub.cmd 即可。第一次运行会弹浏览器让你登录 / 授权 GitHub，
-# 仓库不存在时会自动创建一个私有仓库并推送。
+# ===== 饭饭web 一键上传 / 更新到 GitHub（账号 zhemgcm-maker）=====
+# 双击 上传到GitHub.cmd 即可。登录凭据直接从 Windows 凭据库里取（GitHub Desktop 存的），
+# 所以正常情况下不会弹浏览器、也不需要邮箱验证。
 $Owner = 'zhemgcm-maker'
-$Repo  = '饭饭web'
+$Repo  = 'fanfan-web'
 
 function Find-Git {
   $c = Get-Command git -ErrorAction SilentlyContinue
@@ -20,23 +20,63 @@ function Find-Git {
     $hit = Get-ChildItem -Path $p -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($hit) { return $hit.FullName }
   }
-  # Visual Studio 2022 自带的 git（你这台机器就是这种）
   $vs = "$env:ProgramFiles\Microsoft Visual Studio\*\*\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git.exe"
   $hit = Get-ChildItem -Path $vs -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($hit) { return $hit.FullName }
   return $null
 }
 
-# 优先操作 D:\饭饭web（你自己那份），没有就操作脚本所在文件夹
+# 从 Windows 凭据管理器读取 GitHub Desktop 保存的登录令牌
+function Get-GitHubToken {
+  $src = @'
+using System;
+using System.Runtime.InteropServices;
+public class FanfanCred {
+  [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+  public struct CREDENTIAL {
+    public uint Flags; public uint Type; public IntPtr TargetName; public IntPtr Comment;
+    public System.Runtime.InteropServices.ComTypes.FILETIME LastWritten;
+    public uint CredentialBlobSize; public IntPtr CredentialBlob; public uint Persist;
+    public uint AttributeCount; public IntPtr Attributes; public IntPtr TargetAlias; public IntPtr UserName;
+  }
+  [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+  public static extern bool CredRead(string target, uint type, uint flags, out IntPtr credential);
+  [DllImport("advapi32.dll")] public static extern void CredFree(IntPtr buffer);
+  public static string Read(string target) {
+    IntPtr p;
+    if (!CredRead(target, 1, 0, out p)) return null;
+    CREDENTIAL c = (CREDENTIAL)Marshal.PtrToStructure(p, typeof(CREDENTIAL));
+    byte[] blob = new byte[c.CredentialBlobSize];
+    Marshal.Copy(c.CredentialBlob, blob, 0, (int)c.CredentialBlobSize);
+    CredFree(p);
+    string s = System.Text.Encoding.UTF8.GetString(blob);
+    return (s.Length > 8 && s.Substring(0, 2) == "gh") ? s : null;
+  }
+}
+'@
+  try { Add-Type -TypeDefinition $src -Language CSharp -ErrorAction Stop } catch {}
+  $targets = @(
+    "GitHub - https://api.github.com/$Owner",
+    "GitHub - https://api.github.com",
+    "git:https://github.com"
+  )
+  foreach ($t in $targets) {
+    $v = [FanfanCred]::Read($t)
+    if ($v) { return $v }
+  }
+  return $null
+}
+
+# 目标文件夹：优先 D:\饭饭web
 $Target = 'D:\饭饭web'
 if (-not (Test-Path -LiteralPath (Join-Path $Target 'index.html'))) { $Target = $PSScriptRoot }
 Set-Location -LiteralPath $Target
 
 Write-Host ''
-Write-Host '===== 饭饭web 上传到 GitHub =====' -ForegroundColor Cyan
+Write-Host '===== 饭饭web 上传 / 更新到 GitHub =====' -ForegroundColor Cyan
 Write-Host ('操作的文件夹：' + $Target)
 
-Write-Host '[1/5] 检查 git ...'
+Write-Host '[1/4] 检查 git ...'
 $git = Find-Git
 if (-not $git) {
   Write-Host '没有找到 git。请安装 Git for Windows：https://git-scm.com/download/win' -ForegroundColor Red
@@ -44,7 +84,7 @@ if (-not $git) {
 }
 Write-Host ('      ' + (& $git --version) + '   [' + $git + ']')
 
-Write-Host '[2/5] 本地提交 ...'
+Write-Host '[2/4] 本地提交 ...'
 if (!(Test-Path (Join-Path $Target '.git'))) { & $git init -b main | Out-Null; Write-Host '      已初始化 git 仓库（分支 main）' }
 & $git config user.name  $Owner
 & $git config user.email "$Owner@users.noreply.github.com"
@@ -57,47 +97,39 @@ if ($LASTEXITCODE -ne 0) {
   Write-Host '      没有新改动，跳过提交'
 }
 
-Write-Host '[3/5] 取 GitHub 登录凭据（第一次会弹浏览器）...'
-$tok = ''
-$cred = ("protocol=https" + [char]10 + "host=github.com" + [char]10 + [char]10 | & $git -c http.sslBackend=openssl credential fill) 2>$null
-$line = ($cred | Select-String -Pattern '^password=' | Select-Object -First 1)
-if ($line) { $tok = ($line.ToString() -replace '^password=', '').Trim() }
+Write-Host '[3/4] 读取 GitHub 登录凭据 ...'
+$tok = Get-GitHubToken
 if (-not $tok) {
-  Write-Host '      本机还没有 GitHub 凭据，触发一次登录 ...'
-  & $git credential-manager github login 2>&1 | Write-Host
-  $cred = ("protocol=https" + [char]10 + "host=github.com" + [char]10 + [char]10 | & $git -c http.sslBackend=openssl credential fill) 2>$null
-  $line = ($cred | Select-String -Pattern '^password=' | Select-Object -First 1)
-  if ($line) { $tok = ($line.ToString() -replace '^password=', '').Trim() }
+  Write-Host '      本机没找到 GitHub 凭据。请打开 GitHub Desktop 登录一次（或告诉我，我用别的方式处理），然后重新运行本脚本。' -ForegroundColor Red
+  Read-Host '按回车退出'; exit 1
 }
-if ($tok) { Write-Host ('      已拿到凭据（' + $tok.Substring(0, [Math]::Min(4, $tok.Length)) + '...，不会显示完整内容）') }
-else { Write-Host '      还没拿到凭据：下一步推送时 git 会自己再弹一次' -ForegroundColor Yellow }
+Write-Host ('      已读取到凭据（' + $tok.Substring(0,4) + '...，长度 ' + $tok.Length + '，不会显示完整内容）')
 
-Write-Host '[4/5] 在 GitHub 上建仓库（已存在就跳过）...'
-if ($tok) {
-  $body = '{"name":"' + $Repo + '","private":true,"description":"Fanfan - AI meal decision agent (single-file web app)"}'
-  $outFile = Join-Path $env:TEMP 'fanfan-api.json'
-  $code = (curl.exe -s -o $outFile -w "%{http_code}" -X POST -H "Authorization: token $tok" -H "User-Agent: fanfan-upload" -H "Content-Type: application/json" -d $body https://api.github.com/user/repos) 2>$null
-  if ($code -eq '201') { Write-Host ('      已创建私有仓库 https://github.com/' + $Owner + '/' + $Repo) -ForegroundColor Green }
-  elseif ($code -eq '422') { Write-Host '      仓库已经存在，直接用它' }
-  else { Write-Host ('      自动建仓库失败（HTTP ' + $code + '）；如果下面推送失败，请到 https://github.com/new 手动建一个私有仓库 ' + $Repo) -ForegroundColor Yellow }
-} else {
-  Write-Host '      跳过（没有凭据）' -ForegroundColor Yellow
-}
-
+$hdr = @{ Authorization = "token $tok"; "User-Agent" = "fanfan-upload" }
 $remote = "https://github.com/$Owner/$Repo.git"
-if ((& $git remote) -match '^origin$') { & $git remote set-url origin $remote } else { & $git remote add origin $remote }
+try {
+  Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/$Owner/$Repo" -Headers $hdr -TimeoutSec 20 | Out-Null
+  Write-Host ('      远程仓库正常：' + $remote)
+} catch {
+  Write-Host '      远程仓库不存在，自动创建一个私有的 ...'
+  $json = @{ name = $Repo; private = $true; description = '饭饭 · 今天吃啥（智能美食决策 Agent）' } | ConvertTo-Json
+  try {
+    Invoke-RestMethod -Method Post -Uri 'https://api.github.com/user/repos' -Headers $hdr -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 | Out-Null
+    Write-Host '      已创建私有仓库' -ForegroundColor Green
+  } catch { Write-Host ('      建仓库失败：' + $_.Exception.Message) -ForegroundColor Yellow }
+}
 
-Write-Host '[5/5] 推送 ...（第一次会在浏览器里等你点 Authorize）' -ForegroundColor Yellow
-& $git -c http.sslBackend=openssl push -u origin main
+Write-Host '[4/4] 推送 ...'
+if ((& $git remote) -match '^origin$') { & $git remote set-url origin $remote } else { & $git remote add origin $remote }
+$b64 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-access-token:$tok"))
+& $git -c credential.helper= -c "http.extraHeader=Authorization: Basic $b64" push -u origin main
 
 if ($LASTEXITCODE -eq 0) {
   Write-Host ''
   Write-Host ('✅ 上传完成：https://github.com/' + $Owner + '/' + $Repo) -ForegroundColor Green
 } else {
   Write-Host ''
-  Write-Host '❌ 推送失败。常见原因：' -ForegroundColor Red
-  Write-Host ('   1) GitHub 上还没有仓库 ' + $Repo + ' → 打开 https://github.com/new 建一个 Private 仓库再重试')
-  Write-Host '   2) 浏览器授权没完成 → 重新双击本脚本，在弹出的浏览器页面点 Authorize'
+  Write-Host '❌ 推送失败。把上面的报错发我。' -ForegroundColor Red
 }
 Write-Host ''
 Read-Host '按回车退出'
