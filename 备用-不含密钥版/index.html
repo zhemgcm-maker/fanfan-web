@@ -1,0 +1,1594 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff8f2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>今天吃啥 · 大模型 × 智能体 美食决策助手</title>
+<style>
+  :root{
+    --bg:#fff8f2;
+    --card:#ffffff;
+    --ink:#2b2118;
+    --muted:#8b7a6c;
+    --brand:#ff6a3d;
+    --brand-2:#ffb347;
+    --brand-soft:#fff0e8;
+    --line:#f2e3d6;
+    --ok:#0ea678;
+    --warn:#e8542c;
+    --shadow:0 8px 24px rgba(255,106,61,.10);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    background:
+      radial-gradient(1100px 420px at 12% -6%, #ffe6cf 0%, rgba(255,230,207,0) 62%),
+      radial-gradient(760px 380px at 96% 4%, #ffe9c9 0%, rgba(255,233,201,0) 60%),
+      var(--bg);
+    color:var(--ink);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:14px 14px calc(112px + env(safe-area-inset-bottom));}
+
+  /* ---------- 顶部 ---------- */
+  header.top{padding:8px 4px 4px}
+  .brandline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .logo{
+    width:34px;height:34px;flex:0 0 34px;border-radius:11px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));font-size:18px;
+    box-shadow:0 6px 14px rgba(255,106,61,.35)
+  }
+  h1{font-size:20px;margin:0;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px;margin:6px 2px 0}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .badge{
+    font-size:11.5px;color:#a1583a;background:#fff2e7;border:1px solid #ffe0cc;
+    padding:3px 9px;border-radius:999px;white-space:nowrap
+  }
+
+  /* ---------- 步骤卡片 ---------- */
+  section.step{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 14px 16px;margin-top:14px;box-shadow:var(--shadow)
+  }
+  section.step.hidden{display:none}
+  .step-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+  .num{
+    width:24px;height:24px;flex:0 0 24px;border-radius:50%;display:grid;place-items:center;
+    background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:13px;margin-top:2px
+  }
+  .step-title{font-size:15.5px;font-weight:700;margin:0}
+  .step-hint{font-size:12px;color:var(--muted);margin:2px 0 0}
+
+  /* 金额档位 */
+  .tiers{display:grid;grid-template-columns:1fr;gap:10px}
+  .tier{
+    display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;
+    background:#fffdfb;border:1.5px solid var(--line);border-radius:15px;padding:12px 13px;
+    font-family:inherit;color:inherit;width:100%;transition:transform .12s,border-color .15s,background .15s
+  }
+  .tier:active{transform:scale(.985)}
+  .tier .emoji{font-size:24px;flex:0 0 30px;text-align:center}
+  .tier .t-main{flex:1;min-width:0}
+  .tier .t-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .tier .t-price{font-size:12px;color:var(--brand);background:var(--brand-soft);padding:1px 8px;border-radius:999px;font-weight:600}
+  .tier .t-desc{font-size:12.3px;color:var(--muted);margin-top:1px}
+  .tier .t-check{opacity:0;font-size:16px;color:var(--brand)}
+  .tier[aria-pressed="true"]{border-color:var(--brand);background:linear-gradient(180deg,#fff6f0,#fffdfb)}
+  .tier[aria-pressed="true"] .t-check{opacity:1}
+
+  /* 预算微调 */
+  .slider-row{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .slider-top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted)}
+  .slider-top b{color:var(--brand);font-size:15px}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:26px;background:transparent;margin:4px 0 0
+  }
+  input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--brand);margin-top:-8px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+  input[type=range]::-moz-range-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border:3px solid var(--brand);background:#fff;border-radius:50%}
+
+  /* 大类选择 */
+  .cats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .cat{
+    cursor:pointer;background:#fffdfb;border:1.5px solid var(--line);border-radius:15px;
+    padding:12px 6px 10px;text-align:center;font-family:inherit;color:inherit;transition:transform .12s,border-color .15s,background .15s
+  }
+  .cat:active{transform:scale(.97)}
+  .cat .c-emoji{font-size:25px;line-height:1.1;display:block}
+  .cat .c-name{font-weight:700;font-size:14px;margin-top:5px}
+  .cat .c-sub{font-size:11px;color:var(--muted)}
+  .cat[aria-pressed="true"]{border-color:var(--brand);background:linear-gradient(180deg,#fff5ef,#fffdfb);box-shadow:0 4px 12px rgba(255,106,61,.13)}
+
+  /* 标签 chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    cursor:pointer;font-family:inherit;font-size:13px;color:#5b4a3d;background:#fffdfb;
+    border:1.5px solid var(--line);border-radius:999px;padding:7px 12px;transition:all .14s
+  }
+  .chip:active{transform:scale(.96)}
+  .chip[aria-pressed="true"]{background:var(--brand-soft);border-color:#ffc4a8;color:#b0461f;font-weight:600}
+  .chip.danger[aria-pressed="true"]{background:#fdeceb;border-color:#f6bdb7;color:#b3271c}
+
+  label.field{display:block;font-size:12.5px;color:var(--muted);margin:14px 0 6px;font-weight:600}
+  input[type=text],input[type=password],select{
+    width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:#fffdfb;
+    border:1.5px solid var(--line);border-radius:13px;padding:11px 12px;outline:none;transition:border-color .15s
+  }
+  input[type=text]:focus,input[type=password]:focus,select:focus{border-color:#ffb491;background:#fff}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .quick-addr{display:flex;gap:7px;overflow-x:auto;padding:8px 2px 2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .quick-addr::-webkit-scrollbar{display:none}
+  .addr-pill{
+    flex:0 0 auto;font-family:inherit;font-size:12.5px;color:#6b5a4c;background:#fffdfb;
+    border:1.5px solid var(--line);border-radius:999px;padding:6px 11px;cursor:pointer
+  }
+  .addr-pill:active{background:var(--brand-soft)}
+
+  details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:14px;box-shadow:var(--shadow);overflow:hidden}
+  details>summary{
+    list-style:none;cursor:pointer;padding:14px;font-weight:700;font-size:14.5px;display:flex;justify-content:space-between;align-items:center
+  }
+  details>summary::-webkit-details-marker{display:none}
+  details>summary::after{content:"展开";font-size:11.5px;color:var(--muted);font-weight:400}
+  details[open]>summary::after{content:"收起"}
+  details .body{padding:0 14px 16px;font-size:13px;color:#4a3b30}
+
+  /* ---------- 底部操作栏 ---------- */
+  .bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    padding:10px 14px calc(12px + env(safe-area-inset-bottom));
+    background:rgba(255,248,242,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line)
+  }
+  .bar-inner{max-width:520px;margin:0 auto;display:flex;gap:10px;align-items:center}
+  .summary{flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.35}
+  .summary b{color:var(--ink);font-size:13.5px}
+  .summary .s-text{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn{
+    font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:14px;padding:13px 18px;cursor:pointer;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;white-space:nowrap;
+    box-shadow:0 8px 18px rgba(255,106,61,.32);transition:transform .12s,opacity .2s
+  }
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.45;box-shadow:none}
+  .btn.ghost{background:#fff;color:var(--brand);border:1.5px solid #ffcbb4;box-shadow:none;font-weight:600;padding:11px 14px}
+  .btn.small{font-size:13.5px;padding:10px 13px;border-radius:12px}
+
+  /* ---------- Agent 思考过程 ---------- */
+  #traceCard{display:none}
+  #traceCard.show{display:block}
+  .trace{list-style:none;margin:0;padding:0}
+  .trace li{
+    display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);opacity:0;transform:translateY(4px);
+    transition:opacity .35s,transform .35s
+  }
+  .trace li:last-child{border-bottom:none}
+  .trace li.in{opacity:1;transform:none}
+  .trace .dot{
+    width:20px;height:20px;flex:0 0 20px;border-radius:50%;display:grid;place-items:center;
+    font-size:11px;background:#f4ece5;color:#a89789;margin-top:2px
+  }
+  .trace .t-body{flex:1;min-width:0}
+  .trace .t-title{font-size:13.5px;font-weight:600}
+  .trace .t-detail{font-size:12px;color:var(--muted);margin-top:1px;word-break:break-word}
+  .trace li.done .dot{background:#e5f6ef;color:var(--ok)}
+  .trace li.active .dot{background:var(--brand-soft);color:var(--brand);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid #ffd0bd;border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;margin-left:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---------- 结果 ---------- */
+  #result{display:none}
+  #result.show{display:block}
+  .card-main{
+    border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card);box-shadow:var(--shadow);
+    margin-top:14px;animation:rise .4s ease both
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .card-head{background:linear-gradient(135deg,#ff7a45,#ffb347);color:#fff;padding:14px}
+  .card-head .kicker{font-size:11.5px;opacity:.92;letter-spacing:.4px}
+  .card-head .dish{font-size:22px;font-weight:800;margin:3px 0 2px;letter-spacing:.3px}
+  .card-head .meta{font-size:12.5px;opacity:.95}
+  .price-tag{display:inline-block;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:1px 9px;font-size:12px;margin-left:6px}
+  .card-body{padding:13px 14px 15px}
+  .kv{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted);flex:0 0 62px}
+  .kv .v{flex:1;min-width:0;word-break:break-word}
+  .why{margin-top:10px;background:#fffaf5;border:1px solid #ffe6d5;border-radius:13px;padding:10px 12px;font-size:12.8px;color:#6a4a35}
+  .why .w-title{font-weight:700;color:#b0461f;margin-bottom:4px;font-size:12.5px}
+  .why ul{margin:0;padding-left:17px}
+  .why li{margin:2px 0}
+  .scorebar{margin-top:11px}
+  .scorebar .row{display:grid;grid-template-columns:64px 1fr 40px;gap:8px;align-items:center;font-size:11.5px;color:var(--muted);margin:5px 0}
+  .scorebar .track{height:7px;background:#f4ece5;border-radius:99px;overflow:hidden}
+  .scorebar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2));width:0;transition:width .6s ease}
+  .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .actions .btn{flex:1 1 auto}
+
+  .alt-list{margin-top:12px}
+  .alt{
+    display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
+    border-radius:15px;padding:11px 12px;margin-top:9px;box-shadow:0 4px 14px rgba(255,106,61,.06)
+  }
+  .alt .a-emoji{font-size:21px;flex:0 0 26px;text-align:center}
+  .alt .a-main{flex:1;min-width:0}
+  .alt .a-name{font-weight:700;font-size:14px}
+  .alt .a-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .alt .a-score{font-size:12px;color:var(--brand);font-weight:700;text-align:right;flex:0 0 auto}
+  .alt .a-score span{display:block;font-weight:400;color:var(--muted);font-size:11px}
+
+  .empty{font-size:13px;color:var(--muted);text-align:center;padding:18px 10px}
+
+  /* ---------- 口味画像 ---------- */
+  .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .p-box{background:#fffdfb;border:1px solid var(--line);border-radius:13px;padding:10px}
+  .p-box .p-title{font-size:11.5px;color:var(--muted);margin-bottom:5px}
+  .p-box .p-val{font-size:12.5px;color:#4a3b30;word-break:break-word}
+  .mini{font-size:11.5px;color:#b0461f;background:#fff2e7;border-radius:999px;padding:2px 8px;display:inline-block;margin:2px 4px 2px 0}
+  .mini.grey{color:#7b6a5c;background:#f6f0ea}
+  .mini.red{color:#b3271c;background:#fdeceb}
+
+  pre.code{
+    background:#2b2118;color:#ffe6cf;border-radius:12px;padding:11px;font-size:11px;line-height:1.5;
+    overflow:auto;max-height:290px;white-space:pre-wrap;word-break:break-word;margin:8px 0 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace
+  }
+  .mini-title{font-size:12.5px;font-weight:700;color:#b0461f;margin-top:12px}
+
+  /* 架构图 */
+  .flow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .flow .f-step{
+    font-size:11.5px;background:#fff6f0;border:1px solid #ffe0cc;color:#a1583a;border-radius:10px;padding:6px 9px
+  }
+  .flow .arrow{color:#e0c9b8;font-size:11px;align-self:center}
+
+  .toast{
+    position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(12px);
+    background:rgba(43,33,24,.94);color:#fff;font-size:13px;padding:10px 16px;border-radius:12px;z-index:60;
+    opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;max-width:88vw;text-align:center
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .hidden{display:none !important}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brandline">
+      <div class="logo">🍜</div>
+      <h1>今天吃啥 · 智能体决策助手</h1>
+    </div>
+    <p class="sub">先选预算档位，再选吃什么类型，剩下的交给 AI：读记忆 → 检索菜品库 → 过滤忌口 → 多维打分 → 按地址选店。</p>
+    <div class="badges">
+      <span class="badge">🧠 大模型 / 智能体 Demo（本地引擎离线可用）</span>
+      <span class="badge" id="kbBadge">📚 本地知识库</span>
+      <span class="badge">🧩 记忆 + 工具调用 + 可解释打分</span>
+    </div>
+  </header>
+
+  <!-- 1. 预算档位 -->
+  <section class="step" id="secTier">
+    <div class="step-head">
+      <div class="num">1</div>
+      <div>
+        <p class="step-title">今天吃多大一口？</p>
+        <p class="step-hint">按金额界定档位，档位决定候选菜品的价格区间</p>
+      </div>
+    </div>
+    <div class="tiers" id="tierList" role="group" aria-label="预算档位"></div>
+    <div class="slider-row">
+      <div class="slider-top">
+        <span>这顿的心理预算上限</span>
+        <b id="budgetLabel">¥--</b>
+      </div>
+      <input type="range" id="budgetRange" min="10" max="200" step="1" value="60" aria-label="预算上限">
+      <p class="note" id="tierNote">先选上面三个档位之一。</p>
+    </div>
+  </section>
+
+  <!-- 2. 类型 -->
+  <section class="step hidden" id="secCat">
+    <div class="step-head">
+      <div class="num">2</div>
+      <div>
+        <p class="step-title">想吃哪一类？</p>
+        <p class="step-hint">吃饭 / 吃面 / 其他（火锅、小吃、轻食、烧烤…）</p>
+      </div>
+    </div>
+    <div class="cats" id="catList" role="group" aria-label="食物类型"></div>
+  </section>
+
+  <!-- 3. 今日想吃 -->
+  <section class="step hidden" id="secCrave">
+    <div class="step-head">
+      <div class="num">3</div>
+      <div>
+        <p class="step-title">今天想吃什么感觉？</p>
+        <p class="step-hint">随便点几个，或者直接用一句话描述今天想吃啥</p>
+      </div>
+    </div>
+    <div class="chips" id="craveList" role="group" aria-label="今日口味"></div>
+    <label class="field" for="craveText">用一句话说说（可留空）</label>
+    <input type="text" id="craveText" placeholder="例：想吃点辣的、有汤的，别太重口">
+
+    <label class="field" for="addr">你在哪里？（用于选饭店）</label>
+    <input type="text" id="addr" placeholder="例：上海市浦东新区张江高科地铁站" autocomplete="off">
+    <div class="quick-addr" id="addrQuick"></div>
+    <div class="two-col" style="margin-top:12px">
+      <div>
+        <label class="field" for="mode">用餐方式</label>
+        <select id="mode">
+          <option value="delivery">外卖送到</option>
+          <option value="dinein">到店堂食</option>
+        </select>
+      </div>
+      <div>
+        <label class="field" for="spice">能吃多辣</label>
+        <select id="spice">
+          <option value="0">完全不吃辣</option>
+          <option value="1">微辣可以</option>
+          <option value="2">中辣没问题</option>
+          <option value="3" selected>无辣不欢</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- 口味画像 / 忌口 -->
+  <details id="prefCard">
+    <summary>🍽 口味画像与忌口（会一直记住）</summary>
+    <div class="body">
+      <label class="field" style="margin-top:0">忌口 / 过敏（会被硬性过滤）</label>
+      <div class="chips" id="allergyList"></div>
+      <label class="field">平时的口味偏好</label>
+      <div class="chips" id="tasteList"></div>
+      <div class="profile-grid" style="margin-top:12px">
+        <div class="p-box">
+          <div class="p-title">AI 记住的喜欢</div>
+          <div class="p-val" id="pLikes"><span class="mini grey">还没有</span></div>
+        </div>
+        <div class="p-box">
+          <div class="p-title">AI 记住的不喜欢</div>
+          <div class="p-val" id="pDislikes"><span class="mini grey">还没有</span></div>
+        </div>
+      </div>
+      <div class="p-box" style="margin-top:10px">
+        <div class="p-title">最近吃过（7 天内会相应降权，避免重复）</div>
+        <div class="p-val" id="pHistory"><span class="mini grey">还没有记录</span></div>
+      </div>
+      <button class="btn ghost small" style="margin-top:12px" id="clearMemory">清空记忆</button>
+    </div>
+  </details>
+
+  <!-- Agent 思考过程 -->
+  <section class="step" id="traceCard">
+    <div class="step-head">
+      <div class="num">🤖</div>
+      <div>
+        <p class="step-title">智能体正在决策</p>
+        <p class="step-hint" id="traceHint">解析需求 → 读取记忆 → 检索 → 过滤 → 打分 → 选址 → 生成</p>
+      </div>
+    </div>
+    <ul class="trace" id="traceList"></ul>
+  </section>
+
+  <!-- 结果 -->
+  <div id="result"></div>
+
+  <!-- 大模型接入 -->
+  <details id="llmCard">
+    <summary>🔌 大模型接入（选填：填自己的 DeepSeek 密钥）</summary>
+    <div class="body">
+      <p class="note" style="margin-top:0">推荐逻辑跑在页面内置的「本地推理引擎」上，不联网、不需要密钥就能用。想让大模型再写一段更自然的推荐理由，就在下面填自己的 DeepSeek 密钥（接口地址和模型已经预填好），然后把"启用大模型"切成开启。</p>
+      <div class="two-col">
+        <div>
+          <label class="field" for="llmEnabled">启用大模型</label>
+          <select id="llmEnabled">
+            <option value="off">关闭（只用本地引擎）</option>
+            <option value="on">开启</option>
+          </select>
+        </div>
+        <div>
+          <label class="field" for="llmProvider">服务商</label>
+          <select id="llmProvider">
+            <option value="deepseek">DeepSeek</option>
+            <option value="openai">OpenAI</option>
+            <option value="custom">自定义（OpenAI 兼容）</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="field" for="llmModelSelect">模型</label>
+      <select id="llmModelSelect"></select>
+      <input type="text" id="llmModelCustom" class="hidden" placeholder="填模型名，例如 deepseek-chat" style="margin-top:8px">
+
+      <label class="field" for="llmBase">接口地址（OpenAI 兼容）</label>
+      <input type="text" id="llmBase" value="https://api.deepseek.com/v1">
+      <label class="field" for="llmKey">API Key</label>
+      <input type="password" id="llmKey" placeholder="sk-...">
+      <div class="actions">
+        <button class="btn ghost small" id="saveSettings">保存设置</button>
+        <button class="btn ghost small" id="testLLM">测试连通性</button>
+        <button class="btn ghost small" id="clearKey">清除 Key</button>
+      </div>
+      <p class="note" id="llmStatus">—</p>
+      <p class="note">🔐 这个分享版没有内置任何密钥。你填的密钥只保存在自己这台设备的浏览器里，请求由浏览器直接发往 api.deepseek.com（已实测支持跨域）。不填密钥也能正常使用，只是少一段大模型写的推荐语。</p>
+    </div>
+  </details>
+
+  <!-- 开发者视角 -->
+  <details id="devCard">
+    <summary>🧑‍💻 开发者视角（架构 / Prompt / 打分）</summary>
+    <div class="body">
+      <div class="mini-title" style="margin-top:0">智能体流水线</div>
+      <div class="flow">
+        <span class="f-step">① 意图解析</span><span class="arrow">→</span>
+        <span class="f-step">② 记忆读取</span><span class="arrow">→</span>
+        <span class="f-step">③ 知识库检索 (RAG)</span><span class="arrow">→</span>
+        <span class="f-step">④ 规则过滤</span><span class="arrow">→</span>
+        <span class="f-step">⑤ 多维打分</span><span class="arrow">→</span>
+        <span class="f-step">⑥ 选址工具</span><span class="arrow">→</span>
+        <span class="f-step">⑦ 生成建议</span>
+      </div>
+      <div class="mini-title">System Prompt（发给大模型的角色设定）</div>
+      <pre class="code" id="devPrompt">—</pre>
+      <div class="mini-title">工具定义（Tool Schema）</div>
+      <pre class="code" id="devTools">—</pre>
+      <div class="mini-title">实际打分明细</div>
+      <pre class="code" id="devScores">先完成一次推荐，这里会显示每道菜的打分构成。</pre>
+      <div class="mini-title">大模型返回的思考链（用 deepseek-v4-pro / deepseek-flash 时才有）</div>
+      <pre class="code" id="devReasoning">—</pre>
+      <div class="mini-title">大模型实际收到的 JSON（即上面 candidates 的结构）</div>
+      <pre class="code" id="devPayload">—</pre>
+      <div class="mini-title">记忆数据（localStorage）</div>
+      <pre class="code" id="devMemory">—</pre>
+    </div>
+  </details>
+
+  <p class="note" style="text-align:center;margin:18px 4px 4px">
+    演示用数据：菜品与饭店为示例库，距离由地址文本模拟计算（生产环境替换为高德／腾讯地图 API）。
+  </p>
+</div>
+
+<!-- 底部操作栏 -->
+<div class="bar">
+  <div class="bar-inner">
+    <div class="summary">
+      <b id="sumMain">请先选择预算档位</b>
+      <span class="s-text" id="sumSub">1 / 3 步</span>
+    </div>
+    <button class="btn" id="goBtn" disabled>开始推荐</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+ *  今天吃啥 · 智能体美食决策 Demo
+ *  纯前端单文件：内置知识库（菜品 / 饭店）+ 可解释打分引擎 + 可选大模型接入
+ * ========================================================================= */
+
+/* ------------------------------ 1. 知识库 ------------------------------ */
+
+// 预算档位：按金额界定
+const TIERS = [
+  { id:'small', name:'小饭', emoji:'🥣', min:0,   max:25,  desc:'垫一口就好：快、省、不耽误事' },
+  { id:'mid',   name:'中饭', emoji:'🍱', min:26,  max:60,  desc:'正经一顿：吃得舒服、有肉有菜' },
+  { id:'good',  name:'吃好饭', emoji:'🍣', min:61, max:200, desc:'犒劳自己：食材和口味优先' }
+];
+
+const CATS = [
+  { id:'rice',   name:'吃饭', emoji:'🍚', sub:'盖饭 / 拌饭 / 煲仔' },
+  { id:'noodle', name:'吃面', emoji:'🍜', sub:'汤面 / 拌面 / 粉' },
+  { id:'other',  name:'其他', emoji:'🍢', sub:'火锅 / 小吃 / 轻食' }
+];
+
+// 菜品库：cat 类型，cui 菜系，price 参考价，spicy 辣度 0-3，tags 口味标签，alg 忌口食材
+const DISHES = [
+  { id:'d01', name:'黄焖鸡米饭',       cat:'rice',   cui:'家常', price:22,  spicy:1, tags:['鸡','下饭','酱香','热'],        alg:['鸡'],      desc:'砂锅焖鸡＋浓汤拌饭', hot:92 },
+  { id:'d02', name:'隆江猪脚饭',       cat:'rice',   cui:'家常', price:26,  spicy:0, tags:['猪','卤味','下饭','软糯'],      alg:['猪'],      desc:'卤得软烂，胶质足', hot:78 },
+  { id:'d03', name:'扬州蛋炒饭',       cat:'rice',   cui:'家常', price:15,  spicy:0, tags:['蛋','快','家常','干爽'],        alg:['蛋'],      desc:'粒粒分明，十分钟上桌', hot:70 },
+  { id:'d04', name:'广式烧腊双拼饭',   cat:'rice',   cui:'粤',   price:32,  spicy:0, tags:['猪','烧腊','甜口','下饭'],      alg:['猪'],      desc:'叉烧＋烧肉，甜咸交错', hot:80 },
+  { id:'d05', name:'海南鸡饭',         cat:'rice',   cui:'粤',   price:38,  spicy:0, tags:['鸡','清淡','鲜嫩','汤'],        alg:['鸡'],      desc:'鸡油饭配清鸡汤', hot:72 },
+  { id:'d06', name:'日式咖喱猪排饭',   cat:'rice',   cui:'日',   price:45,  spicy:0, tags:['猪','炸','咖喱','甜口'],        alg:['猪','麦'], desc:'厚切猪排＋微甜咖喱', hot:82 },
+  { id:'d07', name:'三文鱼刺身盖饭',   cat:'rice',   cui:'日',   price:78,  spicy:0, tags:['海鲜','生鲜','清淡','高级'],    alg:['海鲜'],    desc:'厚切三文鱼配醋饭', hot:60 },
+  { id:'d08', name:'蒲烧鳗鱼饭',       cat:'rice',   cui:'日',   price:88,  spicy:0, tags:['海鲜','甜口','高级','酱香'],    alg:['海鲜'],    desc:'炭烤鳗鱼，甜咸酱汁', hot:58 },
+  { id:'d09', name:'和牛盖饭',         cat:'rice',   cui:'日',   price:128, spicy:0, tags:['牛','高级','生鲜','鲜嫩'],      alg:['牛'],      desc:'和牛炙烤盖饭', hot:50 },
+  { id:'d10', name:'川味回锅肉盖饭',   cat:'rice',   cui:'川',   price:28,  spicy:3, tags:['猪','辣','重口','下饭'],        alg:['猪'],      desc:'蒜苗爆炒，香辣下饭', hot:85 },
+  { id:'d11', name:'台式卤肉饭',       cat:'rice',   cui:'家常', price:20,  spicy:0, tags:['猪','卤味','家常','下饭'],      alg:['猪'],      desc:'肥瘦卤肉浇饭', hot:76 },
+  { id:'d12', name:'石锅拌饭',         cat:'rice',   cui:'韩',   price:30,  spicy:1, tags:['韩式','辣酱','热','蔬菜'],      alg:['蛋'],      desc:'锅巴香脆，拌辣酱', hot:79 },
+  { id:'d13', name:'重庆鸡公煲（配饭）',cat:'rice',  cui:'川',   price:58,  spicy:3, tags:['鸡','辣','重口','聚餐'],        alg:['鸡'],      desc:'越煮越香，适合两人', hot:88 },
+  { id:'d14', name:'蟹黄拌饭',         cat:'rice',   cui:'江浙', price:168, spicy:0, tags:['海鲜','高级','鲜','蟹'],        alg:['海鲜'],    desc:'真蟹粉，价格劝退但真香', hot:45 },
+  { id:'d15', name:'腊味煲仔饭',       cat:'rice',   cui:'粤',   price:35,  spicy:0, tags:['猪','腊味','锅巴','热'],        alg:['猪'],      desc:'腊肠腊肉＋豉油锅巴', hot:74 },
+  { id:'d16', name:'鸡胸藜麦能量饭',   cat:'rice',   cui:'健康', price:36,  spicy:0, tags:['鸡','健康','健身','清淡'],      alg:['鸡'],      desc:'高蛋白低油，健身首选', hot:66 },
+  { id:'d17', name:'麻婆豆腐盖饭',     cat:'rice',   cui:'川',   price:18,  spicy:2, tags:['豆','辣','下饭','素'],          alg:['豆','猪'], desc:'麻辣鲜香，拌饭神器', hot:81 },
+
+  { id:'d18', name:'兰州牛肉拉面',     cat:'noodle', cui:'西北', price:20,  spicy:1, tags:['牛','清汤','热','快'],          alg:['牛','麦'], desc:'一清二白三红四绿', hot:90 },
+  { id:'d19', name:'重庆小面',         cat:'noodle', cui:'川',   price:15,  spicy:3, tags:['辣','重口','干拌','快'],        alg:['麦'],      desc:'油辣子当先，越辣越香', hot:87 },
+  { id:'d20', name:'番茄鸡蛋面',       cat:'noodle', cui:'家常', price:16,  spicy:0, tags:['蛋','清淡','家常','汤'],        alg:['蛋','麦'], desc:'酸甜暖胃，永远不会出错', hot:75 },
+  { id:'d21', name:'豚骨拉面',         cat:'noodle', cui:'日',   price:42,  spicy:0, tags:['猪','浓汤','日式','热'],        alg:['猪','麦'], desc:'奶白豚骨汤＋溏心蛋', hot:84 },
+  { id:'d22', name:'鲜虾云吞面',       cat:'noodle', cui:'粤',   price:24,  spicy:0, tags:['虾','清汤','鲜','清淡'],        alg:['虾','麦'], desc:'大颗虾仁云吞，汤清味鲜', hot:73 },
+  { id:'d23', name:'老北京炸酱面',     cat:'noodle', cui:'家常', price:22,  spicy:0, tags:['猪','干拌','家常','咸香'],      alg:['猪','麦'], desc:'肉丁炸酱，配菜一大排', hot:68 },
+  { id:'d24', name:'新疆牛肉拌面',     cat:'noodle', cui:'西北', price:28,  spicy:2, tags:['牛','干拌','辣','扎实'],        alg:['牛','麦'], desc:'锅气足，面条筋道', hot:71 },
+  { id:'d25', name:'柳州螺蛳粉',       cat:'noodle', cui:'小吃', price:22,  spicy:2, tags:['酸辣','重口','粉','臭味'],      alg:['豆'],      desc:'臭得越正宗，吃得越上头', hot:89 },
+  { id:'d26', name:'河南羊肉烩面',     cat:'noodle', cui:'家常', price:26,  spicy:0, tags:['羊','汤','暖','扎实'],          alg:['羊','麦'], desc:'大宽面配羊汤，冬天最爱', hot:62 },
+  { id:'d27', name:'油泼 biangbiang 面', cat:'noodle', cui:'西北', price:24, spicy:2, tags:['素','辣','干拌','香'],          alg:['麦'],      desc:'宽面泼油，香辣够味', hot:77 },
+  { id:'d28', name:'日式荞麦冷面',     cat:'noodle', cui:'日',   price:30,  spicy:0, tags:['凉','清淡','健康','麦'],        alg:['麦'],      desc:'蘸汁冷食，夏天友好', hot:51 },
+  { id:'d29', name:'酸辣粉',           cat:'noodle', cui:'小吃', price:14,  spicy:2, tags:['酸辣','粉','小吃','快'],        alg:[],          desc:'红薯粉＋酸辣汤底', hot:83 },
+  { id:'d30', name:'蟹粉面',           cat:'noodle', cui:'江浙', price:108, spicy:0, tags:['海鲜','高级','鲜','蟹'],        alg:['海鲜','麦'], desc:'蟹粉浇头，讲究一个鲜', hot:47 },
+  { id:'d31', name:'云南过桥米线',     cat:'noodle', cui:'小吃', price:26,  spicy:0, tags:['汤','鲜','热','清淡'],          alg:[],          desc:'滚汤自烫，配菜丰富', hot:78 },
+  { id:'d32', name:'意大利肉酱面',     cat:'noodle', cui:'西',   price:46,  spicy:0, tags:['西餐','芝士','番茄','干拌'],    alg:['麦','乳'], desc:'慢炖肉酱＋帕玛森', hot:69 },
+  { id:'d46', name:'黑松露牛肝菌意面', cat:'noodle', cui:'西',   price:78,  spicy:0, tags:['高级','菌菇','西餐','素','干拌'], alg:['麦','乳'], desc:'菌香浓郁，素食也能吃得讲究', hot:56 },
+  { id:'d47', name:'和牛番茄拌面',     cat:'noodle', cui:'西',   price:88,  spicy:0, tags:['牛','高级','番茄','干拌'],      alg:['牛','麦'], desc:'厚切和牛配酸甜番茄', hot:54 },
+  { id:'d48', name:'老坛酸菜牛肉面',   cat:'noodle', cui:'家常', price:32,  spicy:1, tags:['牛','汤','酸辣','热'],          alg:['牛','麦'], desc:'酸香开胃，汤头够味', hot:79 },
+
+  { id:'d33', name:'麻辣烫（自选）',   cat:'other',  cui:'小吃', price:26,  spicy:2, tags:['自由搭配','辣','热','重口'],    alg:[],          desc:'想吃什么自己夹，性价比高', hot:93 },
+  { id:'d34', name:'韩式部队锅',       cat:'other',  cui:'韩',   price:48,  spicy:2, tags:['辣','聚餐','热','芝士'],        alg:['猪','乳','麦'], desc:'泡面午餐肉芝士一锅端', hot:70 },
+  { id:'d35', name:'潮汕牛肉火锅',     cat:'other',  cui:'火锅', price:118, spicy:0, tags:['牛','聚餐','鲜','热'],          alg:['牛'],      desc:'现切牛肉，八秒即涮', hot:85 },
+  { id:'d36', name:'上海生煎＋小馄饨', cat:'other',  cui:'小吃', price:22,  spicy:0, tags:['猪','小吃','上海','咸香'],      alg:['猪','麦'], desc:'四只生煎配一碗馄饨', hot:80 },
+  { id:'d37', name:'汉堡薯条套餐',     cat:'other',  cui:'西',   price:30,  spicy:0, tags:['西餐','炸','快','薯条'],        alg:['麦','乳'], desc:'快、顶饱、不用等', hot:72 },
+  { id:'d38', name:'寿司拼盘',         cat:'other',  cui:'日',   price:68,  spicy:0, tags:['海鲜','生鲜','清淡','日式'],    alg:['海鲜'],    desc:'一口一个，清淡不腻', hot:76 },
+  { id:'d39', name:'鸡胸沙拉碗',       cat:'other',  cui:'健康', price:32,  spicy:0, tags:['健康','清淡','凉','健身','素'], alg:[],         desc:'低卡高蛋白，吃完不困', hot:64 },
+  { id:'d40', name:'韩式炸鸡啤酒',     cat:'other',  cui:'韩',   price:55,  spicy:1, tags:['鸡','炸','聚餐','甜辣'],        alg:['鸡','麦'], desc:'甜辣双拼，配冰啤酒', hot:82 },
+  { id:'d41', name:'铜锅涮羊肉',       cat:'other',  cui:'火锅', price:95,  spicy:0, tags:['羊','聚餐','暖','热'],          alg:['羊'],      desc:'清汤铜锅，羊肉配麻酱', hot:75 },
+  { id:'d42', name:'成都冷锅串串',     cat:'other',  cui:'川',   price:45,  spicy:3, tags:['辣','串串','重口','聚餐'],      alg:[],          desc:'串签泡在红油里，香辣过瘾', hot:86 },
+  { id:'d43', name:'广式茶点（虾饺烧卖）', cat:'other', cui:'粤', price:66, spicy:0, tags:['虾','小吃','甜口','精致'],     alg:['虾','麦'], desc:'一盅两件，慢慢吃', hot:67 },
+  { id:'d44', name:'炭火烤串＋凉菜',   cat:'other',  cui:'烧烤', price:45,  spicy:1, tags:['烧烤','串串','夜宵','啤酒'],    alg:[],          desc:'烟火气十足，适合晚上', hot:88 },
+  { id:'d45', name:'轻食鸡胸卷',       cat:'other',  cui:'健康', price:18,  spicy:0, tags:['鸡','快','清淡','凉'],          alg:['鸡','麦'], desc:'边走边吃，五分钟解决', hot:58 }
+];
+
+// 饭店库：cui 擅长菜系，tags 实际经营品类（用于与菜品的口味标签做交集匹配），
+//        avg 人均，rating 评分，delivery 是否外卖，sig 招牌菜 id
+const RESTAURANTS = [
+  { id:'r01', name:'阿婆黄焖鸡·快餐',     area:'张江',     cui:['家常'],                        tags:['家常','鸡','快','猪','蛋','下饭','汤'],                    avg:22,  rating:4.3, delivery:true,  sig:['d01','d03','d20'] },
+  { id:'r02', name:'老弄堂家常菜',         area:'人民广场', cui:['家常'],                        tags:['家常','猪','下饭','咸香','上海','汤','干拌','卤味'],      avg:35,  rating:4.5, delivery:true,  sig:['d02','d11','d23','d36'] },
+  { id:'r03', name:'蜀香小馆',             area:'五角场',   cui:['川'],                          tags:['川','辣','重口','下饭','鸡','猪','串串','火锅'],          avg:38,  rating:4.6, delivery:true,  sig:['d10','d13','d17','d19','d42'] },
+  { id:'r04', name:'陈记兰州牛肉面',       area:'徐家汇',   cui:['西北'],                        tags:['西北','牛','清汤','拉面','干拌','汤','辣'],               avg:22,  rating:4.4, delivery:true,  sig:['d18','d24','d27'] },
+  { id:'r05', name:'一风堂豚骨拉面',       area:'静安寺',   cui:['日'],                          tags:['日式','拉面','猪','浓汤','咖喱','荞麦','凉'],             avg:45,  rating:4.7, delivery:false, sig:['d21','d06','d28'] },
+  { id:'r06', name:'筑地丼屋',             area:'陆家嘴',   cui:['日'],                          tags:['日式','刺身','丼','海鲜','生鲜','寿司','高级','鳗鱼'],    avg:95,  rating:4.6, delivery:false, sig:['d07','d08','d09','d38'] },
+  { id:'r07', name:'粤香烧腊饭店',         area:'中山公园', cui:['粤'],                          tags:['粤','烧腊','猪','甜口','下饭','清汤','虾','汤','煲仔'],   avg:45,  rating:4.5, delivery:true,  sig:['d04','d05','d15','d22'] },
+  { id:'r08', name:'七宝老街小吃铺',       area:'七宝',     cui:['家常','小吃'],                 tags:['家常','小吃','猪','蛋','快','上海','咸香','生煎'],        avg:18,  rating:4.2, delivery:true,  sig:['d03','d11','d29','d36'] },
+  { id:'r09', name:'韩味屋',               area:'大宁',     cui:['韩'],                          tags:['韩','辣','辣酱','芝士','炸','鸡','聚餐','甜辣','热'],     avg:52,  rating:4.4, delivery:true,  sig:['d12','d34','d40'] },
+  { id:'r10', name:'轻食工坊 GREEN',       area:'张江',     cui:['健康'],                        tags:['健康','清淡','健身','鸡','沙拉','凉','轻食','低卡'],      avg:36,  rating:4.5, delivery:true,  sig:['d16','d39','d45'] },
+  { id:'r11', name:'螺蛳粉·老友铺',        area:'虹桥',     cui:['小吃'],                        tags:['小吃','酸辣','粉','重口','辣','汤','米线','自由搭配'],    avg:24,  rating:4.3, delivery:true,  sig:['d25','d29','d31','d33'] },
+  { id:'r12', name:'滇味米线',             area:'五角场',   cui:['小吃','家常'],                 tags:['米线','汤','鲜','热','暖','家常','粉'],                   avg:30,  rating:4.4, delivery:true,  sig:['d31','d26'] },
+  { id:'r13', name:'潮汕牛肉火锅·张江店',  area:'张江',     cui:['火锅'],                        tags:['火锅','牛','聚餐','鲜','热','涮'],                        avg:118, rating:4.6, delivery:false, sig:['d35','d41'] },
+  { id:'r14', name:'铜锅涮·老北京',        area:'静安寺',   cui:['火锅'],                        tags:['火锅','羊','聚餐','暖','热','牛','麻酱'],                 avg:98,  rating:4.5, delivery:false, sig:['d41','d35'] },
+  { id:'r15', name:'冷锅串串香',           area:'五角场',   cui:['川','烧烤'],                   tags:['川','烧烤','辣','串串','重口','夜宵','啤酒'],            avg:48,  rating:4.2, delivery:true,  sig:['d42','d44'] },
+  { id:'r16', name:'蟹粉世家',             area:'静安寺',   cui:['江浙'],                        tags:['江浙','海鲜','蟹','高级','鲜','面','拌饭'],               avg:128, rating:4.7, delivery:false, sig:['d14','d30'] },
+  { id:'r17', name:'广式茶点轩',           area:'中山公园', cui:['粤'],                          tags:['粤','虾','小吃','甜口','精致','蒸','茶点'],               avg:68,  rating:4.5, delivery:true,  sig:['d43','d04'] },
+  { id:'r18', name:'汉堡工坊',             area:'虹桥',     cui:['西'],                          tags:['西','快餐','炸','薯条','汉堡','快','可乐'],               avg:35,  rating:4.1, delivery:true,  sig:['d37'] },
+  { id:'r19', name:'意面小馆 Tavola',      area:'陆家嘴',   cui:['西'],                          tags:['西餐','意面','番茄','芝士','干拌','披萨'],                avg:58,  rating:4.5, delivery:false, sig:['d32','d46','d47'] },
+  { id:'r20', name:'炭火烤串屋',           area:'七宝',     cui:['烧烤'],                        tags:['烧烤','串串','夜宵','啤酒','辣','凉菜'],                 avg:45,  rating:4.4, delivery:true,  sig:['d44'] },
+  { id:'r21', name:'张江美食广场（多档口）',area:'张江',    cui:['家常','小吃','川','西','健康'], tags:['家常','小吃','川','西','健康','快','下饭','辣','猪','鸡','蛋','汤'], avg:30, rating:4.0, delivery:true, sig:[] }
+];
+
+// 今日想吃标签（第一行偏口味，第二行偏状态）
+const CRAVE_TAGS = ['想吃辣','清淡点','有汤的','干拌/无汤','重口过瘾','健康低卡','热乎的','凉的/解腻',
+                    '想吃肉','多吃菜','炸物快乐','生鲜/刺身','甜口','酸辣','想吃烧烤','一个人随便吃','和朋友一起吃'];
+
+const ALLERGIES = ['香菜','花生','海鲜/虾蟹','牛肉','羊肉','猪肉','鸡肉','鸡蛋','豆制品','乳制品','麸质/面食'];
+
+const TASTE_TAGS = ['清淡','重口','爱喝汤','爱干拌','嗜辣','偏爱甜口','喜欢酸辣','碳水快乐','健康优先','下饭至上','爱吃烧烤','爱生鲜'];
+
+const LANDMARKS = ['张江高科地铁站','上海人民广场','五角场万达','静安寺','徐家汇','陆家嘴','中山公园','大宁国际','虹桥火车站','七宝老街'];
+
+const CUISINE_KEYWORDS = {
+  '张江':['张江','浦东','金科路','广兰路'],
+  '人民广场':['人民广场','黄浦','南京东路','人民公园'],
+  '五角场':['五角场','杨浦','复旦','财大'],
+  '徐家汇':['徐家汇','徐汇','华山路'],
+  '静安寺':['静安寺','静安','南京西路'],
+  '陆家嘴':['陆家嘴','世纪大道','陆家嘴环路'],
+  '中山公园':['中山公园','长宁','愚园路'],
+  '大宁':['大宁','闸北','彭浦'],
+  '虹桥':['虹桥','闵行','古北'],
+  '七宝':['七宝','闵行','漕河泾']
+};
+
+/* ------------------------------ 2. 状态与存储 ------------------------------ */
+
+const LS_PROFILE = 'eatAgent.profile.v1';
+const LS_SETTINGS = 'eatAgent.settings.v1';
+const SETTINGS_VERSION = 2;   // 换默认服务商时递增，避免旧配置把新默认值顶掉
+
+// 服务商预设（均为 OpenAI 兼容的 /chat/completions 接口）
+const PROVIDERS = {
+  deepseek:{
+    label:'DeepSeek',
+    base:'https://api.deepseek.com/v1',
+    models:[
+      { id:'deepseek-chat', note:'快（约 1-2 秒），推荐日常使用' },
+      { id:'deepseek-v4-pro', note:'更强推理，带思考链，较慢（约 10-25 秒）' },
+      { id:'deepseek-flash', note:'轻量快速，带思考链' }
+    ]
+  },
+  openai:{
+    label:'OpenAI',
+    base:'https://api.openai.com/v1',
+    models:[
+      { id:'gpt-4o-mini', note:'便宜快速' },
+      { id:'gpt-4o', note:'效果更好、更贵' }
+    ]
+  },
+  custom:{ label:'自定义', base:'', models:[] }
+};
+
+// 预填的 DeepSeek 密钥（只在本机演示用；公开分享前请清除）
+const DEFAULT_KEY = '';   // 分享版：不预填任何密钥，使用者填自己的
+
+const state = {
+  tier:null,          // small | mid | good
+  budget:60,          // 心理预算上限
+  cat:null,           // rice | noodle | other
+  craveTags:[],
+  craveText:'',
+  address:'',
+  mode:'delivery',
+  spiceMax:3,
+  profile:{ allergies:[], tastes:[], likes:{}, dislikes:{}, history:[] },
+  settings:{ v:SETTINGS_VERSION, enabled:'off', provider:'deepseek', model:'deepseek-chat', base:PROVIDERS.deepseek.base, key:DEFAULT_KEY },
+  lastResult:null,
+  seed:1,
+  running:false
+};
+
+function loadStore(){
+  try{
+    const p = JSON.parse(localStorage.getItem(LS_PROFILE) || 'null');
+    if(p && typeof p === 'object'){
+      state.profile = Object.assign(state.profile, p);
+      state.profile.likes = p.likes || {};
+      state.profile.dislikes = p.dislikes || {};
+      state.profile.history = Array.isArray(p.history) ? p.history : [];
+      state.profile.allergies = Array.isArray(p.allergies) ? p.allergies : [];
+      state.profile.tastes = Array.isArray(p.tastes) ? p.tastes : [];
+    }
+    const s = JSON.parse(localStorage.getItem(LS_SETTINGS) || 'null');
+    // 版本不一致时丢弃旧配置，保证新的默认服务商能生效
+    if(s && typeof s === 'object' && s.v === SETTINGS_VERSION) state.settings = Object.assign(state.settings, s);
+  }catch(e){ /* 忽略损坏数据 */ }
+}
+function saveProfile(){
+  try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+}
+function saveSettings(){
+  try{ localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings)); }catch(e){}
+}
+
+/* ------------------------------ 3. 工具函数 ------------------------------ */
+
+const $ = (sel) => document.querySelector(sel);
+
+function toast(msg){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+// 稳定哈希：同一地址永远得到同一结果，方便演示与复现
+function hashStr(str){
+  let h = 2166136261;
+  for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return Math.abs(h);
+}
+// 伪随机：种子 + 字符串 → [0,1)
+function rand(seed, key){
+  return (hashStr(key + '#' + seed) % 100000) / 100000;
+}
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function pickTier(){ return TIERS.find(t=>t.id===state.tier) || null; }
+function dishById(id){ return DISHES.find(d=>d.id===id); }
+function catName(id){ const c = CATS.find(c=>c.id===id); return c ? c.name : ''; }
+
+function currentPeriod(){
+  const h = new Date().getHours();
+  if(h >= 5 && h < 10)  return { id:'breakfast', label:'早上',   need:['快','清淡','汤','蛋'] };
+  if(h >= 10 && h < 15) return { id:'lunch',     label:'午餐',   need:['下饭','扎实','热'] };
+  if(h >= 15 && h < 17) return { id:'teatime',   label:'下午',   need:['小吃','清淡','甜口'] };
+  if(h >= 17 && h < 22) return { id:'dinner',    label:'晚餐',   need:['热','聚餐','肉'] };
+  return { id:'night', label:'夜宵', need:['烧烤','辣','热','啤酒'] };
+}
+
+/* ------------------------------ 4. 距离工具（模拟定位） ------------------------------ */
+
+// 从地址文本推断所在商圈
+function detectArea(address){
+  const a = (address || '').trim();
+  if(!a) return null;
+  for(const area in CUISINE_KEYWORDS){
+    for(const kw of CUISINE_KEYWORDS[area]){
+      if(a.indexOf(kw) !== -1) return area;
+    }
+  }
+  return null;
+}
+
+// 返回 {km, areaMatched}。演示实现：地址哈希 → 稳定距离；命中商圈大幅拉近
+function distanceTo(restaurant, address){
+  const area = detectArea(address);
+  const sameArea = !!area && restaurant.area === area;
+  if(sameArea){
+    return { km: +(0.3 + rand(state.seed, 'near' + restaurant.id) * 0.9).toFixed(1), areaMatched:true };
+  }
+  const base = 0.8 + rand(state.seed, 'far' + restaurant.id + address.length) * 3.0;
+  return { km: +base.toFixed(1), areaMatched:false };
+}
+
+/* ------------------------------ 5. 智能体核心：打分 ------------------------------ */
+
+const ALG_MAP = {
+  '香菜':['香菜'], '花生':['花生'], '海鲜/虾蟹':['海鲜','虾'], '牛肉':['牛'], '羊肉':['羊'],
+  '猪肉':['猪'], '鸡肉':['鸡'], '鸡蛋':['蛋'], '豆制品':['豆'], '乳制品':['乳'], '麸质/面食':['麦']
+};
+
+// 忌口：把用户选择的忌口词展开成食材标签
+function allergyTags(){
+  const out = new Set();
+  state.profile.allergies.forEach(a => (ALG_MAP[a]||[]).forEach(t => out.add(t)));
+  return out;
+}
+
+// 把「生鲜/刺身」「想吃辣」这类用户语言，转成可用于匹配的关键词数组
+function craveKeys(tag){
+  const cleaned = String(tag)
+    .replace(/^(想吃|偏爱|爱|多吃|来点|有点|想要)/,'')
+    .replace(/[（(][^)）]*[)）]/g,'');
+  const keys = cleaned.split(/[\/／、,，]/).map(s=>s.trim()).filter(Boolean);
+  // 同义扩展：让口语标签也能命中菜品库标签
+  const extra = [];
+  if(/朋友|一起|多人|聚餐/.test(tag)) extra.push('聚餐');
+  if(/一个人|随便|不讲究/.test(tag)) extra.push('快');
+  if(/解腻|清爽/.test(tag)) extra.push('清淡');
+  if(/过瘾|够味|上头/.test(tag)) extra.push('重口');
+  return keys.concat(extra);
+}
+
+function scoreDish(dish, ctx){
+  const tier = pickTier();
+  const period = currentPeriod();
+  const reasons = [];
+  const parts = {};
+
+  // ① 预算匹配：在档位区间内且不超过心理预算 → 满分
+  const lo = tier ? tier.min : 0;
+  const hi = Math.min(tier ? tier.max : 999, state.budget);
+  let budgetFit = 0;
+  if(dish.price <= hi && dish.price >= Math.max(0, lo - 6)){
+    budgetFit = 26;
+    reasons.push(`¥${dish.price} 正好落在「${tier.name}」区间里`);
+  }else if(dish.price < Math.max(0, lo - 6)){
+    // 比档位低得越多，越不符合这次「我想吃多大一口」的意图
+    const under = Math.max(0, lo - 6) - dish.price;
+    budgetFit = +clamp(12 - under * 0.28, -6, 12).toFixed(1);
+    reasons.push(`¥${dish.price} 比「${tier.name}」档位低一些，更省但不解馋`);
+  }else{
+    const over = dish.price - hi;
+    budgetFit = clamp(20 - over * 1.1, 0, 20);
+    reasons.push(`¥${dish.price} 略微超出心理预算`);
+  }
+  parts['预算匹配'] = { raw:budgetFit, max:26 };
+
+  // ①b 档位调性：吃好饭要"值得"，小饭要"快"
+  let tierVibe = 0;
+  if(tier){
+    if(tier.id === 'good'){
+      if(dish.tags.includes('高级')) tierVibe += 6;
+      if(dish.price >= lo) tierVibe += 2;
+      if(tierVibe) reasons.push('这道菜的水准对得起「吃好饭」');
+    }else if(tier.id === 'mid'){
+      if(['下饭','扎实','聚餐','鲜','热'].some(t=>dish.tags.includes(t))) tierVibe += 4;
+    }else{
+      if(dish.tags.includes('快')) tierVibe += 5;
+      if(dish.price <= 20) tierVibe += 2;
+    }
+  }
+  parts['档位调性'] = { raw:clamp(tierVibe,0,8), max:8 };
+
+  // ② 今日想吃：标签 / 自由文本命中
+  let crave = 0;
+  const hitTags = [];
+  state.craveTags.forEach(tag => {
+    const keys = craveKeys(tag);
+    let best = 0;
+    keys.forEach(key => {
+      if(!key) return;
+      if(dish.name.indexOf(key) !== -1) best = Math.max(best, 12);
+      // 正向包含总是成立；反向包含只允许 2 字以上的标签，避免单字（如"鲜"）误匹配
+      else if(dish.tags.some(t => t.indexOf(key) !== -1 || (t.length >= 2 && key.indexOf(t) !== -1))) best = Math.max(best, 9);
+      else if(dish.desc.indexOf(key) !== -1 || dish.cui.indexOf(key) !== -1) best = Math.max(best, 5);
+    });
+    if(best){ crave += best; hitTags.push(tag); }
+  });
+  const words = (state.craveText || '').split(/[\s,，、。；;／/]+/).filter(w=>w.length>=2);
+  const textHits = [];
+  words.forEach(w => {
+    const hit = dish.name.indexOf(w) !== -1 || dish.tags.some(t=>t.indexOf(w)!==-1) || dish.desc.indexOf(w)!==-1 || dish.cui.indexOf(w)!==-1;
+    if(hit){ crave += 7; textHits.push(w); }
+  });
+  crave = clamp(crave, 0, 26);
+  if(hitTags.length) reasons.push(`命中你今天想吃的：${hitTags.join('、')}`);
+  if(textHits.length) reasons.push(`你说的「${textHits.join('、')}」这道菜对得上`);
+  parts['今日想吃'] = { raw:crave, max:26 };
+
+  // ③ 长期口味画像（含显式偏好 + 历史点赞/点踩）
+  let pref = 0;
+  const likedHits = [];
+  dish.tags.forEach(t => {
+    if(state.profile.likes[t]) { pref += 3 * Math.min(2, state.profile.likes[t]); likedHits.push(t); }
+    if(state.profile.dislikes[t]) { pref -= 8 * Math.min(2, state.profile.dislikes[t]); }
+  });
+  state.profile.tastes.forEach(taste => {
+    const map = { '清淡':'清淡','重口':'重口','爱喝汤':'汤','爱干拌':'干拌','嗜辣':'辣','偏爱甜口':'甜口','喜欢酸辣':'酸辣','碳水快乐':'下饭','健康优先':'健康','下饭至上':'下饭','爱吃烧烤':'烧烤','爱生鲜':'生鲜' };
+    const key = map[taste];
+    if(key && (dish.tags.some(x=>x.indexOf(key)!==-1) || dish.desc.indexOf(key)!==-1)){ pref += 5; }
+  });
+  pref = clamp(pref, -26, 22);
+  if(likedHits.length) reasons.push(`你以前喜欢：${[...new Set(likedHits)].join('、')}`);
+  parts['口味画像'] = { raw:pref, max:22 };
+
+  // ④ 辣度适配
+  let spiceFit = 0;
+  if(dish.spicy <= state.spiceMax){
+    spiceFit = dish.spicy >= 2 && state.spiceMax >= 2 ? 8 : 5;
+  }else{
+    spiceFit = -14 * (dish.spicy - state.spiceMax);
+    if(state.spiceMax === 0) spiceFit -= 8;
+  }
+  parts['辣度适配'] = { raw:clamp(spiceFit,-30,8), max:8 };
+
+  // ⑤ 时段契合
+  let timeFit = 0;
+  const needHit = period.need.filter(n => dish.tags.some(t=>t.indexOf(n)!==-1) || dish.name.indexOf(n)!==-1 || dish.desc.indexOf(n)!==-1);
+  timeFit = Math.min(10, needHit.length * 4);
+  if(period.id === 'night' && dish.cat === 'other' && dish.tags.includes('烧烤')) timeFit += 3;
+  if(period.id === 'breakfast' && dish.tags.includes('快')) timeFit += 3;
+  parts['时段契合'] = { raw:clamp(timeFit,0,12), max:12 };
+
+  // ⑥ 新鲜感 / 避免重复
+  const recent = state.profile.history.filter(h => Date.now() - h.ts < 7*24*3600*1000);
+  const eatenBefore = state.profile.history.some(h => h.id === dish.id);
+  const eatenRecent = recent.some(h => h.id === dish.id);
+  let novelty = eatenRecent ? -22 : (eatenBefore ? -4 : 9);
+  if(eatenRecent) reasons.push('最近刚吃过，已自动降权（换点新鲜的）');
+  parts['新鲜感'] = { raw:clamp(novelty,-22,10), max:10 };
+
+  // ⑦ 大众口碑（热度）
+  const hotFit = dish.hot / 16;
+  parts['大众口碑'] = { raw:+hotFit.toFixed(1), max:6 };
+
+  // ⑧ 随机探索（让每次"换一批"有变化，但不会盖过核心信号）
+  const explore = (rand(state.seed, 'x' + dish.id) - 0.5) * 6;
+  parts['随机探索'] = { raw:+explore.toFixed(1), max:3 };
+
+  const total = Object.values(parts).reduce((s,p)=>s+p.raw, 0);
+  return { dish, total:+total.toFixed(1), parts, reasons, hitTags, textHits, eatenRecent };
+}
+
+function scoreRestaurant(restaurant, dish, ctx){
+  const d = distanceTo(restaurant, state.address);
+  const reasons = [];
+  const parts = {};
+
+  // 距离：越近越好（演示用模拟距离）
+  const distScore = 34 * clamp(1 - d.km / 4.5, 0, 1);
+  parts['距离'] = { raw:+distScore.toFixed(1), max:34 };
+  if(d.areaMatched){ parts['距离'].raw = Math.min(34, parts['距离'].raw + 6); reasons.push(`就在你写的「${restaurant.area}」商圈内`); }
+
+  // 评分
+  const ratingScore = clamp((restaurant.rating - 4.0) * 26, 0, 24);
+  parts['评分'] = { raw:+ratingScore.toFixed(1), max:24 };
+  if(restaurant.rating >= 4.5) reasons.push(`评分 ${restaurant.rating}，口碑不错`);
+
+  // 人均是否匹配预算
+  const gap = Math.abs(restaurant.avg - dish.price);
+  const priceScore = clamp(18 - gap * 0.5, 0, 18);
+  parts['人均匹配'] = { raw:+priceScore.toFixed(1), max:18 };
+
+  // 是不是招牌菜
+  const isSignature = restaurant.sig.includes(dish.id);
+  parts['招牌加成'] = { raw: isSignature ? 12 : (restaurant.cui.includes(dish.cui) ? 7 : 2), max:12 };
+  if(isSignature) reasons.push('这道是店里的招牌菜');
+
+  // 用餐方式
+  const modeOk = state.mode === 'delivery' ? restaurant.delivery : true;
+  parts['方式匹配'] = { raw: modeOk ? 8 : 0, max:8 };
+  if(state.mode === 'delivery' && restaurant.delivery) reasons.push('支持外卖配送');
+  if(state.mode === 'dinein') reasons.push('适合到店吃，热菜口感更好');
+
+  const total = Object.values(parts).reduce((s,p)=>s+p.raw, 0);
+  const eta = state.mode === 'delivery' ? Math.round(12 + d.km * 9) : Math.round(d.km * 13);
+  return { restaurant, total:+total.toFixed(1), parts, reasons, km:d.km, eta };
+}
+
+// 菜—店匹配：招牌菜直接命中；否则要求菜系一致 + 经营品类标签有交集
+function restaurantServes(restaurant, dish){
+  if(restaurant.sig.includes(dish.id)) return true;
+  if(!restaurant.cui.includes(dish.cui)) return false;
+  // 标签交集：单字标签（如"西""辣"）只允许完全相同，避免"西"误配"西餐"
+  return (restaurant.tags || []).some(t => dish.tags.some(dt =>
+    dt === t || (t.length >= 2 && dt.indexOf(t) !== -1) || (dt.length >= 2 && t.indexOf(dt) !== -1)
+  ));
+}
+
+/* ------------------------------ 6. 智能体主流程 ------------------------------ */
+
+function hardFilter(dish){
+  const bad = allergyTags();
+  const allergyHit = dish.alg.filter(a => bad.has(a));
+  if(allergyHit.length) return { ok:false, why:'忌口：' + allergyHit.map(a=>ingredientName(a)).join('、') };
+  if(state.spiceMax === 0 && dish.spicy >= 2) return { ok:false, why:'太辣（你不吃辣）' };
+  if(state.spiceMax === 1 && dish.spicy >= 3) return { ok:false, why:'太辣（只吃微辣）' };
+  return { ok:true };
+}
+function ingredientName(tag){
+  const back = {};
+  for(const k in ALG_MAP) ALG_MAP[k].forEach(t => back[t] = k);
+  return back[tag] || tag;
+}
+
+function recommend(){
+  const tier = pickTier();
+  const pool = DISHES.filter(d => d.cat === state.cat);
+  const inBudget = pool.filter(d => d.price <= Math.min(tier.max, state.budget) + 8);
+  const passed = [], filtered = [];
+  inBudget.forEach(d => {
+    const f = hardFilter(d);
+    if(f.ok) passed.push(d); else filtered.push({ dish:d, why:f.why });
+  });
+  const scored = passed.map(d => scoreDish(d, {})).sort((a,b)=>b.total-a.total);
+  return { pool, inBudget, passed, filtered, scored };
+}
+
+function recommendRestaurants(dish){
+  const candidates = RESTAURANTS.filter(r => restaurantServes(r, dish));
+  const preferred = state.mode === 'delivery' ? candidates.filter(r => r.delivery) : candidates;
+  // 外卖模式下如果没有任何可配送的店，就退回堂食候选，并给出提示
+  const useList = preferred.length ? preferred : candidates;
+  const list = useList.map(r => scoreRestaurant(r, dish, {})).sort((a,b)=>b.total-a.total);
+  const note = (state.mode === 'delivery' && !preferred.length && candidates.length)
+    ? '这道菜目前只有堂食店能做，已自动按到店方案给你排序' : '';
+  return { list, note };
+}
+
+/* ------------------------------ 7. 渲染 ------------------------------ */
+
+function renderTiers(){
+  const box = $('#tierList');
+  box.innerHTML = '';
+  TIERS.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'tier';
+    b.type = 'button';
+    b.setAttribute('aria-pressed', String(state.tier === t.id));
+    b.innerHTML =
+      '<span class="emoji">' + t.emoji + '</span>' +
+      '<span class="t-main">' +
+        '<span class="t-name">' + t.name +
+          '<span class="t-price">' + (t.min === 0 ? '¥' + t.max + ' 以内' : '¥' + t.min + '–' + (t.max >= 200 ? t.max + '+' : t.max)) + '</span>' +
+        '</span>' +
+        '<span class="t-desc">' + t.desc + '</span>' +
+      '</span>' +
+      '<span class="t-check">✓</span>';
+    b.onclick = () => {
+      state.tier = t.id;
+      state.budget = t.max >= 200 ? 150 : t.max;
+      $('#budgetRange').value = state.budget;
+      renderTiers(); renderBudgetNote(); updateSummary(); revealNext();
+    };
+    box.appendChild(b);
+  });
+}
+
+function renderBudgetNote(){
+  const t = pickTier();
+  $('#budgetLabel').textContent = '¥' + state.budget;
+  if(!t){ $('#tierNote').textContent = '先选上面三个档位之一。'; return; }
+  const eff = Math.min(t.max, state.budget);
+  $('#tierNote').textContent = '当前档位「' + t.name + '」（' +
+    (t.min===0 ? '¥'+t.max+' 以内' : '¥'+t.min+'–'+t.max) + '），实际会优先推荐 ¥' + eff + ' 以内的选择。';
+}
+
+function renderCats(){
+  const box = $('#catList');
+  box.innerHTML = '';
+  CATS.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'cat'; b.type = 'button';
+    b.setAttribute('aria-pressed', String(state.cat === c.id));
+    b.innerHTML = '<span class="c-emoji">' + c.emoji + '</span><span class="c-name">' + c.name + '</span><span class="c-sub">' + c.sub + '</span>';
+    b.onclick = () => { state.cat = c.id; renderCats(); updateSummary(); revealNext(); };
+    box.appendChild(b);
+  });
+}
+
+function renderChips(){
+  const crave = $('#craveList'); crave.innerHTML = '';
+  CRAVE_TAGS.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type='button';
+    b.textContent = t;
+    b.setAttribute('aria-pressed', String(state.craveTags.includes(t)));
+    b.onclick = () => {
+      const i = state.craveTags.indexOf(t);
+      if(i === -1) state.craveTags.push(t); else state.craveTags.splice(i,1);
+      renderChips(); updateSummary();
+    };
+    crave.appendChild(b);
+  });
+
+  const allergy = $('#allergyList'); allergy.innerHTML = '';
+  ALLERGIES.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'chip danger'; b.type='button';
+    b.textContent = t;
+    b.setAttribute('aria-pressed', String(state.profile.allergies.includes(t)));
+    b.onclick = () => {
+      const i = state.profile.allergies.indexOf(t);
+      if(i === -1) state.profile.allergies.push(t); else state.profile.allergies.splice(i,1);
+      saveProfile(); renderChips();
+    };
+    allergy.appendChild(b);
+  });
+
+  const taste = $('#tasteList'); taste.innerHTML = '';
+  TASTE_TAGS.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type='button';
+    b.textContent = t;
+    b.setAttribute('aria-pressed', String(state.profile.tastes.includes(t)));
+    b.onclick = () => {
+      const i = state.profile.tastes.indexOf(t);
+      if(i === -1) state.profile.tastes.push(t); else state.profile.tastes.splice(i,1);
+      saveProfile(); renderChips(); renderProfile();
+    };
+    taste.appendChild(b);
+  });
+
+  const quick = $('#addrQuick'); quick.innerHTML = '';
+  LANDMARKS.forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'addr-pill'; b.type='button'; b.textContent = a;
+    b.onclick = () => { state.address = a; $('#addr').value = a; updateSummary(); };
+    quick.appendChild(b);
+  });
+}
+
+function renderProfile(){
+  const likes = Object.entries(state.profile.likes).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const dislikes = Object.entries(state.profile.dislikes).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  $('#pLikes').innerHTML = likes.length ? likes.map(([k,v])=>'<span class="mini">'+k+' ×'+v+'</span>').join('') : '<span class="mini grey">还没有</span>';
+  $('#pDislikes').innerHTML = dislikes.length ? dislikes.map(([k,v])=>'<span class="mini red">'+k+' ×'+v+'</span>').join('') : '<span class="mini grey">还没有</span>';
+  const hist = state.profile.history.slice(-8).reverse();
+  $('#pHistory').innerHTML = hist.length
+    ? hist.map(h => {
+        const d = dishById(h.id);
+        const days = Math.floor((Date.now()-h.ts)/(24*3600*1000));
+        return '<span class="mini grey">' + (d?d.name:h.id) + (days<=0?' · 今天':(days===1?' · 昨天':' · '+days+'天前')) + '</span>';
+      }).join('')
+    : '<span class="mini grey">还没有记录</span>';
+  $('#devMemory').textContent = JSON.stringify(state.profile, null, 2);
+}
+
+function updateSummary(){
+  const t = pickTier();
+  const bits = [];
+  if(t) bits.push(t.emoji + ' ' + t.name + '（≤¥' + Math.min(t.max, state.budget) + '）');
+  if(state.cat) bits.push(CATS.find(c=>c.id===state.cat).emoji + ' ' + catName(state.cat));
+  if(state.craveTags.length) bits.push('想：' + state.craveTags.slice(0,2).join('/') + (state.craveTags.length>2?'…':''));
+  if(state.address) bits.push('📍' + state.address.slice(0,10) + (state.address.length>10?'…':''));
+
+  const done = [state.tier, state.cat].filter(Boolean).length;
+  $('#sumMain').textContent = bits.length ? bits[0] + (bits[1] ? ' · ' + bits[1] : '') : '请先选择预算档位';
+  $('#sumSub').textContent = bits.length ? bits.slice(2).join(' · ') || (done + ' / 3 步已完成') : '1 / 3 步';
+  $('#goBtn').disabled = !(state.tier && state.cat);
+}
+
+function revealNext(){
+  if(state.tier) $('#secCat').classList.remove('hidden');
+  if(state.cat) $('#secCrave').classList.remove('hidden');
+  if(state.cat && !revealNext._scrolled){
+    revealNext._scrolled = true;
+    setTimeout(()=>$('#secCrave').scrollIntoView({behavior:'smooth', block:'start'}), 120);
+  }
+}
+
+/* -------- Agent 思考过程动画 -------- */
+
+function traceReset(){ $('#traceList').innerHTML=''; $('#traceCard').classList.add('show'); }
+function traceAdd(title, detail, status){
+  const li = document.createElement('li');
+  li.className = status || 'done';
+  li.innerHTML = '<span class="dot">' + (status==='active' ? '⋯' : '✓') + '</span>' +
+                 '<span class="t-body"><span class="t-title">' + title + '</span>' +
+                 (detail ? '<span class="t-detail">' + detail + '</span>' : '') + '</span>';
+  $('#traceList').appendChild(li);
+  requestAnimationFrame(()=>li.classList.add('in'));
+  return li;
+}
+function traceUpdate(li, title, detail, status){
+  if(!li) return;
+  li.className = 'in ' + (status || 'done');
+  li.querySelector('.dot').textContent = status === 'active' ? '⋯' : '✓';
+  li.querySelector('.t-title').textContent = title;
+  const d = li.querySelector('.t-detail');
+  if(d) d.textContent = detail || '';
+}
+const sleep = (ms) => new Promise(r=>setTimeout(r, ms));
+
+/* -------- 结果渲染 -------- */
+
+function scoreBars(parts){
+  const order = ['预算匹配','档位调性','今日想吃','口味画像','辣度适配','时段契合','新鲜感','大众口碑','随机探索'];
+  return '<div class="scorebar">' + order.filter(k=>parts[k]).map(k => {
+    const p = parts[k];
+    const pct = clamp((p.raw / (p.max||1)) * 100, 2, 100);
+    const sign = p.raw < 0 ? '负向' : '';
+    return '<div class="row"><span>' + k + '</span>' +
+           '<span class="track"><span class="fill" style="width:' + pct + '%"></span></span>' +
+           '<span>' + (p.raw>0?'+':'') + p.raw + '</span></div>';
+  }).join('') + '</div>';
+}
+
+function dishEmoji(dish){
+  if(dish.cat === 'rice') return '🍚';
+  if(dish.cat === 'noodle') return '🍜';
+  return '🍢';
+}
+
+function renderResult(rec, rest, extra, alternatives){
+  const box = $('#result');
+  const best = rest.list[0];
+  const otherShops = rest.list.slice(1,3);
+  const dish = rec.dish;
+  const etaText = state.mode === 'delivery' ? ('约 ' + best.eta + ' 分钟送达') : ('步行/骑行约 ' + best.eta + ' 分钟');
+
+  box.innerHTML =
+    '<div class="card-main">' +
+      '<div class="card-head">' +
+        '<div class="kicker">AI 今日推荐 · ' + catName(state.cat) + ' · ' + currentPeriod().label + '</div>' +
+        '<div class="dish">' + dishEmoji(dish) + ' ' + dish.name + '<span class="price-tag">¥' + dish.price + '</span></div>' +
+        '<div class="meta">' + dish.cui + ' · ' + dish.desc + '</div>' +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div class="kv"><span class="k">推荐店铺</span><span class="v"><b>' + best.restaurant.name + '</b>（' + best.restaurant.area + '）</span></div>' +
+        '<div class="kv"><span class="k">距离</span><span class="v">' + best.km + ' km ｜ ' + etaText + '</span></div>' +
+        '<div class="kv"><span class="k">店铺评分</span><span class="v">' + best.restaurant.rating + ' 分 ｜ 人均 ¥' + best.restaurant.avg + '</span></div>' +
+        '<div class="kv"><span class="k">综合得分</span><span class="v">菜品 ' + rec.total + ' 分 ＋ 店铺 ' + best.total + ' 分</span></div>' +
+        '<div class="why">' +
+          '<div class="w-title">为什么是它</div>' +
+          '<ul>' + [...rec.reasons, ...best.reasons].slice(0,6).map(r=>'<li>' + r + '</li>').join('') + '</ul>' +
+        '</div>' +
+        scoreBars(rec.parts) +
+        (extra ? '<div class="why" style="margin-top:12px"><div class="w-title">🤖 大模型点评</div><div id="llmText">' + extra + '</div></div>' : '<div class="why hidden" id="llmWrap" style="margin-top:12px"><div class="w-title">🤖 大模型点评</div><div id="llmText"></div></div>') +
+        '<div class="actions">' +
+          '<button class="btn" id="acceptBtn">就吃这个</button>' +
+          '<button class="btn ghost" id="rerollBtn">换一批</button>' +
+          '<button class="btn ghost" id="dislikeBtn">不喜欢</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    (otherShops.length
+      ? '<div class="alt-list"><div class="mini-title" style="color:#8b7a6c">同一道菜的其他店</div>' +
+        otherShops.map((a,i) =>
+          '<div class="alt"><span class="a-emoji">' + (i===0?'🥈':'🥉') + '</span>' +
+          '<span class="a-main"><span class="a-name">' + a.restaurant.name + '</span>' +
+          '<span class="a-sub">' + a.km + ' km · ¥' + a.restaurant.avg + ' 人均 · ' + (state.mode==='delivery'?'约'+a.eta+'分钟送达':'到店约'+a.eta+'分钟') + '</span></span>' +
+          '<span class="a-score">' + a.total + '<span>店铺分</span></span></div>'
+        ).join('') + '</div>'
+      : '') +
+    (alternatives && alternatives.length
+      ? '<div class="alt-list"><div class="mini-title" style="color:#8b7a6c">换个口味也行（备选菜品）</div>' +
+        alternatives.map((alt,i) =>
+          '<div class="alt"><span class="a-emoji">' + dishEmoji(alt.rec.dish) + '</span>' +
+          '<span class="a-main"><span class="a-name">' + alt.rec.dish.name + ' · ¥' + alt.rec.dish.price + '</span>' +
+          '<span class="a-sub">' + (alt.shop ? alt.shop.restaurant.name + ' · ' + alt.shop.km + 'km · ' + (state.mode==='delivery'?'约'+alt.shop.eta+'分钟送达':'到店约'+alt.shop.eta+'分钟') : '暂无合适店铺') + '</span></span>' +
+          '<span class="a-score">' + alt.rec.total + '<span>菜品分</span></span></div>'
+        ).join('') + '</div>'
+      : '') +
+    (rest.note ? '<p class="note">' + rest.note + '</p>' : '');
+
+  box.classList.add('show');
+
+  $('#acceptBtn').onclick = () => acceptDish(dish);
+  $('#rerollBtn').onclick = () => { state.seed++; run(); };
+  $('#dislikeBtn').onclick = () => dislikeDish(dish);
+}
+
+function renderEmpty(msg){
+  $('#result').innerHTML = '<div class="card-main"><div class="empty">' + msg + '</div></div>';
+  $('#result').classList.add('show');
+}
+
+/* ------------------------------ 8. 记忆学习 ------------------------------ */
+
+function bump(map, key, delta){
+  map[key] = (map[key] || 0) + delta;
+  if(map[key] <= 0) delete map[key];
+}
+
+function acceptDish(dish){
+  dish.tags.forEach(t => bump(state.profile.likes, t, 1));
+  state.profile.history.push({ id:dish.id, ts:Date.now(), price:dish.price });
+  if(state.profile.history.length > 60) state.profile.history = state.profile.history.slice(-60);
+  saveProfile(); renderProfile();
+  toast('已记住：你喜欢「' + dish.tags.slice(0,3).join('、') + '」');
+}
+
+function dislikeDish(dish){
+  dish.tags.forEach(t => bump(state.profile.dislikes, t, 1));
+  saveProfile(); renderProfile();
+  toast('好的，已把「' + dish.tags.slice(0,2).join('、') + '」记为不喜欢，重新挑');
+  setTimeout(()=>{ state.seed++; run(); }, 420);
+}
+
+/* ------------------------------ 9. 可选：调用真实大模型 ------------------------------ */
+
+const SYSTEM_PROMPT =
+  '你是一名懂吃的美食决策智能体。用户会给你：预算档位、食物类型、今日口味、地址、' +
+  '以及系统已按规则打分排序好的候选菜品与饭店（含价格、距离、评分、命中理由）。\n' +
+  '要求：\n' +
+  '1) 用中文给出 2-3 句推荐，语气像贴心的朋友，不要用列表；\n' +
+  '2) 必须尊重候选里的价格、距离、评分数字，不要编造数据；\n' +
+  '3) 如果候选里有更合适的，可以改推第一名之后的那家，但要说清理由；\n' +
+  '4) 控制在 90 字以内；\n' +
+  '5) 直接输出推荐语本身，不要复述题目、不要展开推理过程，一次给出结论。';
+
+const TOOL_SCHEMA = {
+  name:'decide_meal',
+  description:'根据预算档位、食物类型、今日口味、用户画像与地址，返回菜品与饭店推荐',
+  parameters:{
+    type:'object',
+    properties:{
+      tier:{ type:'string', enum:['small','mid','good'], description:'预算档位，按金额界定' },
+      category:{ type:'string', enum:['rice','noodle','other'] },
+      craving:{ type:'array', items:{type:'string'} },
+      address:{ type:'string' },
+      mode:{ type:'string', enum:['delivery','dinein'] }
+    },
+    required:['tier','category']
+  }
+};
+
+function providerLabel(){
+  const p = PROVIDERS[state.settings.provider];
+  return p ? p.label : '自定义';
+}
+
+// 把 state.settings 渲染到设置区的表单控件
+function renderSettingsUI(){
+  const s = state.settings;
+  const p = PROVIDERS[s.provider] || PROVIDERS.custom;
+  $('#llmEnabled').value = s.enabled;
+  $('#llmProvider').value = s.provider;
+
+  const sel = $('#llmModelSelect');
+  sel.innerHTML = '';
+  p.models.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id;
+    o.textContent = m.id + (m.note ? '（' + m.note + '）' : '');
+    sel.appendChild(o);
+  });
+  const customModel = !p.models.some(m => m.id === s.model);
+  if(customModel){
+    const o = document.createElement('option');
+    o.value = '__custom__';
+    o.textContent = '自定义模型名…';
+    sel.appendChild(o);
+    sel.value = '__custom__';
+  }else{
+    sel.value = s.model;
+  }
+  const customBox = $('#llmModelCustom');
+  if(customModel){ customBox.classList.remove('hidden'); customBox.value = s.model; }
+  else { customBox.classList.add('hidden'); customBox.value = ''; }
+
+  $('#llmBase').value = s.base;
+  $('#llmKey').value = s.key;
+  $('#llmStatus').textContent = s.key
+    ? '当前：' + p.label + ' · ' + s.model + ' · 密钥已填写（' + s.key.slice(0,5) + '…' + s.key.slice(-4) + '）'
+    : '当前：' + p.label + ' · ' + s.model + ' · 还没有填密钥';
+}
+
+// 从表单控件读回 state.settings（点保存/测试时调用）
+function readSettingsUI(){
+  const s = state.settings;
+  s.enabled = $('#llmEnabled').value;
+  s.provider = $('#llmProvider').value;
+  const selVal = $('#llmModelSelect').value;
+  s.model = (selVal === '__custom__' || !selVal)
+    ? ($('#llmModelCustom').value.trim() || 'deepseek-chat')
+    : selVal;
+  s.base = $('#llmBase').value.trim() || (PROVIDERS[s.provider] ? PROVIDERS[s.provider].base : '');
+  s.key = $('#llmKey').value.trim();
+  s.v = SETTINGS_VERSION;
+  saveSettings();
+}
+
+async function callLLM(payload){
+  const s = state.settings;
+  const url = s.base.replace(/\/+$/,'') + '/chat/completions';
+  const t0 = Date.now();
+  const res = await fetch(url, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + s.key },
+    body: JSON.stringify({
+      model: s.model,
+      temperature: 0.7,
+      max_tokens: 4096,   // 推理型模型（deepseek-v4-pro / deepseek-flash）会先用掉一部分额度写思考链
+      messages:[
+        { role:'system', content: SYSTEM_PROMPT },
+        { role:'user', content: JSON.stringify(payload) }
+      ]
+    })
+  });
+  if(!res.ok){
+    const t = await res.text().catch(()=> '');
+    const hint = res.status === 401 ? '（密钥无效或已过期）' : (res.status === 402 ? '（余额不足）' : (res.status === 429 ? '（请求太频繁）' : ''));
+    throw new Error('HTTP ' + res.status + hint + ' ' + t.slice(0,160));
+  }
+  const j = await res.json();
+  const msg = (j && j.choices && j.choices[0] && j.choices[0].message) || {};
+  const text = String(msg.content || '').trim();
+  const reasoning = String(msg.reasoning_content || '').trim();
+  if(!text){
+    if(reasoning){
+      const e = new Error('模型只输出了思考过程没给结论');
+      e.code = 'REASONING_ONLY';
+      e.reasoning = reasoning;
+      throw e;
+    }
+    throw new Error('返回内容为空');
+  }
+  return {
+    text,
+    reasoning,
+    model: (j && j.model) || s.model,
+    ms: Date.now() - t0,
+    usage: j && j.usage ? { prompt:j.usage.prompt_tokens, completion:j.usage.completion_tokens } : null
+  };
+}
+
+/* ------------------------------ 10. 主流程编排 ------------------------------ */
+
+async function run(){
+  if(!state.tier || !state.cat || state.running) return;
+  state.running = true;
+  $('#goBtn').disabled = true;
+  $('#result').classList.remove('show');
+  traceReset();
+  $('#traceCard').scrollIntoView({behavior:'smooth', block:'start'});
+
+  const tier = pickTier(), period = currentPeriod();
+  const addr = state.address || '（未填写地址，按全部商圈估算）';
+
+  // ① 意图解析
+  let li = traceAdd('① 解析需求', '档位 ' + tier.name + '（' + (tier.min===0?'≤¥'+tier.max:'¥'+tier.min+'–'+tier.max) + '，心理上限 ¥' + Math.min(tier.max,state.budget) + '）｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食'), 'active');
+  await sleep(320); traceUpdate(li, '① 解析需求', '档位 ' + tier.name + '｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食') + '｜📍' + addr);
+
+  // ② 记忆
+  const memBits = [];
+  if(state.profile.allergies.length) memBits.push('忌口 ' + state.profile.allergies.join('、'));
+  if(state.profile.tastes.length) memBits.push('偏好 ' + state.profile.tastes.join('、'));
+  const likeTop = Object.keys(state.profile.likes).slice(0,5);
+  if(likeTop.length) memBits.push('历史喜欢 ' + likeTop.join('、'));
+  if(state.profile.history.length) memBits.push('历史用餐 ' + state.profile.history.length + ' 条');
+  li = traceAdd('② 读取长期记忆', memBits.length ? memBits.join('；') : '暂无记忆，先按通用口味推荐', 'active');
+  await sleep(300); traceUpdate(li, '② 读取长期记忆', memBits.length ? memBits.join('；') : '暂无记忆，先按通用口味推荐');
+
+  const rec = recommend();
+
+  // ③ 检索
+  li = traceAdd('③ 检索菜品知识库', '库内 ' + DISHES.length + ' 道菜，命中「' + catName(state.cat) + '」类 ' + rec.pool.length + ' 道', 'active');
+  await sleep(340); traceUpdate(li, '③ 检索菜品知识库', '「' + catName(state.cat) + '」类 ' + rec.pool.length + ' 道 → 预算内 ' + rec.inBudget.length + ' 道候选');
+
+  // ④ 过滤
+  const filterDetail = rec.filtered.length
+    ? '过滤掉 ' + rec.filtered.length + ' 道：' + rec.filtered.slice(0,3).map(f=>f.dish.name+'（'+f.why+'）').join('；')
+    : '没有触发忌口／辣度过滤，全部通过';
+  li = traceAdd('④ 硬性规则过滤', filterDetail, 'active');
+  await sleep(320); traceUpdate(li, '④ 硬性规则过滤', filterDetail);
+
+  if(!rec.scored.length){
+    traceUpdate(li, '④ 硬性规则过滤', '所有候选都被过滤了，建议放宽忌口或提高预算', 'done');
+    state.running = false; updateSummary();
+    renderEmpty('这个条件下没有可推荐的了 😢<br>试试放宽忌口、提高预算，或者换一个类型。');
+    return;
+  }
+
+  // ⑤ 打分
+  const top3 = rec.scored.slice(0,3);
+  li = traceAdd('⑤ 多维打分排序', top3.map(s=>s.dish.name+' '+s.total+'分').join('　'), 'active');
+  await sleep(420);
+  traceUpdate(li, '⑤ 多维打分排序', '预算匹配／今日想吃／口味画像／辣度／时段／新鲜感／口碑／探索 加权后：' + top3.map(s=>s.dish.name+' '+s.total+'分').join('，'));
+
+  const best = rec.scored[0];
+  const rest = recommendRestaurants(best.dish);
+  if(!rest.list.length){
+    state.running = false; updateSummary();
+    renderEmpty('附近没有做这道菜的店，换个类型试试？');
+    return;
+  }
+
+  // ⑥ 选址
+  const r0 = rest.list[0];
+  li = traceAdd('⑥ 按地址选择饭店', r0.restaurant.name + '（' + r0.km + 'km，' + r0.eta + '分钟）', 'active');
+  await sleep(360);
+  traceUpdate(li, '⑥ 按地址选择饭店', '从 ' + rest.list.length + ' 家可做这道菜的店里排序，第一名：' + r0.restaurant.name + '（' + r0.km + 'km · 评分' + r0.restaurant.rating + '）');
+
+  // ⑦ 生成
+  li = traceAdd('⑦ 生成推荐方案', '主推荐 + 2 个备选', 'active');
+  await sleep(280);
+  traceUpdate(li, '⑦ 生成推荐方案', '主推荐：' + best.dish.name + ' @ ' + r0.restaurant.name + '，并给出 2 个备选');
+
+  state.lastResult = { rec:best, rest, addr };
+  state.running = false;
+  const alternatives = rec.scored.slice(1,3).map(s => {
+    const r = recommendRestaurants(s.dish);
+    return { rec:s, shop: r.list[0] || null };
+  });
+  renderResult(best, rest, '', alternatives);
+  updateSummary();
+  $('#devScores').textContent = JSON.stringify(
+    rec.scored.slice(0,6).map(s=>({ dish:s.dish.name, total:s.total, parts:Object.fromEntries(Object.entries(s.parts).map(([k,v])=>[k,v.raw])) })),
+    null, 2
+  );
+  $('#devPrompt').textContent = SYSTEM_PROMPT;
+  $('#devTools').textContent = JSON.stringify(TOOL_SCHEMA, null, 2);
+
+  // ⑧ 可选：大模型润色
+  if(state.settings.enabled === 'on'){
+    if(!state.settings.key){ toast('还没填 API Key，先按本地引擎的结果来'); return; }
+    const wrap = $('#llmWrap'); if(wrap) wrap.classList.remove('hidden');
+    const t = $('#llmText');
+    const payload = {
+      tier:{ id:tier.id, name:tier.name, range:'¥'+tier.min+'-'+tier.max, budgetCap:Math.min(tier.max,state.budget) },
+      category:{ id:state.cat, name:catName(state.cat) },
+      craving:{ tags:state.craveTags, text:state.craveText },
+      address:state.address || null,
+      mode:state.mode,
+      period:period.label,
+      profile:{ allergies:state.profile.allergies, tastes:state.profile.tastes, likes:likeTop },
+      candidates: rec.scored.slice(0,5).map(s=>({
+        dish:s.dish.name, cuisine:s.dish.cui, price:s.dish.price, score:s.total, spicy:s.dish.spicy,
+        reasons:s.reasons,
+        shops: recommendRestaurants(s.dish).list.slice(0,2).map(x=>({ name:x.restaurant.name, area:x.restaurant.area, km:x.km, rating:x.restaurant.rating, eta:x.eta }))
+      }))
+    };
+    $('#devPayload').textContent = JSON.stringify(payload, null, 2);
+    if(t) t.innerHTML = providerLabel() + ' ' + state.settings.model + ' 正在写推荐语<span class="spin"></span>';
+    const llmStep = traceAdd('⑧ 调用大模型润色', providerLabel() + ' ' + state.settings.model + ' 正在读候选数据…', 'active');
+    try{
+      let r = null, degradedFrom = null, degradedReasoning = null;
+      try{
+        r = await callLLM(payload);
+      }catch(err){
+        // 推理型模型偶尔会"想太久"没给出结论：自动降级到 deepseek-chat 重试一次
+        if(err.code === 'REASONING_ONLY' && state.settings.model !== 'deepseek-chat'){
+          degradedFrom = state.settings.model;
+          degradedReasoning = err.reasoning || null;
+          traceUpdate(llmStep, '⑧ 调用大模型润色', degradedFrom + ' 只返回了思考链、没有结论，自动降级到 deepseek-chat 重试…', 'active');
+          state.settings.model = 'deepseek-chat';
+          try{ r = await callLLM(payload); }
+          finally{ state.settings.model = degradedFrom; }
+        }else{
+          throw err;
+        }
+      }
+      if(t) t.innerHTML = r.text +
+        '<div class="note" style="margin-top:7px">—— ' + providerLabel() + ' · ' + r.model + ' · ' +
+        (r.ms/1000).toFixed(1) + 's' + (r.usage ? ' · ' + r.usage.prompt + ' + ' + r.usage.completion + ' tokens' : '') +
+        (degradedFrom ? ' · 由 ' + degradedFrom + ' 自动降级重试' : '') + '</div>';
+      traceUpdate(llmStep, '⑧ 调用大模型润色', providerLabel() + ' ' + r.model + ' 已生成推荐语（' + (r.ms/1000).toFixed(1) + 's）' +
+        (degradedFrom ? '｜原模型 ' + degradedFrom + ' 思考超时，已自动降级' : ''));
+      $('#devReasoning').textContent = r.reasoning || degradedReasoning ||
+        '（这次调用没有思考链：deepseek-chat 是纯对话模型，deepseek-v4-pro / deepseek-flash 才会返回 reasoning_content）';
+      $('#llmStatus').textContent = '✅ 上次调用成功：' + providerLabel() + ' ' + r.model + '，耗时 ' + (r.ms/1000).toFixed(1) + ' 秒。';
+    }catch(err){
+      const msg2 = '调用大模型失败：' + err.message + '（本地引擎的结果依然有效）';
+      if(t) t.textContent = msg2;
+      traceUpdate(llmStep, '⑧ 调用大模型润色', '失败：' + err.message);
+      $('#devReasoning').textContent = '—';
+      $('#llmStatus').textContent = '❌ ' + msg2;
+    }
+  }
+}
+
+/* ------------------------------ 11. 事件绑定与初始化 ------------------------------ */
+
+function init(){
+  loadStore();
+
+  $('#kbBadge').textContent = '📚 本地知识库（' + DISHES.length + ' 道菜 / ' + RESTAURANTS.length + ' 家店）';
+  renderTiers(); renderCats(); renderChips(); renderProfile(); renderBudgetNote(); updateSummary();
+
+  $('#budgetRange').addEventListener('input', (e) => {
+    state.budget = +e.target.value;
+    renderBudgetNote(); updateSummary();
+  });
+  $('#craveText').addEventListener('input', e => { state.craveText = e.target.value.trim(); });
+  $('#addr').addEventListener('input', e => { state.address = e.target.value.trim(); updateSummary(); });
+  $('#mode').addEventListener('change', e => { state.mode = e.target.value; });
+  $('#spice').addEventListener('change', e => { state.spiceMax = +e.target.value; });
+
+  $('#goBtn').addEventListener('click', run);
+  $('#clearMemory').addEventListener('click', () => {
+    state.profile.likes = {}; state.profile.dislikes = {}; state.profile.history = [];
+    saveProfile(); renderProfile(); toast('记忆已清空');
+  });
+
+  // 设置区
+  renderSettingsUI();
+
+  $('#llmProvider').addEventListener('change', () => {
+    const p = PROVIDERS[$('#llmProvider').value] || PROVIDERS.custom;
+    state.settings.provider = $('#llmProvider').value;
+    if(p.base) state.settings.base = p.base;
+    if(p.models.length) state.settings.model = p.models[0].id;
+    renderSettingsUI();
+  });
+  $('#llmModelSelect').addEventListener('change', () => {
+    const v = $('#llmModelSelect').value;
+    const box = $('#llmModelCustom');
+    if(v === '__custom__'){ box.classList.remove('hidden'); box.focus(); }
+    else { box.classList.add('hidden'); state.settings.model = v; }
+  });
+  $('#llmModelCustom').addEventListener('input', e => { state.settings.model = e.target.value.trim(); });
+  $('#llmEnabled').addEventListener('change', e => {
+    state.settings.enabled = e.target.value;
+    saveSettings();
+  });
+  $('#saveSettings').addEventListener('click', () => {
+    readSettingsUI(); renderSettingsUI();
+    toast('设置已保存到本机：' + providerLabel() + ' · ' + state.settings.model);
+  });
+  $('#clearKey').addEventListener('click', () => {
+    state.settings.key = '';
+    saveSettings(); renderSettingsUI();
+    toast('已清除本机保存的密钥（页面源码里的预填值仍在）');
+  });
+  $('#testLLM').addEventListener('click', async () => {
+    readSettingsUI();
+    if(!state.settings.key){ toast('请先填 API Key'); return; }
+    $('#llmStatus').textContent = '正在测试 ' + providerLabel() + ' ' + state.settings.model + ' …';
+    try{
+      const r = await callLLM({ test:true, say:'只回复四个字：连接成功' });
+      $('#llmStatus').textContent = '✅ 连通成功：' + providerLabel() + ' ' + r.model + '，' + (r.ms/1000).toFixed(1) + ' 秒返回「' + r.text.slice(0,20) + '」';
+      toast('✅ ' + providerLabel() + ' 连接成功');
+    }catch(err){
+      $('#llmStatus').textContent = '❌ 失败：' + err.message;
+      toast('❌ 失败：' + err.message.slice(0,60));
+    }
+  });
+
+  // 初始化开发者面板里的提示
+  $('#devPrompt').textContent = SYSTEM_PROMPT;
+  $('#devTools').textContent = JSON.stringify(TOOL_SCHEMA, null, 2);
+  $('#devMemory').textContent = JSON.stringify(state.profile, null, 2);
+
+  // 默认体验：预填地址，降低上手门槛
+  if(!state.address){
+    state.address = '上海市浦东新区张江高科地铁站';
+    $('#addr').value = state.address;
+    updateSummary();
+  }
+}
+
+init();
+</script>
+</body>
+</html>

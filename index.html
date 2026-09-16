@@ -1,0 +1,3463 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff8f2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>今天吃啥 · 大模型 × 智能体 美食决策助手</title>
+<style>
+  :root{
+    --bg:#fff8f2;
+    --card:#ffffff;
+    --ink:#2b2118;
+    --muted:#8b7a6c;
+    --brand:#ff6a3d;
+    --brand-2:#ffb347;
+    --brand-soft:#fff0e8;
+    --line:#f2e3d6;
+    --ok:#0ea678;
+    --warn:#e8542c;
+    --shadow:0 8px 24px rgba(255,106,61,.10);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    background:
+      radial-gradient(1100px 420px at 12% -6%, #ffe6cf 0%, rgba(255,230,207,0) 62%),
+      radial-gradient(760px 380px at 96% 4%, #ffe9c9 0%, rgba(255,233,201,0) 60%),
+      var(--bg);
+    color:var(--ink);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:14px 14px calc(170px + env(safe-area-inset-bottom));}
+
+  /* ---------- 顶部 ---------- */
+  header.top{padding:8px 4px 4px}
+  .brandline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .logo{
+    width:34px;height:34px;flex:0 0 34px;border-radius:11px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));font-size:18px;
+    box-shadow:0 6px 14px rgba(255,106,61,.35)
+  }
+  h1{font-size:20px;margin:0;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px;margin:6px 2px 0}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .badge{
+    font-size:11.5px;color:#a1583a;background:#fff2e7;border:1px solid #ffe0cc;
+    padding:3px 9px;border-radius:999px;white-space:nowrap
+  }
+
+  /* ---------- 步骤卡片 ---------- */
+  section.step{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 14px 16px;margin-top:14px;box-shadow:var(--shadow)
+  }
+  section.step.hidden{display:none}
+  .step-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+  .num{
+    width:24px;height:24px;flex:0 0 24px;border-radius:50%;display:grid;place-items:center;
+    background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:13px;margin-top:2px
+  }
+  .step-title{font-size:15.5px;font-weight:700;margin:0}
+  .step-hint{font-size:12px;color:var(--muted);margin:2px 0 0}
+
+  /* 金额档位 */
+  .tiers{display:grid;grid-template-columns:1fr;gap:10px}
+  .tier{
+    display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;
+    background:#fffdfb;border:1.5px solid var(--line);border-radius:15px;padding:12px 13px;
+    font-family:inherit;color:inherit;width:100%;transition:transform .12s,border-color .15s,background .15s
+  }
+  .tier:active{transform:scale(.985)}
+  .tier .emoji{font-size:24px;flex:0 0 30px;text-align:center}
+  .tier .t-main{flex:1;min-width:0}
+  .tier .t-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .tier .t-price{font-size:12px;color:var(--brand);background:var(--brand-soft);padding:1px 8px;border-radius:999px;font-weight:600}
+  .tier .t-desc{font-size:12.3px;color:var(--muted);margin-top:1px}
+  .tier .t-check{opacity:0;font-size:16px;color:var(--brand)}
+  .tier[aria-pressed="true"]{border-color:var(--brand);background:linear-gradient(180deg,#fff6f0,#fffdfb)}
+  .tier[aria-pressed="true"] .t-check{opacity:1}
+
+  /* 预算微调 */
+  .slider-row{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .slider-top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted)}
+  .slider-top b{color:var(--brand);font-size:15px}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:26px;background:transparent;margin:4px 0 0
+  }
+  input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--brand);margin-top:-8px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+  input[type=range]::-moz-range-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border:3px solid var(--brand);background:#fff;border-radius:50%}
+
+  /* 大类选择 */
+  .cats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .cat{
+    cursor:pointer;background:#fffdfb;border:1.5px solid var(--line);border-radius:15px;
+    padding:12px 6px 10px;text-align:center;font-family:inherit;color:inherit;transition:transform .12s,border-color .15s,background .15s
+  }
+  .cat:active{transform:scale(.97)}
+  .cat .c-emoji{font-size:25px;line-height:1.1;display:block}
+  .cat .c-name{font-weight:700;font-size:14px;margin-top:5px}
+  .cat .c-sub{font-size:11px;color:var(--muted)}
+  .cat[aria-pressed="true"]{border-color:var(--brand);background:linear-gradient(180deg,#fff5ef,#fffdfb);box-shadow:0 4px 12px rgba(255,106,61,.13)}
+
+  /* 标签 chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    cursor:pointer;font-family:inherit;font-size:13px;color:#5b4a3d;background:#fffdfb;
+    border:1.5px solid var(--line);border-radius:999px;padding:7px 12px;transition:all .14s
+  }
+  .chip:active{transform:scale(.96)}
+  .chip[aria-pressed="true"]{background:var(--brand-soft);border-color:#ffc4a8;color:#b0461f;font-weight:600}
+  .chip.danger[aria-pressed="true"]{background:#fdeceb;border-color:#f6bdb7;color:#b3271c}
+
+  label.field{display:block;font-size:12.5px;color:var(--muted);margin:14px 0 6px;font-weight:600}
+  input[type=text],input[type=password],select{
+    width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:#fffdfb;
+    border:1.5px solid var(--line);border-radius:13px;padding:11px 12px;outline:none;transition:border-color .15s
+  }
+  input[type=text]:focus,input[type=password]:focus,select:focus{border-color:#ffb491;background:#fff}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .quick-addr{display:flex;gap:7px;overflow-x:auto;padding:8px 2px 2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .quick-addr::-webkit-scrollbar{display:none}
+  .addr-pill{
+    flex:0 0 auto;font-family:inherit;font-size:12.5px;color:#6b5a4c;background:#fffdfb;
+    border:1.5px solid var(--line);border-radius:999px;padding:6px 11px;cursor:pointer
+  }
+  .addr-pill:active{background:var(--brand-soft)}
+
+  details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:14px;box-shadow:var(--shadow);overflow:hidden}
+  details>summary{
+    list-style:none;cursor:pointer;padding:14px;font-weight:700;font-size:14.5px;display:flex;justify-content:space-between;align-items:center
+  }
+  details>summary::-webkit-details-marker{display:none}
+  details>summary::after{content:"展开";font-size:11.5px;color:var(--muted);font-weight:400}
+  details[open]>summary::after{content:"收起"}
+  details .body{padding:0 14px 16px;font-size:13px;color:#4a3b30}
+
+  /* ---------- 底部操作栏 ---------- */
+  .bar{
+    position:fixed;left:0;right:0;bottom:calc(54px + env(safe-area-inset-bottom));z-index:30;
+    padding:10px 14px calc(12px + env(safe-area-inset-bottom));
+    background:rgba(255,248,242,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line)
+  }
+  .bar.hide{display:none}
+  .bar-inner{max-width:520px;margin:0 auto;display:flex;gap:10px;align-items:center}
+  .summary{flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.35}
+  .summary b{color:var(--ink);font-size:13.5px}
+  .summary .s-text{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn{
+    font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:14px;padding:13px 18px;cursor:pointer;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;white-space:nowrap;
+    box-shadow:0 8px 18px rgba(255,106,61,.32);transition:transform .12s,opacity .2s
+  }
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.45;box-shadow:none}
+  .btn.ghost{background:#fff;color:var(--brand);border:1.5px solid #ffcbb4;box-shadow:none;font-weight:600;padding:11px 14px}
+  .btn.small{font-size:13.5px;padding:10px 13px;border-radius:12px}
+
+  /* ---------- Agent 思考过程 ---------- */
+  #traceCard{display:none}
+  #traceCard.show{display:block}
+  .trace{list-style:none;margin:0;padding:0}
+  .trace li{
+    display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);opacity:0;transform:translateY(4px);
+    transition:opacity .35s,transform .35s
+  }
+  .trace li:last-child{border-bottom:none}
+  .trace li.in{opacity:1;transform:none}
+  .trace .dot{
+    width:20px;height:20px;flex:0 0 20px;border-radius:50%;display:grid;place-items:center;
+    font-size:11px;background:#f4ece5;color:#a89789;margin-top:2px
+  }
+  .trace .t-body{flex:1;min-width:0}
+  .trace .t-title{font-size:13.5px;font-weight:600}
+  .trace .t-detail{font-size:12px;color:var(--muted);margin-top:1px;word-break:break-word}
+  .trace li.done .dot{background:#e5f6ef;color:var(--ok)}
+  .trace li.active .dot{background:var(--brand-soft);color:var(--brand);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid #ffd0bd;border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;margin-left:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---------- 结果 ---------- */
+  #result{display:none}
+  #result.show{display:block}
+  .card-main{
+    border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card);box-shadow:var(--shadow);
+    margin-top:14px;animation:rise .4s ease both
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .card-head{background:linear-gradient(135deg,#ff7a45,#ffb347);color:#fff;padding:14px}
+  .card-head .kicker{font-size:11.5px;opacity:.92;letter-spacing:.4px}
+  .card-head .dish{font-size:22px;font-weight:800;margin:3px 0 2px;letter-spacing:.3px}
+  .card-head .meta{font-size:12.5px;opacity:.95}
+  .price-tag{display:inline-block;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:1px 9px;font-size:12px;margin-left:6px}
+  .card-body{padding:13px 14px 15px}
+  .kv{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted);flex:0 0 62px}
+  .kv .v{flex:1;min-width:0;word-break:break-word}
+  .why{margin-top:10px;background:#fffaf5;border:1px solid #ffe6d5;border-radius:13px;padding:10px 12px;font-size:12.8px;color:#6a4a35}
+  .why .w-title{font-weight:700;color:#b0461f;margin-bottom:4px;font-size:12.5px}
+  .why ul{margin:0;padding-left:17px}
+  .why li{margin:2px 0}
+  .scorebar{margin-top:11px}
+  .scorebar .row{display:grid;grid-template-columns:64px 1fr 40px;gap:8px;align-items:center;font-size:11.5px;color:var(--muted);margin:5px 0}
+  .scorebar .track{height:7px;background:#f4ece5;border-radius:99px;overflow:hidden}
+  .scorebar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2));width:0;transition:width .6s ease}
+
+  /* 一桌菜 */
+  .combo-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fffdfb}
+  .combo-item{display:flex;align-items:flex-start;gap:10px;padding:11px 12px}
+  .combo-item + .combo-item{border-top:1px dashed var(--line)}
+  .combo-item .ci-emoji{font-size:19px;flex:0 0 24px;text-align:center;margin-top:1px}
+  .combo-item .ci-main{flex:1;min-width:0}
+  .combo-item .ci-name{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .combo-item .ci-badge{font-size:10.5px;font-weight:600;color:#b0461f;background:#fff2e7;border-radius:999px;padding:1px 7px}
+  .combo-item .ci-role{font-size:11px;font-weight:400;color:var(--muted)}
+  .combo-item .ci-desc{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .combo-item .ci-price{font-size:14px;font-weight:700;color:var(--brand);flex:0 0 auto}
+  .combo-total{
+    display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:10px 12px;border-radius:12px;
+    background:linear-gradient(135deg,#fff5ef,#fffdfb);border:1px solid #ffe0cc;font-size:13px;color:#6a4a35
+  }
+  .combo-total b{font-size:17px;color:var(--brand)}
+  .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .actions .btn{flex:1 1 auto}
+
+  .alt-list{margin-top:12px}
+  .alt{
+    display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
+    border-radius:15px;padding:11px 12px;margin-top:9px;box-shadow:0 4px 14px rgba(255,106,61,.06)
+  }
+  .alt .a-emoji{font-size:21px;flex:0 0 26px;text-align:center}
+  .alt .a-main{flex:1;min-width:0}
+  .alt .a-name{font-weight:700;font-size:14px}
+  .alt .a-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .alt .a-score{font-size:12px;color:var(--brand);font-weight:700;text-align:right;flex:0 0 auto}
+  .alt .a-score span{display:block;font-weight:400;color:var(--muted);font-size:11px}
+
+  /* 可展开的备选组合 */
+  .alt-card{
+    border:1px solid var(--line);border-radius:15px;margin-top:9px;background:var(--card);
+    overflow:hidden;box-shadow:0 4px 14px rgba(255,106,61,.06)
+  }
+  .alt-card .alt{margin:0;border:none;border-radius:0;box-shadow:none;cursor:pointer}
+  .alt-card .a-caret{color:#d8c8ba;font-size:17px;margin-left:4px;transition:transform .2s;flex:0 0 auto}
+  .alt-card.open .a-caret{transform:rotate(90deg);color:var(--brand)}
+  .alt-card.open{border-color:#ffcbb4}
+  .alt-detail{padding:2px 12px 13px;border-top:1px dashed var(--line);animation:rise .25s ease both}
+  .alt-detail .combo-list{margin-top:10px}
+  .alt-detail .ad-kv{display:flex;gap:8px;font-size:12px;color:var(--muted);padding:3px 0}
+  .alt-detail .ad-kv b{color:var(--ink);font-weight:600}
+  .alt-pick{
+    width:100%;margin-top:11px;font-family:inherit;font-size:14px;font-weight:700;border:none;border-radius:12px;
+    padding:11px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;cursor:pointer;
+    box-shadow:0 6px 14px rgba(255,106,61,.25)
+  }
+  .alt-pick:active{transform:scale(.985)}
+
+  .empty{font-size:13px;color:var(--muted);text-align:center;padding:18px 10px}
+
+  /* ---------- 口味画像 ---------- */
+  .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .p-box{background:#fffdfb;border:1px solid var(--line);border-radius:13px;padding:10px}
+  .p-box .p-title{font-size:11.5px;color:var(--muted);margin-bottom:5px}
+  .p-box .p-val{font-size:12.5px;color:#4a3b30;word-break:break-word}
+  .mini{font-size:11.5px;color:#b0461f;background:#fff2e7;border-radius:999px;padding:2px 8px;display:inline-block;margin:2px 4px 2px 0}
+  .mini.grey{color:#7b6a5c;background:#f6f0ea}
+  .mini.red{color:#b3271c;background:#fdeceb}
+
+  pre.code{
+    background:#2b2118;color:#ffe6cf;border-radius:12px;padding:11px;font-size:11px;line-height:1.5;
+    overflow:auto;max-height:290px;white-space:pre-wrap;word-break:break-word;margin:8px 0 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace
+  }
+  .mini-title{font-size:12.5px;font-weight:700;color:#b0461f;margin-top:12px}
+
+  /* 架构图 */
+  .flow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .flow .f-step{
+    font-size:11.5px;background:#fff6f0;border:1px solid #ffe0cc;color:#a1583a;border-radius:10px;padding:6px 9px
+  }
+  .flow .arrow{color:#e0c9b8;font-size:11px;align-self:center}
+
+  /* ---------- 底部 Tab（微信式） ---------- */
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;
+    background:rgba(255,255,255,.97);backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)
+  }
+  .tabbar button{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    background:none;border:none;font-family:inherit;font-size:11.5px;color:#a3938a;
+    padding:8px 0 7px;cursor:pointer;transition:color .15s
+  }
+  .tabbar button .t-icon{font-size:21px;line-height:1;filter:grayscale(1);opacity:.62;transition:all .15s}
+  .tabbar button.active{color:var(--brand);font-weight:700}
+  .tabbar button.active .t-icon{filter:none;opacity:1;transform:translateY(-1px)}
+  .tabbar .t-dot{
+    position:absolute;margin-left:26px;margin-top:2px;width:7px;height:7px;border-radius:50%;
+    background:var(--brand);display:none
+  }
+  .tabbar button.has-dot .t-dot{display:block}
+
+  /* ---------- 「我的」页面 ---------- */
+  .me-head{
+    display:flex;align-items:center;gap:14px;margin-top:4px;padding:18px 16px;border-radius:18px;
+    background:linear-gradient(135deg,#ff7a45,#ffb347);color:#fff;box-shadow:0 10px 24px rgba(255,106,61,.25)
+  }
+  .me-avatar{
+    width:58px;height:58px;flex:0 0 58px;border-radius:16px;display:grid;place-items:center;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);font-size:30px
+  }
+  .me-head .mh-name{font-size:18px;font-weight:800;letter-spacing:.3px}
+  .me-head .mh-sub{font-size:12px;opacity:.95;margin-top:3px}
+  .me-head .mh-chips{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap}
+  .me-head .mh-chip{font-size:11px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:2px 8px}
+
+  .me-title{font-size:12.5px;color:var(--muted);font-weight:600;margin:18px 4px 0;letter-spacing:.3px}
+  .me-card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:8px;box-shadow:0 6px 18px rgba(255,106,61,.07)}
+  .me-block{padding:13px 14px}
+  .me-block + .me-block{border-top:1px solid #f8f0e8}
+  .me-label{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .me-label .l-icon{font-size:16px}
+  .me-hint{font-size:11.5px;color:var(--muted);margin:4px 0 9px}
+  .me-row{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer}
+  .me-row + .me-row{border-top:1px solid #f8f0e8}
+  .me-row .r-icon{font-size:17px;width:22px;text-align:center}
+  .me-row .r-label{flex:1;font-size:14.5px}
+  .me-row .r-value{font-size:12.5px;color:var(--muted);max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .me-row .r-arrow{color:#dcc9ba;font-size:14px}
+  .seg{display:flex;gap:6px;background:#f8f2ec;border-radius:12px;padding:4px}
+  .seg button{
+    flex:1;border:none;background:none;font-family:inherit;font-size:13px;color:#7b6a5c;
+    padding:8px 4px;border-radius:9px;cursor:pointer;transition:all .15s
+  }
+  .seg button[aria-pressed="true"]{background:#fff;color:var(--brand);font-weight:700;box-shadow:0 2px 8px rgba(255,106,61,.16)}
+
+  .toast{
+    position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(12px);
+    background:rgba(43,33,24,.94);color:#fff;font-size:13px;padding:10px 16px;border-radius:12px;z-index:60;
+    opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;max-width:88vw;text-align:center
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .hidden{display:none !important}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="pageHome">
+
+  <header class="top">
+    <div class="brandline">
+      <div class="logo">🍜</div>
+      <h1>今天吃啥 · 智能体</h1>
+    </div>
+    <p class="sub">先选预算档位，再选吃什么类型，剩下的交给 AI：读记忆 → 检索菜品库 → 过滤忌口 → 多维打分 → <b>配成一桌菜（一荤一素＋主食）</b> → 联网搜真实店铺 → 按地址定店。</p>
+    <div class="badges">
+      <span class="badge" id="cityBadge">📍 请选择城市</span>
+      <span class="badge">🌐 联网搜索真实饭店</span>
+      <span class="badge">🧠 DeepSeek 已接入</span>
+      <span class="badge" id="kbBadge">📚 本地知识库</span>
+    </div>
+
+    <div class="me-card" style="margin-top:12px">
+      <div class="me-row" id="goMeCard" style="border:none">
+        <span class="r-icon">👤</span>
+        <span class="r-label">我的口味档案
+          <span class="me-hint" style="display:block;margin:2px 0 0" id="homePrefSummary">还没有设置偏好</span>
+        </span>
+        <span class="r-arrow">›</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. 预算档位 -->
+  <section class="step" id="secTier">
+    <div class="step-head">
+      <div class="num">1</div>
+      <div>
+        <p class="step-title">今天吃多大一口？</p>
+        <p class="step-hint">按金额界定档位，档位决定候选菜品的价格区间</p>
+      </div>
+    </div>
+    <div class="tiers" id="tierList" role="group" aria-label="预算档位"></div>
+    <div class="slider-row">
+      <div class="slider-top">
+        <span>这顿的心理预算上限</span>
+        <b id="budgetLabel">¥--</b>
+      </div>
+      <input type="range" id="budgetRange" min="10" max="200" step="1" value="60" aria-label="预算上限">
+      <p class="note" id="tierNote">先选上面三个档位之一。</p>
+    </div>
+  </section>
+
+  <!-- 2. 类型 -->
+  <section class="step hidden" id="secCat">
+    <div class="step-head">
+      <div class="num">2</div>
+      <div>
+        <p class="step-title">想吃哪一类？</p>
+        <p class="step-hint">按"这道菜配什么主食"分：配米饭吃选「吃饭」，配面/粉吃选「吃面」，整份菜和小吃选「其他」</p>
+      </div>
+    </div>
+    <div class="cats" id="catList" role="group" aria-label="食物类型"></div>
+  </section>
+
+  <!-- 3. 今日想吃 -->
+  <section class="step hidden" id="secCrave">
+    <div class="step-head">
+      <div class="num">3</div>
+      <div>
+        <p class="step-title">今天想吃什么感觉？</p>
+        <p class="step-hint" id="craveHint">这里的标签会跟着第 2 步的类型变：吃饭→菜系，吃面→做法，其他→吃法</p>
+      </div>
+    </div>
+    <div class="chips" id="craveList" role="group" aria-label="今日口味"></div>
+    <label class="field" for="craveText">用一句话说说（可留空）</label>
+    <input type="text" id="craveText" placeholder="例：想吃点辣的、有汤的，别太重口">
+
+    <div class="me-card hidden" id="cityReminder" style="margin-top:14px;border-color:#ffd9c4;background:#fff8f3">
+      <div class="me-row" id="goCityCard" style="border:none">
+        <span class="r-icon">📍</span>
+        <span class="r-label" style="color:#b0461f">还没选择城市
+          <span class="me-hint" style="display:block;margin:2px 0 0">先选城市，才知道要搜哪个城市的店 · 点这里去设置</span>
+        </span>
+        <span class="r-arrow" style="color:var(--brand)">›</span>
+      </div>
+    </div>
+    <label class="field" for="addr">你在哪里？（用于选饭店）</label>
+    <input type="text" id="addr" placeholder="例：裕华路 / 河北大学" autocomplete="off">
+    <div class="quick-addr" id="addrQuick"></div>
+    <p class="note" id="homeCityLine">📍 —</p>
+    <label class="field" for="mode">用餐方式</label>
+    <select id="mode">
+      <option value="delivery">外卖送到</option>
+      <option value="dinein">到店堂食</option>
+    </select>
+    <p class="note" id="spiceHint">🌶 吃辣程度：无辣不欢 —— 想改去「我的 › 我的口味」</p>
+  </section>
+
+  <!-- 口味画像 / 忌口 -->
+  <!-- Agent 思考过程 -->
+  <section class="step" id="traceCard">
+    <div class="step-head">
+      <div class="num">🤖</div>
+      <div>
+        <p class="step-title">智能体正在决策</p>
+        <p class="step-hint" id="traceHint">解析需求 → 读取记忆 → 检索菜品 → 过滤忌口 → 多维打分 → 联网搜店 → 按地址选址 → 生成方案</p>
+      </div>
+    </div>
+    <ul class="trace" id="traceList"></ul>
+  </section>
+
+  <!-- 结果 -->
+  <div id="result"></div>
+
+</div><!-- /pageHome -->
+
+<!-- =================== 我的 =================== -->
+<div id="pageMe" class="hidden">
+
+  <div class="me-head">
+    <div class="me-avatar">🍜</div>
+    <div style="flex:1;min-width:0">
+      <div class="mh-name">干饭人</div>
+      <div class="mh-sub" id="meSub">还没有设置口味偏好</div>
+      <div class="mh-chips" id="meChips"></div>
+    </div>
+  </div>
+
+  <div class="me-title">我的口味</div>
+  <div class="me-card">
+    <div class="me-block">
+      <div class="me-label"><span class="l-icon">🚫</span>忌口 / 过敏</div>
+      <div class="me-hint">选中的食材会被硬性过滤，任何推荐都不会出现它们</div>
+      <div class="chips" id="allergyList"></div>
+    </div>
+    <div class="me-block">
+      <div class="me-label"><span class="l-icon">❤️</span>口味偏好</div>
+      <div class="me-hint">决定打分里的「口味画像」权重，可以多选</div>
+      <div class="chips" id="tasteList"></div>
+    </div>
+    <div class="me-block">
+      <div class="me-label"><span class="l-icon">🌶</span>吃辣程度</div>
+      <div class="me-hint">超出这个辣度的菜会被过滤掉</div>
+      <div class="seg" id="spiceSeg" role="group" aria-label="吃辣程度">
+        <button type="button" data-v="0">不吃辣</button>
+        <button type="button" data-v="1">微辣</button>
+        <button type="button" data-v="2">中辣</button>
+        <button type="button" data-v="3">无辣不欢</button>
+      </div>
+      <select id="spice" class="hidden" aria-hidden="true">
+        <option value="0">完全不吃辣</option>
+        <option value="1">微辣可以</option>
+        <option value="2">中辣没问题</option>
+        <option value="3" selected>无辣不欢</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="me-title">我的习惯</div>
+  <div class="me-card">
+    <div class="me-block">
+      <div class="me-label"><span class="l-icon">📍</span>城市</div>
+      <div class="me-hint">决定搜哪个城市的店铺。保定有内置离线兜底库（断网也能用），北京、福州需要联网（高德 Key）</div>
+      <select id="citySelect"></select>
+      <p class="note" id="cityHint">—</p>
+    </div>
+    <div class="me-block">
+      <div class="me-label"><span class="l-icon">💰</span>默认预算档位</div>
+      <div class="me-hint">打开 App 时自动帮你选好，省一步</div>
+      <div class="seg" id="tierSeg" role="group" aria-label="默认档位"></div>
+    </div>
+    <div class="me-block">
+      <div class="me-label"><span class="l-icon">📍</span>常用地址</div>
+      <div class="me-hint">存下来，首页点一下就能填上（比如「家」「公司」）</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="newAddr" placeholder="例：家 / 公司 / 学校">
+        <button class="btn ghost small" id="addAddr" style="flex:0 0 auto">保存</button>
+      </div>
+      <div class="chips" id="addrList" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div class="me-title">AI 记忆</div>
+  <div class="me-card">
+    <div class="me-block">
+      <div class="profile-grid">
+        <div class="p-box">
+          <div class="p-title">AI 记住的喜欢</div>
+          <div class="p-val" id="pLikes"><span class="mini grey">还没有</span></div>
+        </div>
+        <div class="p-box">
+          <div class="p-title">AI 记住的不喜欢</div>
+          <div class="p-val" id="pDislikes"><span class="mini grey">还没有</span></div>
+        </div>
+      </div>
+      <div class="p-box" style="margin-top:10px">
+        <div class="p-title">最近吃过（7 天内会相应降权，避免重复）</div>
+        <div class="p-val" id="pHistory"><span class="mini grey">还没有记录</span></div>
+      </div>
+      <button class="btn ghost small" style="margin-top:12px" id="clearMemory">清空记忆</button>
+      <p class="note">每次你在结果页点「就吃这个」或「不喜欢」，这里都会自动学习；数据只存在这台设备的浏览器里。</p>
+    </div>
+  </div>
+
+  <div class="me-title">联网与模型设置</div>
+
+  <!-- 大模型接入 -->
+  <details id="llmCard">
+    <summary>🔌 大模型接入（DeepSeek 已配置）</summary>
+    <div class="body">
+      <p class="note" style="margin-top:0">推荐逻辑跑在页面内置的「本地推理引擎」上（不联网也能用），大模型负责最后一层：读本地算好的候选、价格、距离、评分和你的忌口，写出自然语言的推荐理由。DeepSeek 的接口地址、模型和密钥已经预填好，直接可用。</p>
+
+      <div style="border-top:1px dashed var(--line);margin:14px 0 4px"></div>
+      <label class="field" for="onlineEnabled">🌐 联网搜索真实饭店</label>
+      <select id="onlineEnabled">
+        <option value="on">开启（推荐）</option>
+        <option value="off">关闭，只用离线示例库</option>
+      </select>
+      <label class="field" for="amapKey">高德地图 Key（填了就能搜到真实店铺）</label>
+      <input type="password" id="amapKey" placeholder="粘贴高德「Web服务」Key">
+      <div class="actions">
+        <button class="btn ghost small" id="testAmap">测试联网搜索</button>
+        <button class="btn ghost small" id="clearAmap">清除高德 Key</button>
+      </div>
+      <p class="note" id="amapStatus">—</p>
+      <p class="note">如果这个文件的作者已经内置了高德 Key，上面的输入框会自动填好，你什么都不用做。</p>
+      <p class="note">为什么要 Key：高德的 POI 搜索返回真实店名、地址、评分、人均和距离，国内很快（实测 0.3 秒、支持浏览器直连）。去 <b>lbs.amap.com</b> 注册个人开发者，创建应用时选「Web服务」类型拿 Key，个人免费额度够这个 Demo 用。没填 Key 时自动退回 OpenStreetMap（免 Key，但国内节点常超时），再不行用离线示例库并明确标注。</p>
+
+      <div style="border-top:1px dashed var(--line);margin:16px 0 4px"></div>
+      <div class="two-col">
+        <div>
+          <label class="field" for="llmEnabled">启用大模型</label>
+          <select id="llmEnabled">
+            <option value="off">关闭（只用本地引擎）</option>
+            <option value="on">开启</option>
+          </select>
+        </div>
+        <div>
+          <label class="field" for="llmProvider">服务商</label>
+          <select id="llmProvider">
+            <option value="deepseek">DeepSeek</option>
+            <option value="openai">OpenAI</option>
+            <option value="custom">自定义（OpenAI 兼容）</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="field" for="llmModelSelect">模型</label>
+      <select id="llmModelSelect"></select>
+      <input type="text" id="llmModelCustom" class="hidden" placeholder="填模型名，例如 deepseek-chat" style="margin-top:8px">
+
+      <label class="field" for="llmBase">接口地址（OpenAI 兼容）</label>
+      <input type="text" id="llmBase" value="https://api.deepseek.com/v1">
+      <label class="field" for="llmKey">API Key</label>
+      <input type="password" id="llmKey" placeholder="sk-...">
+      <div class="actions">
+        <button class="btn ghost small" id="saveSettings">保存设置</button>
+        <button class="btn ghost small" id="testLLM">测试连通性</button>
+        <button class="btn ghost small" id="clearKey">清除 Key</button>
+      </div>
+      <p class="note" id="llmStatus">—</p>
+      <p class="note">🔐 密钥只保存在这台设备的浏览器里（localStorage），请求由浏览器直接发往 api.deepseek.com（已实测支持跨域）。但这个 HTML 文件本身也带着一份预填密钥，<b>公开发布或发给别人之前，记得先点「清除 Key」</b>，或者去 DeepSeek 后台重新生成一个。</p>
+    </div>
+  </details>
+
+  <!-- 开发者视角 -->
+  <details id="devCard">
+    <summary>🧑‍💻 开发者视角（架构 / Prompt / 打分）</summary>
+    <div class="body">
+      <div class="mini-title" style="margin-top:0">智能体流水线</div>
+      <div class="flow">
+        <span class="f-step">① 意图解析</span><span class="arrow">→</span>
+        <span class="f-step">② 记忆读取</span><span class="arrow">→</span>
+        <span class="f-step">③ 知识库检索 (RAG)</span><span class="arrow">→</span>
+        <span class="f-step">④ 规则过滤</span><span class="arrow">→</span>
+        <span class="f-step">⑤ 多维打分</span><span class="arrow">→</span>
+        <span class="f-step">⑥ 联网搜店（工具调用）</span><span class="arrow">→</span>
+        <span class="f-step">⑦ 地址选址</span><span class="arrow">→</span>
+        <span class="f-step">⑧ 生成建议</span><span class="arrow">→</span>
+        <span class="f-step">⑨ 大模型润色</span>
+      </div>
+      <div class="mini-title">System Prompt（发给大模型的角色设定）</div>
+      <pre class="code" id="devPrompt">—</pre>
+      <div class="mini-title">工具定义（Tool Schema）</div>
+      <pre class="code" id="devTools">—</pre>
+      <div class="mini-title">实际打分明细</div>
+      <pre class="code" id="devScores">先完成一次推荐，这里会显示每道菜的打分构成。</pre>
+      <div class="mini-title">大模型返回的思考链（用 deepseek-v4-pro / deepseek-flash 时才有）</div>
+      <pre class="code" id="devReasoning">—</pre>
+      <div class="mini-title">大模型实际收到的 JSON（即上面 candidates 的结构）</div>
+      <pre class="code" id="devPayload">—</pre>
+      <div class="mini-title">联网搜索结果（原始返回，来自高德 / OSM）</div>
+      <pre class="code" id="devSearch">先完成一次推荐，这里会显示联网搜到的真实店铺原始数据。</pre>
+      <div class="mini-title">今日想吃标签体检（命中菜品数 = 0 表示这个标签是"死的"）</div>
+      <pre class="code" id="devTags">—</pre>
+      <div class="mini-title">记忆数据（localStorage）</div>
+      <pre class="code" id="devMemory">—</pre>
+    </div>
+  </details>
+
+  <div class="me-title">关于</div>
+  <div class="me-card">
+    <div class="me-block">
+      <p class="note" style="margin:0">
+        🍽 推荐结果不是一道菜，而是<b>一桌菜</b>：按你的人均档位配「荤主菜＋素菜＋主食」，人多或预算宽裕时再加汤和饮品，全部来自同一家店，能一次点齐。<br>
+        🏙 <b>城市</b>：保定有内置的离线兜底饭店库，断网也能用；北京、福州等其它城市没有离线数据，需要联网（高德 Key）才能搜到店铺。<br>
+        📍 店铺数据来自高德地图实时检索；未配置 Key 时退回 OpenStreetMap；都不用时使用离线示例库并明确标注。<br>
+        菜品／口味部分为人工整理的知识库，距离由经纬度实时计算。<br>
+        口味、忌口、城市、记忆只保存在本机浏览器（localStorage），不会上传。
+      </p>
+    </div>
+  </div>
+
+</div><!-- /pageMe -->
+</div><!-- /wrap -->
+
+<!-- 底部操作栏 -->
+<div class="bar">
+  <div class="bar-inner">
+    <div class="summary">
+      <b id="sumMain">请先选择预算档位</b>
+      <span class="s-text" id="sumSub">1 / 3 步</span>
+    </div>
+    <button class="btn" id="goBtn" disabled>开始推荐</button>
+  </div>
+</div>
+
+<!-- 底部 Tab -->
+<nav class="tabbar" role="tablist">
+  <button type="button" id="tabHome" class="active" role="tab" aria-selected="true">
+    <span class="t-icon">🍜</span><span>推荐</span>
+  </button>
+  <button type="button" id="tabMe" role="tab" aria-selected="false">
+    <span class="t-icon">👤</span><span>我的</span><span class="t-dot" id="meDot"></span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+ *  今天吃啥 · 智能体美食决策 Demo
+ *  纯前端单文件：内置知识库（菜品 / 饭店）+ 可解释打分引擎 + 可选大模型接入
+ * ========================================================================= */
+
+/* ------------------------------ 1. 知识库 ------------------------------ */
+
+// 预算档位：按金额界定
+const TIERS = [
+  { id:'small', name:'小饭', emoji:'🥣', min:0,   max:25,  desc:'垫一口就好：快、省、不耽误事' },
+  { id:'mid',   name:'中饭', emoji:'🍱', min:26,  max:60,  desc:'正经一顿：吃得舒服、有肉有菜' },
+  { id:'good',  name:'吃好饭', emoji:'🍣', min:61, max:200, desc:'犒劳自己：食材和口味优先' }
+];
+
+const CATS = [
+  { id:'rice',   name:'吃饭', emoji:'🍚', sub:'配米饭吃的一餐' },
+  { id:'noodle', name:'吃面', emoji:'🍜', sub:'配面/粉吃的一餐' },
+  { id:'other',  name:'其他', emoji:'🍢', sub:'整份菜 / 小吃 / 火锅' }
+];
+
+/* ===== 类别是按"这道菜配什么主食"定的，不是按菜系定的 =====
+ * 配米饭吃      → 吃饭
+ * 配面/粉吃     → 吃面
+ * 整份菜、小吃、火锅烧烤、汤饮 → 其他
+ * 同一道菜可以同时属于多个类别（泰式咖喱鸡配饭算"吃饭"，单点也算"其他"），
+ * 所以一个菜系（比如泰餐）天然会在三个类别里都出现候选——这是有意为之。 */
+const RICE_WORDS   = ['饭','盖饭','丼','炒饭','拌饭','煲仔','焗饭','咖喱饭','粥'];
+const NOODLE_WORDS = ['面','粉','米线','拉面','凉皮','河粉','馄饨','饺','意面','刀削'];
+
+function dishCats(dish){
+  const cats = new Set([dish.cat]);
+  const text = dish.name + ' ' + (dish.tags || []).join(' ');
+  if(RICE_WORDS.some(w => text.indexOf(w) !== -1)) cats.add('rice');
+  if(NOODLE_WORDS.some(w => text.indexOf(w) !== -1)) cats.add('noodle');
+  const role = dish.role || 'single';
+  // 整份荤主菜默认是配米饭吃的，所以既算"吃饭"也算"其他"
+  if(role === 'main'){ cats.add('rice'); cats.add('other'); }
+  if(role === 'side' || role === 'soup' || role === 'drink') cats.add('other');
+  return [...cats];
+}
+
+function inCat(dish, cat){ return dishCats(dish).indexOf(cat) !== -1; }
+
+// 菜品库：cat 类型，cui 菜系，price 参考价，spicy 辣度 0-3，tags 口味标签，alg 忌口食材
+const DISHES = [
+  { id:'d01', name:'黄焖鸡米饭',       cat:'rice',   cui:'家常', price:22,  spicy:1, tags:['鸡','下饭','酱香','热'],        alg:['鸡'],      desc:'砂锅焖鸡＋浓汤拌饭', hot:92 },
+  { id:'d02', name:'隆江猪脚饭',       cat:'rice',   cui:'家常', price:26,  spicy:0, tags:['猪','卤味','下饭','软糯'],      alg:['猪'],      desc:'卤得软烂，胶质足', hot:78 },
+  { id:'d03', name:'扬州蛋炒饭',       cat:'rice',   cui:'家常', price:15,  spicy:0, tags:['蛋','快','家常','干爽'],        alg:['蛋'],      desc:'粒粒分明，十分钟上桌', hot:70 },
+  { id:'d04', name:'广式烧腊双拼饭',   cat:'rice',   cui:'粤',   price:32,  spicy:0, tags:['猪','烧腊','甜口','下饭'],      alg:['猪'],      desc:'叉烧＋烧肉，甜咸交错', hot:80 },
+  { id:'d05', name:'海南鸡饭',         cat:'rice',   cui:'粤',   price:38,  spicy:0, tags:['鸡','清淡','鲜嫩','汤'],        alg:['鸡'],      desc:'鸡油饭配清鸡汤', hot:72 },
+  { id:'d06', name:'日式咖喱猪排饭',   cat:'rice',   cui:'日',   price:45,  spicy:0, tags:['猪','炸','咖喱','甜口'],        alg:['猪','麦'], desc:'厚切猪排＋微甜咖喱', hot:82 },
+  { id:'d07', name:'三文鱼刺身盖饭',   cat:'rice',   cui:'日',   price:78,  spicy:0, tags:['海鲜','生鲜','清淡','高级'],    alg:['海鲜'],    desc:'厚切三文鱼配醋饭', hot:60 },
+  { id:'d08', name:'蒲烧鳗鱼饭',       cat:'rice',   cui:'日',   price:88,  spicy:0, tags:['海鲜','甜口','高级','酱香'],    alg:['海鲜'],    desc:'炭烤鳗鱼，甜咸酱汁', hot:58 },
+  { id:'d09', name:'和牛盖饭',         cat:'rice',   cui:'日',   price:128, spicy:0, tags:['牛','高级','生鲜','鲜嫩'],      alg:['牛'],      desc:'和牛炙烤盖饭', hot:50 },
+  { id:'d10', name:'川味回锅肉盖饭',   cat:'rice',   cui:'川',   price:28,  spicy:3, tags:['猪','辣','重口','下饭'],        alg:['猪'],      desc:'蒜苗爆炒，香辣下饭', hot:85 },
+  { id:'d11', name:'台式卤肉饭',       cat:'rice',   cui:'家常', price:20,  spicy:0, tags:['猪','卤味','家常','下饭'],      alg:['猪'],      desc:'肥瘦卤肉浇饭', hot:76 },
+  { id:'d12', name:'石锅拌饭',         cat:'rice',   cui:'韩',   price:30,  spicy:1, tags:['韩式','辣酱','热','蔬菜'],      alg:['蛋'],      desc:'锅巴香脆，拌辣酱', hot:79 },
+  { id:'d13', name:'重庆鸡公煲（配饭）',cat:'rice',  cui:'川',   price:58,  spicy:3, tags:['鸡','辣','重口','聚餐'],        alg:['鸡'],      desc:'越煮越香，适合两人', hot:88 },
+  { id:'d14', name:'蟹黄拌饭',         cat:'rice',   cui:'江浙', price:168, spicy:0, tags:['海鲜','高级','鲜','蟹'],        alg:['海鲜'],    desc:'真蟹粉，价格劝退但真香', hot:45 },
+  { id:'d15', name:'腊味煲仔饭',       cat:'rice',   cui:'粤',   price:35,  spicy:0, tags:['猪','腊味','锅巴','热'],        alg:['猪'],      desc:'腊肠腊肉＋豉油锅巴', hot:74 },
+  { id:'d16', name:'鸡胸藜麦能量饭',   cat:'rice',   cui:'健康', price:36,  spicy:0, tags:['鸡','健康','健身','清淡'],      alg:['鸡'],      desc:'高蛋白低油，健身首选', hot:66 },
+  { id:'d17', name:'麻婆豆腐盖饭',     cat:'rice',   cui:'川',   price:18,  spicy:2, tags:['豆','辣','下饭','素'],          alg:['豆','猪'], desc:'麻辣鲜香，拌饭神器', hot:81 },
+
+  { id:'d18', name:'兰州牛肉拉面',     cat:'noodle', cui:'西北', price:20,  spicy:1, tags:['牛','清汤','热','快'],          alg:['牛','麦'], desc:'一清二白三红四绿', hot:90 },
+  { id:'d19', name:'重庆小面',         cat:'noodle', cui:'川',   price:15,  spicy:3, tags:['辣','重口','干拌','快'],        alg:['麦'],      desc:'油辣子当先，越辣越香', hot:87 },
+  { id:'d20', name:'番茄鸡蛋面',       cat:'noodle', cui:'家常', price:16,  spicy:0, tags:['蛋','清淡','家常','汤'],        alg:['蛋','麦'], desc:'酸甜暖胃，永远不会出错', hot:75 },
+  { id:'d21', name:'豚骨拉面',         cat:'noodle', cui:'日',   price:42,  spicy:0, tags:['猪','浓汤','日式','热'],        alg:['猪','麦'], desc:'奶白豚骨汤＋溏心蛋', hot:84 },
+  { id:'d22', name:'鲜虾云吞面',       cat:'noodle', cui:'粤',   price:24,  spicy:0, tags:['虾','清汤','鲜','清淡'],        alg:['虾','麦'], desc:'大颗虾仁云吞，汤清味鲜', hot:73 },
+  { id:'d23', name:'老北京炸酱面',     cat:'noodle', cui:'家常', price:22,  spicy:0, tags:['猪','干拌','家常','咸香'],      alg:['猪','麦'], desc:'肉丁炸酱，配菜一大排', hot:68 },
+  { id:'d24', name:'新疆牛肉拌面',     cat:'noodle', cui:'西北', price:28,  spicy:2, tags:['牛','干拌','辣','扎实'],        alg:['牛','麦'], desc:'锅气足，面条筋道', hot:71 },
+  { id:'d25', name:'柳州螺蛳粉',       cat:'noodle', cui:'小吃', price:22,  spicy:2, tags:['酸辣','重口','粉','臭味'],      alg:['豆'],      desc:'臭得越正宗，吃得越上头', hot:89 },
+  { id:'d26', name:'河南羊肉烩面',     cat:'noodle', cui:'家常', price:26,  spicy:0, tags:['羊','汤','暖','扎实'],          alg:['羊','麦'], desc:'大宽面配羊汤，冬天最爱', hot:62 },
+  { id:'d27', name:'油泼 biangbiang 面', cat:'noodle', cui:'西北', price:24, spicy:2, tags:['素','辣','干拌','香'],          alg:['麦'],      desc:'宽面泼油，香辣够味', hot:77 },
+  { id:'d28', name:'日式荞麦冷面',     cat:'noodle', cui:'日',   price:30,  spicy:0, tags:['凉','清淡','健康','麦'],        alg:['麦'],      desc:'蘸汁冷食，夏天友好', hot:51 },
+  { id:'d29', name:'酸辣粉',           cat:'noodle', cui:'小吃', price:14,  spicy:2, tags:['酸辣','粉','小吃','快'],        alg:[],          desc:'红薯粉＋酸辣汤底', hot:83 },
+  { id:'d30', name:'蟹粉面',           cat:'noodle', cui:'江浙', price:108, spicy:0, tags:['海鲜','高级','鲜','蟹'],        alg:['海鲜','麦'], desc:'蟹粉浇头，讲究一个鲜', hot:47 },
+  { id:'d31', name:'云南过桥米线',     cat:'noodle', cui:'小吃', price:26,  spicy:0, tags:['汤','鲜','热','清淡'],          alg:[],          desc:'滚汤自烫，配菜丰富', hot:78 },
+  { id:'d32', name:'意大利肉酱面',     cat:'noodle', cui:'西',   price:46,  spicy:0, tags:['西餐','芝士','番茄','干拌'],    alg:['麦','乳'], desc:'慢炖肉酱＋帕玛森', hot:69 },
+  { id:'d46', name:'黑松露牛肝菌意面', cat:'noodle', cui:'西',   price:78,  spicy:0, tags:['高级','菌菇','西餐','素','干拌'], alg:['麦','乳'], desc:'菌香浓郁，素食也能吃得讲究', hot:56 },
+  { id:'d47', name:'和牛番茄拌面',     cat:'noodle', cui:'西',   price:88,  spicy:0, tags:['牛','高级','番茄','干拌'],      alg:['牛','麦'], desc:'厚切和牛配酸甜番茄', hot:54 },
+  { id:'d48', name:'老坛酸菜牛肉面',   cat:'noodle', cui:'家常', price:32,  spicy:1, tags:['牛','汤','酸辣','热'],          alg:['牛','麦'], desc:'酸香开胃，汤头够味', hot:79 },
+  // —— 保定 / 河北本地特色 ——
+  { id:'d49', name:'驴肉火烧',         cat:'other',  cui:'保定', price:12,  spicy:0, tags:['驴肉','火烧','小吃','快','保定'], alg:['麦'],      desc:'保定头号小吃，驴肉夹得实', hot:96 },
+  { id:'d50', name:'牛肉罩饼',         cat:'other',  cui:'保定', price:24,  spicy:0, tags:['牛','汤','热','扎实','保定'],    alg:['牛','麦'], desc:'滚汤罩饼，保定人的早餐', hot:88 },
+  { id:'d51', name:'白运章包子',       cat:'other',  cui:'保定', price:20,  spicy:0, tags:['猪','蒸','小吃','保定','老字号'], alg:['猪','麦'], desc:'百年老字号，皮薄馅大', hot:86 },
+  { id:'d52', name:'直隶官府菜·李鸿章烩菜', cat:'other', cui:'保定', price:88, spicy:0, tags:['高级','聚餐','热','保定'], alg:[],        desc:'直隶官府菜代表，料足味厚', hot:72 },
+  { id:'d53', name:'保定卤煮鸡',       cat:'other',  cui:'保定', price:32,  spicy:0, tags:['鸡','卤味','下饭','保定'],      alg:['鸡'],      desc:'卤香透骨，配饼一绝', hot:84 },
+  { id:'d54', name:'马家烧鸡',         cat:'other',  cui:'保定', price:28,  spicy:0, tags:['鸡','卤味','老字号','保定'],    alg:['鸡'],      desc:'保定三宝之一，凉吃更香', hot:80 },
+  { id:'d55', name:'保定饸饹面',       cat:'noodle', cui:'河北', price:16,  spicy:0, tags:['面','汤','家常','暖','河北'],    alg:['麦'],      desc:'荞麦饸饹，浇卤吃', hot:78 },
+  { id:'d56', name:'牛肉板面',         cat:'noodle', cui:'河北', price:15,  spicy:2, tags:['牛','辣','面','快','河北'],      alg:['牛','麦'], desc:'河北街头扛把子，红油辣子香', hot:92 },
+  { id:'d57', name:'保定老豆腐＋油条', cat:'other',  cui:'河北', price:8,   spicy:0, tags:['豆','早点','清淡','快','河北'],  alg:['豆','麦'], desc:'卤汁老豆腐，早点首选', hot:74 },
+  { id:'d58', name:'河北大锅菜',       cat:'other',  cui:'河北', price:26,  spicy:1, tags:['猪','炖菜','家常','热','河北'],  alg:['猪'],      desc:'一锅炖，实惠管饱', hot:76 },
+  { id:'d59', name:'槐茂酱菜配粥',     cat:'other',  cui:'保定', price:12,  spicy:0, tags:['早点','清淡','老字号','保定'],  alg:[],          desc:'保定三宝之一，配粥爽口', hot:62 },
+  { id:'d60', name:'河北羊汤＋烧饼',   cat:'other',  cui:'河北', price:22,  spicy:0, tags:['羊','汤','热','暖','早点'],      alg:['羊','麦'], desc:'一碗羊汤配烧饼，越冷越想喝', hot:83 },
+
+  // ===== 点菜型菜品（role: main 荤主菜 / side 素菜凉菜 / staple 主食 / soup 汤 / drink 饮品）=====
+  // —— 荤主菜 ——
+  { id:'m01', name:'水煮鱼',           cat:'other',  role:'main', cui:'川', price:58, spicy:3, tags:['鱼','辣','重口','水煮','聚餐'], alg:['鱼'],      desc:'红油滚烫，鱼片嫩滑，川菜招牌', hot:94 },
+  { id:'m02', name:'水煮肉片',         cat:'other',  role:'main', cui:'川', price:48, spicy:3, tags:['猪','辣','重口','水煮','聚餐'], alg:['猪'],      desc:'麻辣鲜香，汤汁拌饭一绝', hot:90 },
+  { id:'m03', name:'宫保鸡丁',         cat:'other',  role:'main', cui:'川', price:32, spicy:2, tags:['鸡','甜辣','下饭','花生'],     alg:['鸡','花生'], desc:'糊辣荔枝味，酸甜微辣', hot:88 },
+  { id:'m04', name:'鱼香肉丝',         cat:'other',  role:'main', cui:'川', price:30, spicy:1, tags:['猪','下饭','家常','酸甜'],      alg:['猪'],      desc:'经典下饭菜，酸甜带辣', hot:86 },
+  { id:'m05', name:'毛血旺',           cat:'other',  role:'main', cui:'川', price:52, spicy:3, tags:['辣','重口','聚餐','热'],        alg:[],          desc:'鸭血毛肚一大盆，越吃越上头', hot:82 },
+  { id:'m06', name:'蒜泥白肉',         cat:'other',  role:'main', cui:'川', price:36, spicy:2, tags:['猪','凉','蒜香','下饭'],        alg:['猪'],      desc:'薄切白肉裹蒜泥红油', hot:74 },
+  { id:'m07', name:'红烧肉',           cat:'other',  role:'main', cui:'家常', price:48, spicy:0, tags:['猪','甜口','软糯','下饭'],      alg:['猪'],      desc:'肥而不腻，入口即化', hot:92 },
+  { id:'m08', name:'糖醋里脊',         cat:'other',  role:'main', cui:'家常', price:38, spicy:0, tags:['猪','炸','酸甜'],              alg:['猪'],      desc:'外脆里嫩，小孩最爱', hot:85 },
+  { id:'m09', name:'京酱肉丝',         cat:'other',  role:'main', cui:'家常', price:32, spicy:0, tags:['猪','甜口','酱香','下饭'],      alg:['猪'],      desc:'甜面酱爆香，配饼夹着吃', hot:80 },
+  { id:'m10', name:'白切鸡',           cat:'other',  role:'main', cui:'粤', price:48, spicy:0, tags:['鸡','清淡','鲜嫩'],            alg:['鸡'],      desc:'皮爽肉滑，蘸姜葱蓉', hot:78 },
+  { id:'m11', name:'清蒸鲈鱼',         cat:'other',  role:'main', cui:'粤', price:68, spicy:0, tags:['鱼','清淡','鲜','蒸'],          alg:['鱼'],      desc:'鲜上加鲜，讲究食材本身', hot:83 },
+  { id:'m12', name:'孜然羊肉',         cat:'other',  role:'main', cui:'西北', price:58, spicy:1, tags:['羊','孜然','重口','热'],        alg:['羊'],      desc:'孜然香辣，配啤酒绝配', hot:81 },
+  { id:'m13', name:'新疆大盘鸡',       cat:'other',  role:'main', cui:'西北', price:68, spicy:2, tags:['鸡','辣','聚餐','面'],          alg:['鸡','麦'], desc:'鸡块配土豆，底下还埋着面', hot:87 },
+
+  // —— 素菜 / 凉菜 ——
+  { id:'s01', name:'拍黄瓜',           cat:'other',  role:'side', cui:'家常', price:12, spicy:0, tags:['凉','清淡','素','快'],          alg:[],          desc:'蒜香清爽，解腻第一', hot:89 },
+  { id:'s02', name:'凉拌木耳',         cat:'other',  role:'side', cui:'家常', price:16, spicy:1, tags:['凉','清淡','素'],              alg:[],          desc:'脆爽开胃，配辣菜正好', hot:76 },
+  { id:'s03', name:'干煸四季豆',       cat:'other',  role:'side', cui:'川', price:26, spicy:1, tags:['蔬菜','干煸','下饭'],          alg:[],          desc:'干香入味，一筷子接一筷子', hot:84 },
+  { id:'s04', name:'地三鲜',           cat:'other',  role:'side', cui:'家常', price:26, spicy:0, tags:['蔬菜','家常','炸','下饭'],      alg:[],          desc:'茄子土豆青椒，油润下饭', hot:82 },
+  { id:'s05', name:'蒜蓉油麦菜',       cat:'other',  role:'side', cui:'家常', price:20, spicy:0, tags:['蔬菜','清淡','素','快'],        alg:[],          desc:'清口解腻，一桌荤菜的好搭子', hot:80 },
+  { id:'s06', name:'西红柿炒蛋',       cat:'other',  role:'side', cui:'家常', price:22, spicy:0, tags:['蛋','家常','酸甜','下饭'],      alg:['蛋'],      desc:'国民配菜，拌饭一绝', hot:91 },
+  { id:'s07', name:'醋溜土豆丝',       cat:'other',  role:'side', cui:'家常', price:18, spicy:0, tags:['蔬菜','酸辣','家常','快'],      alg:[],          desc:'酸脆爽口，最便宜的下饭菜', hot:85 },
+  { id:'s08', name:'蒜蓉粉丝蒸娃娃菜', cat:'other',  role:'side', cui:'粤', price:24, spicy:0, tags:['蔬菜','清淡','蒸','鲜'],        alg:[],          desc:'清蒸带蒜香，少油好吃', hot:77 },
+  { id:'s09', name:'老醋花生',         cat:'other',  role:'side', cui:'家常', price:16, spicy:0, tags:['凉','下酒','酸'],              alg:['花生'],    desc:'下酒神器，越嚼越香', hot:73 },
+
+  // —— 主食 ——
+  { id:'t01', name:'米饭',             cat:'other',  role:'staple', cui:'家常', price:2,  spicy:0, tags:['主食','碳水'],                 alg:[],          desc:'论碗算，续饭另加', hot:99 },
+  { id:'t02', name:'花卷／馒头',       cat:'other',  role:'staple', cui:'家常', price:3,  spicy:0, tags:['主食','碳水'],                 alg:['麦'],      desc:'配炖菜最合适', hot:88 },
+  { id:'t03', name:'保定火烧',         cat:'other',  role:'staple', cui:'保定', price:5,  spicy:0, tags:['主食','火烧','保定','碳水'],    alg:['麦'],      desc:'外脆里软，夹菜吃也行', hot:86 },
+  { id:'t04', name:'手工水饺',         cat:'other',  role:'staple', cui:'家常', price:22, spicy:0, tags:['主食','猪','麦','热'],          alg:['猪','麦'], desc:'现包现煮，一盘管饱', hot:84 },
+  { id:'t05', name:'刀削面',           cat:'other',  role:'staple', cui:'西北', price:18, spicy:1, tags:['主食','面','汤','暖'],          alg:['麦'],      desc:'刀削面配卤，吃面就点它', hot:83 },
+
+  // —— 汤 ——
+  { id:'p01', name:'西红柿鸡蛋汤',     cat:'other',  role:'soup', cui:'家常', price:15, spicy:0, tags:['汤','蛋','清淡'],              alg:['蛋'],      desc:'家常汤，解辣又暖胃', hot:87 },
+  { id:'p02', name:'紫菜蛋花汤',       cat:'other',  role:'soup', cui:'家常', price:12, spicy:0, tags:['汤','蛋','清淡','快'],          alg:['蛋'],      desc:'清清爽爽，一桌菜的收尾', hot:82 },
+  { id:'p03', name:'酸辣汤',           cat:'other',  role:'soup', cui:'川', price:18, spicy:2, tags:['汤','酸辣','开胃'],            alg:['蛋'],      desc:'酸辣开胃，吃辣的人爱点', hot:80 },
+  { id:'p04', name:'疙瘩汤',           cat:'other',  role:'soup', cui:'河北', price:16, spicy:0, tags:['汤','家常','暖','河北'],        alg:['麦'],      desc:'北方家常汤，喝完整个人都暖了', hot:79 },
+
+  // —— 饮品 ——
+  { id:'b01', name:'酸梅汤',           cat:'other',  role:'drink', cui:'家常', price:8,  spicy:0, tags:['饮品','解腻','凉'],            alg:[],          desc:'吃辣配它最舒服', hot:88 },
+  { id:'b02', name:'冰镇啤酒',         cat:'other',  role:'drink', cui:'烧烤', price:10, spicy:0, tags:['饮品','啤酒','夜宵'],          alg:['麦'],      desc:'烧烤火锅的标配', hot:85 },
+  { id:'b03', name:'可乐',             cat:'other',  role:'drink', cui:'西', price:5,  spicy:0, tags:['饮品','甜口','快'],            alg:[],          desc:'想喝甜的就要它', hot:83 },
+
+  // ==================== 汉堡 / 炸鸡 / 快餐 ====================
+  { id:'f01', name:'双层芝士牛肉堡',   cat:'other', role:'single', cui:'汉堡', price:32, spicy:0, tags:['牛','芝士','汉堡','快','西餐'], alg:['牛','乳','麦'], desc:'两片牛肉饼加双份芝士', hot:93 },
+  { id:'f02', name:'香辣鸡腿堡套餐',   cat:'other', role:'single', cui:'汉堡', price:29, spicy:2, tags:['鸡','汉堡','炸','快','辣'],     alg:['鸡','麦'],      desc:'辣味鸡腿堡配薯条和可乐', hot:95 },
+  { id:'f03', name:'板烧鸡腿堡',       cat:'other', role:'single', cui:'汉堡', price:25, spicy:1, tags:['鸡','汉堡','快','下饭'],        alg:['鸡','麦'],      desc:'黑椒板烧风味，汁水足', hot:88 },
+  { id:'f04', name:'炸鸡桶（8块）',    cat:'other', role:'main',   cui:'汉堡', price:68, spicy:1, tags:['鸡','炸','聚餐','快'],          alg:['鸡','麦'],      desc:'整桶炸鸡，聚会必备', hot:90 },
+  { id:'f05', name:'鸡米花',           cat:'other', role:'side',   cui:'汉堡', price:16, spicy:1, tags:['鸡','炸','小吃','快'],          alg:['鸡','麦'],      desc:'一口一个，追剧神器', hot:86 },
+  { id:'f06', name:'薯条（大）',       cat:'other', role:'side',   cui:'汉堡', price:12, spicy:0, tags:['炸','薯条','快','素'],          alg:[],               desc:'现炸的才好吃', hot:92 },
+  { id:'f07', name:'鸡块（6块）',      cat:'other', role:'side',   cui:'汉堡', price:14, spicy:0, tags:['鸡','炸','快','小吃'],          alg:['鸡','麦'],      desc:'蘸酱吃，小孩最爱', hot:85 },
+  { id:'f08', name:'墨西哥鸡肉卷',     cat:'other', role:'single', cui:'汉堡', price:22, spicy:1, tags:['鸡','卷饼','快','麦'],          alg:['鸡','麦'],      desc:'一手一个，边走边吃', hot:82 },
+  { id:'f09', name:'热狗',             cat:'other', role:'single', cui:'汉堡', price:15, spicy:0, tags:['猪','快','西餐','麦'],          alg:['猪','麦'],      desc:'酸黄瓜加番茄酱，简单快乐', hot:74 },
+  { id:'f10', name:'牛肉卷饼',         cat:'other', role:'single', cui:'汉堡', price:24, spicy:1, tags:['牛','卷饼','快'],               alg:['牛','麦'],      desc:'牛肉片裹生菜，轻负担', hot:76 },
+  { id:'f11', name:'炸鸡翅（5只）',    cat:'other', role:'side',   cui:'汉堡', price:26, spicy:1, tags:['鸡','炸','小吃','聚餐'],        alg:['鸡','麦'],      desc:'外酥里嫩，聚会必点', hot:87 },
+  { id:'f12', name:'牛肉汉堡套餐',     cat:'other', role:'single', cui:'汉堡', price:26, spicy:0, tags:['牛','汉堡','快','西餐'],        alg:['牛','麦'],      desc:'经典搭配，出餐快', hot:89 },
+
+  // ==================== 披萨 / 意式 ====================
+  { id:'z01', name:'玛格丽特披萨',     cat:'other',  role:'main',   cui:'披萨', price:58, spicy:0, tags:['芝士','番茄','西餐','披萨'],    alg:['乳','麦'],       desc:'番茄罗勒芝士，最经典的一款', hot:88 },
+  { id:'z02', name:'培根蘑菇披萨',     cat:'other',  role:'main',   cui:'披萨', price:68, spicy:0, tags:['猪','芝士','披萨','西餐'],       alg:['猪','乳','麦'],  desc:'培根咸香，蘑菇提鲜', hot:85 },
+  { id:'z03', name:'海鲜至尊披萨',     cat:'other',  role:'main',   cui:'披萨', price:88, spicy:0, tags:['海鲜','虾','芝士','披萨'],       alg:['海鲜','虾','乳','麦'], desc:'虾仁鱿鱼堆满一整张', hot:83 },
+  { id:'z04', name:'夏威夷菠萝披萨',   cat:'other',  role:'main',   cui:'披萨', price:62, spicy:0, tags:['猪','芝士','披萨','甜口'],       alg:['猪','乳','麦'],  desc:'甜咸之争的主角', hot:78 },
+  { id:'z05', name:'意式千层面',       cat:'other',  role:'main',   cui:'披萨', price:56, spicy:0, tags:['牛','芝士','西餐','热'],         alg:['牛','乳','麦'],  desc:'一层层叠出来的幸福感', hot:79 },
+  { id:'z06', name:'芝士焗饭',         cat:'rice',   role:'single', cui:'披萨', price:42, spicy:0, tags:['芝士','西餐','热','碳水'],       alg:['乳','麦'],       desc:'拉丝芝士盖饭，管饱', hot:84 },
+  { id:'z07', name:'焗意面',           cat:'noodle', role:'single', cui:'披萨', price:46, spicy:0, tags:['芝士','西餐','面','热'],         alg:['乳','麦'],       desc:'白酱焗面，奶香浓', hot:80 },
+  { id:'z08', name:'蒜香面包',         cat:'other',  role:'side',   cui:'披萨', price:18, spicy:0, tags:['西餐','麦','小吃','烤'],         alg:['乳','麦'],       desc:'黄油蒜香，配披萨刚好', hot:76 },
+  { id:'z09', name:'番茄海鲜意面',     cat:'noodle', role:'single', cui:'披萨', price:52, spicy:1, tags:['海鲜','虾','番茄','面'],         alg:['海鲜','虾','麦'], desc:'酸香开胃，海鲜给得足', hot:77 },
+  { id:'z10', name:'肉酱千层面套餐',   cat:'other',  role:'single', cui:'披萨', price:62, spicy:0, tags:['牛','芝士','西餐','套餐'],       alg:['牛','乳','麦'],  desc:'千层面配沙拉和饮料', hot:75 },
+
+  // ==================== 烤肉 / 烧肉 ====================
+  { id:'k01', name:'韩式烤五花肉',     cat:'other', role:'main',   cui:'烤肉', price:68, spicy:0, tags:['猪','烤肉','聚餐','热'],        alg:['猪'],           desc:'滋滋冒油，配生菜包着吃', hot:94 },
+  { id:'k02', name:'日式烧肉拼盘',     cat:'other', role:'main',   cui:'烤肉', price:128, spicy:0, tags:['牛','烤肉','高级','聚餐'],      alg:['牛'],           desc:'牛舌牛小排一次尝个遍', hot:89 },
+  { id:'k03', name:'烤牛肋条',         cat:'other', role:'main',   cui:'烤肉', price:88, spicy:1, tags:['牛','烤肉','聚餐','孜然'],      alg:['牛'],           desc:'有嚼劲，越嚼越香', hot:86 },
+  { id:'k04', name:'烤羊腿',           cat:'other', role:'main',   cui:'烤肉', price:118, spicy:1, tags:['羊','烤肉','聚餐','高级'],      alg:['羊'],           desc:'整只上桌，撕着吃很爽', hot:82 },
+  { id:'k05', name:'炭烤羊肉串（10串）',cat:'other',role:'main',   cui:'烤肉', price:40, spicy:2, tags:['羊','烧烤','串串','夜宵'],      alg:['羊'],           desc:'孜然辣子一撒，夏天必备', hot:96 },
+  { id:'k06', name:'烤鸡翅（6只）',    cat:'other', role:'side',   cui:'烤肉', price:30, spicy:1, tags:['鸡','烧烤','夜宵','聚餐'],      alg:['鸡'],           desc:'蜜汁刷两遍，外皮焦脆', hot:90 },
+  { id:'k07', name:'烤鸡腿',           cat:'other', role:'side',   cui:'烤肉', price:22, spicy:1, tags:['鸡','烧烤','夜宵'],              alg:['鸡'],           desc:'整只鸡腿，啃着过瘾', hot:84 },
+  { id:'k08', name:'麻辣烤鱼',         cat:'other', role:'main',   cui:'烤肉', price:88, spicy:3, tags:['鱼','辣','重口','聚餐','热'],    alg:['鱼'],           desc:'一整条烤鱼埋在辣椒堆里', hot:91 },
+  { id:'k09', name:'烤生蚝（4只）',    cat:'other', role:'side',   cui:'烤肉', price:36, spicy:1, tags:['海鲜','贝','烧烤','夜宵'],      alg:['贝','海鲜'],    desc:'蒜蓉粉丝铺满，一口一个', hot:87 },
+  { id:'k10', name:'烤玉米',           cat:'other', role:'side',   cui:'烤肉', price:10, spicy:0, tags:['蔬菜','烧烤','素','夜宵'],      alg:[],               desc:'刷酱烤到微焦，甜口', hot:80 },
+  { id:'k11', name:'蒜蓉烤茄子',       cat:'other', role:'side',   cui:'烤肉', price:18, spicy:1, tags:['蔬菜','烧烤','素','蒜香'],      alg:[],               desc:'一剖两半，蒜蓉铺满', hot:83 },
+  { id:'k12', name:'烤冷面',           cat:'other', role:'single', cui:'烤肉', price:12, spicy:1, tags:['小吃','面','快','夜宵'],        alg:['麦'],           desc:'铁板上嗞啦作响的街头味', hot:88 },
+  { id:'k13', name:'铁板鱿鱼',         cat:'other', role:'side',   cui:'烤肉', price:25, spicy:2, tags:['海鲜','烧烤','夜宵','辣'],      alg:['海鲜'],         desc:'刷酱撒辣椒面，越嚼越香', hot:85 },
+  { id:'k14', name:'烤蔬菜拼盘',       cat:'other', role:'side',   cui:'烤肉', price:28, spicy:0, tags:['蔬菜','烧烤','素','清淡'],      alg:[],               desc:'荤素搭配，解腻', hot:74 },
+
+  // ==================== 火锅 ====================
+  { id:'h01', name:'麻辣牛油火锅',     cat:'other', role:'main',   cui:'火锅', price:98,  spicy:3, tags:['辣','火锅','聚餐','热','重口'], alg:[],           desc:'牛油翻滚，越煮越香', hot:95 },
+  { id:'h02', name:'番茄火锅',         cat:'other', role:'main',   cui:'火锅', price:88,  spicy:0, tags:['火锅','聚餐','清淡','热'],      alg:[],           desc:'酸甜锅底，孩子也能吃', hot:86 },
+  { id:'h03', name:'菌汤火锅',         cat:'other', role:'main',   cui:'火锅', price:92,  spicy:0, tags:['火锅','清淡','鲜','聚餐'],      alg:[],           desc:'先喝三碗汤再涮菜', hot:84 },
+  { id:'h04', name:'猪肚鸡火锅',       cat:'other', role:'main',   cui:'火锅', price:108, spicy:0, tags:['猪','鸡','火锅','暖','聚餐'],   alg:['猪','鸡'],  desc:'胡椒猪肚鸡，冬天最合适', hot:85 },
+  { id:'h05', name:'酸菜鱼火锅',       cat:'other', role:'main',   cui:'火锅', price:96,  spicy:2, tags:['鱼','酸辣','火锅','聚餐'],      alg:['鱼'],       desc:'鱼肉嫩滑，汤底能泡饭', hot:87 },
+  { id:'h06', name:'椰子鸡火锅',       cat:'other', role:'main',   cui:'火锅', price:118, spicy:0, tags:['鸡','火锅','清淡','鲜'],        alg:['鸡'],       desc:'椰子水做锅底，清甜', hot:81 },
+  { id:'h07', name:'一人食小火锅',     cat:'other', role:'single', cui:'火锅', price:45,  spicy:2, tags:['火锅','一人食','辣','热'],      alg:[],           desc:'一个人也能涮个够', hot:88 },
+  { id:'h08', name:'火锅配菜拼盘',     cat:'other', role:'side',   cui:'火锅', price:36,  spicy:0, tags:['蔬菜','火锅','素','豆'],        alg:['豆'],       desc:'豆腐宽粉蔬菜一次配齐', hot:82 },
+
+  // ==================== 日料 ====================
+  { id:'j01', name:'三文鱼刺身',       cat:'other',  role:'main',   cui:'日', price:88, spicy:0, tags:['海鲜','鱼','生鲜','高级'],      alg:['鱼','海鲜'],    desc:'厚切现切，油脂漂亮', hot:87 },
+  { id:'j02', name:'寿司拼盘（12贯）', cat:'other',  role:'single', cui:'日', price:78, spicy:0, tags:['海鲜','鱼','寿司','日式'],      alg:['鱼','海鲜'],    desc:'师傅现捏，一口一贯', hot:85 },
+  { id:'j03', name:'天妇罗拼盘',       cat:'other',  role:'side',   cui:'日', price:46, spicy:0, tags:['炸','日式','海鲜','虾'],        alg:['虾','海鲜','麦'], desc:'面衣酥脆，蘸汁吃', hot:80 },
+  { id:'j04', name:'日式烧鸟串（5串）',cat:'other',  role:'side',   cui:'日', price:38, spicy:0, tags:['鸡','烤','日式','夜宵'],        alg:['鸡'],           desc:'炭火慢烤，撒点七味粉', hot:83 },
+  { id:'j05', name:'大阪烧',           cat:'other',  role:'single', cui:'日', price:48, spicy:0, tags:['日式','热','蛋','碳水'],        alg:['蛋','麦'],      desc:'铁板现做，酱汁美乃滋', hot:79 },
+  { id:'j06', name:'章鱼小丸子',       cat:'other',  role:'side',   cui:'日', price:22, spicy:0, tags:['小吃','日式','热','快'],        alg:['蛋','麦'],      desc:'木鱼花跳舞，趁热吃', hot:86 },
+  { id:'j07', name:'亲子丼',           cat:'rice',   role:'single', cui:'日', price:42, spicy:0, tags:['鸡','蛋','日式','下饭'],        alg:['鸡','蛋'],      desc:'鸡肉滑蛋盖饭，甜口', hot:82 },
+  { id:'j08', name:'日式咖喱饭',       cat:'rice',   role:'single', cui:'日', price:38, spicy:1, tags:['日式','咖喱','下饭','热'],      alg:['麦'],           desc:'浓稠咖喱配米饭', hot:84 },
+
+  // ==================== 韩餐 ====================
+  { id:'kr01', name:'韩式炒年糕',      cat:'other',  role:'single', cui:'韩', price:32, spicy:2, tags:['辣','韩式','小吃','甜辣'],    alg:['麦'],           desc:'甜辣酱裹年糕，越吃越上瘾', hot:88 },
+  { id:'kr02', name:'紫菜包饭',        cat:'other',  role:'single', cui:'韩', price:26, spicy:0, tags:['韩式','小吃','凉','快'],        alg:['蛋'],           desc:'一卷切八段，方便又顶饱', hot:83 },
+  { id:'kr03', name:'参鸡汤',          cat:'other',  role:'main',   cui:'韩', price:78, spicy:0, tags:['鸡','汤','暖','清淡'],          alg:['鸡'],           desc:'整鸡炖糯米，喝完很舒服', hot:76 },
+  { id:'kr04', name:'泡菜豆腐汤',      cat:'other',  role:'soup',   cui:'韩', price:36, spicy:2, tags:['汤','辣','豆','热'],          alg:['豆','猪'],      desc:'酸辣开胃，配米饭正好', hot:82 },
+  { id:'kr05', name:'韩式冷面',        cat:'noodle', role:'single', cui:'韩', price:32, spicy:1, tags:['凉','面','酸辣','清淡'],        alg:['麦','蛋'],      desc:'冰镇酸甜汤，夏天解暑', hot:81 },
+  { id:'kr06', name:'韩式烤肉套餐',    cat:'other',  role:'single', cui:'韩', price:68, spicy:1, tags:['猪','烤肉','聚餐','套餐'],      alg:['猪'],           desc:'烤肉配生菜小菜和饭', hot:85 },
+
+  // ==================== 东南亚 ====================
+  { id:'se01', name:'冬阴功汤',        cat:'other',  role:'soup',   cui:'东南亚', price:48, spicy:3, tags:['汤','酸辣','海鲜','虾'],      alg:['虾','海鲜'], desc:'酸辣鲜香，一口就醒', hot:85 },
+  { id:'se02', name:'泰式炒河粉',      cat:'noodle', role:'single', cui:'东南亚', price:42, spicy:1, tags:['粉','酸辣','东南亚','快'],    alg:['蛋','花生'], desc:'甜酸咸香，挤点青柠更妙', hot:83 },
+  { id:'se03', name:'黄咖喱鸡饭',      cat:'rice',   role:'single', cui:'东南亚', price:46, spicy:1, tags:['鸡','咖喱','东南亚','下饭'],  alg:['鸡'],        desc:'椰香咖喱，拌饭一绝', hot:82 },
+  { id:'se04', name:'越南牛肉河粉',    cat:'noodle', role:'single', cui:'东南亚', price:45, spicy:0, tags:['牛','汤','粉','清淡'],        alg:['牛'],        desc:'清汤牛肉，配薄荷罗勒', hot:84 },
+  { id:'se05', name:'芒果糯米饭',      cat:'other',  role:'side',   cui:'东南亚', price:28, spicy:0, tags:['甜品','甜口','东南亚'],        alg:['乳'],        desc:'椰浆浇糯米，吃完心情好', hot:78 },
+  { id:'se06', name:'泰式柠檬鱼',      cat:'other',  role:'main',   cui:'东南亚', price:78, spicy:2, tags:['鱼','酸辣','东南亚','聚餐'],    alg:['鱼'],        desc:'酸辣清蒸，鱼肉很嫩', hot:80 },
+
+  // ==================== 中餐名菜（点菜型硬菜）====================
+  { id:'c01', name:'北京烤鸭（半只）', cat:'other',  role:'main',   cui:'家常', price:118, spicy:0, tags:['鸭','高级','聚餐','烤','老字号'], alg:['麦'],      desc:'片皮蘸酱，卷饼吃', hot:92 },
+  { id:'c02', name:'酸菜鱼',           cat:'other',  role:'main',   cui:'川',   price:68,  spicy:2, tags:['鱼','酸辣','聚餐','重口'],        alg:['鱼'],      desc:'鱼片滑嫩，汤能泡饭', hot:93 },
+  { id:'c03', name:'糖醋排骨',         cat:'other',  role:'main',   cui:'家常', price:48,  spicy:0, tags:['猪','酸甜','下饭'],              alg:['猪'],      desc:'酸甜挂浆，老少通吃', hot:88 },
+  { id:'c04', name:'红烧狮子头',       cat:'other',  role:'main',   cui:'江浙', price:46,  spicy:0, tags:['猪','下饭','软糯','热'],          alg:['猪'],      desc:'大肉丸炖得入口即化', hot:81 },
+  { id:'c05', name:'东坡肉',           cat:'other',  role:'main',   cui:'江浙', price:58,  spicy:0, tags:['猪','甜口','软糯','高级'],        alg:['猪'],      desc:'一层肥一层瘦，配饭刚好', hot:80 },
+  { id:'c06', name:'小炒黄牛肉',       cat:'other',  role:'main',   cui:'川',   price:46,  spicy:3, tags:['牛','辣','重口','下饭'],          alg:['牛'],      desc:'锅气足，辣得下饭', hot:90 },
+  { id:'c07', name:'辣椒炒肉',         cat:'other',  role:'main',   cui:'川',   price:38,  spicy:3, tags:['猪','辣','下饭','重口'],          alg:['猪'],      desc:'湖南人的下饭魂', hot:92 },
+  { id:'c08', name:'口水鸡',           cat:'other',  role:'main',   cui:'川',   price:36,  spicy:3, tags:['鸡','辣','凉','重口'],            alg:['鸡','花生'], desc:'麻辣鲜香，冷吃更入味', hot:87 },
+  { id:'c09', name:'白灼虾',           cat:'other',  role:'main',   cui:'粤',   price:58,  spicy:0, tags:['海鲜','虾','清淡','鲜'],          alg:['虾','海鲜'], desc:'蘸豉油吃，吃的就是鲜', hot:83 },
+  { id:'c10', name:'蒜蓉粉丝扇贝',     cat:'other',  role:'main',   cui:'粤',   price:52,  spicy:0, tags:['海鲜','贝','鲜','蒸'],            alg:['贝','海鲜'], desc:'蒜香浓郁，粉丝也香', hot:82 },
+  { id:'c11', name:'蟹粉豆腐',         cat:'other',  role:'main',   cui:'江浙', price:88,  spicy:0, tags:['海鲜','蟹','高级','鲜','豆'],     alg:['蟹','海鲜','豆'], desc:'蟹粉配嫩豆腐，讲究', hot:78 },
+  { id:'c12', name:'松鼠桂鱼',         cat:'other',  role:'main',   cui:'江浙', price:128, spicy:0, tags:['鱼','酸甜','高级','聚餐'],        alg:['鱼'],      desc:'形似松鼠，浇汁吱吱响', hot:79 },
+  { id:'c13', name:'香辣蟹',           cat:'other',  role:'main',   cui:'川',   price:98,  spicy:3, tags:['海鲜','蟹','辣','聚餐'],          alg:['蟹','海鲜'], desc:'徒手啃蟹，配啤酒绝配', hot:84 },
+  { id:'c14', name:'孜然烤羊排',       cat:'other',  role:'main',   cui:'西北', price:98,  spicy:1, tags:['羊','烤肉','聚餐','高级'],      alg:['羊'],      desc:'外焦里嫩，撒满孜然', hot:86 },
+  { id:'c15', name:'干锅牛蛙',         cat:'other',  role:'main',   cui:'川',   price:78,  spicy:3, tags:['辣','重口','聚餐','干锅'],        alg:[],          desc:'麻辣鲜香，越吃越上头', hot:82 },
+  { id:'c16', name:'铁锅炖大鹅',       cat:'other',  role:'main',   cui:'河北', price:108, spicy:1, tags:['聚餐','热','炖菜','河北'],        alg:[],          desc:'玉米饼贴锅边，越炖越香', hot:80 },
+  { id:'c17', name:'麻婆豆腐',         cat:'other',  role:'side',   cui:'川',   price:28,  spicy:2, tags:['豆','辣','下饭','素'],            alg:['豆','猪'], desc:'麻辣烫口，拌饭神器', hot:91 },
+  { id:'c18', name:'干煸豆角',         cat:'other',  role:'side',   cui:'川',   price:26,  spicy:2, tags:['蔬菜','辣','干煸','下饭'],        alg:[],          desc:'虎皮皱起才够味', hot:85 },
+  { id:'c19', name:'手撕包菜',         cat:'other',  role:'side',   cui:'家常', price:22,  spicy:1, tags:['蔬菜','素','下饭','快'],          alg:[],          desc:'锅气足，微辣爽脆', hot:86 },
+  { id:'c20', name:'卤味拼盘',         cat:'other',  role:'side',   cui:'家常', price:38,  spicy:0, tags:['卤味','下酒','聚餐','凉'],        alg:['猪'],      desc:'猪耳鸭胗豆干拼一盘', hot:79 },
+  { id:'c21', name:'肉夹馍',           cat:'other',  role:'single', cui:'西北', price:15,  spicy:1, tags:['猪','小吃','快','碳水'],          alg:['猪','麦'], desc:'腊汁肉剁碎夹进馍里', hot:90 },
+  { id:'c22', name:'凉皮',             cat:'other',  role:'single', cui:'西北', price:12,  spicy:2, tags:['小吃','凉','酸辣','素'],          alg:['麦'],      desc:'筋道爽滑，辣油是灵魂', hot:89 },
+  { id:'c23', name:'煎饼果子',         cat:'other',  role:'single', cui:'家常', price:10,  spicy:0, tags:['早点','快','小吃','蛋'],          alg:['蛋','麦'], desc:'现摊现卷，边走边吃', hot:88 },
+  { id:'c24', name:'鸡蛋灌饼',         cat:'other',  role:'single', cui:'河北', price:9,   spicy:0, tags:['早点','快','小吃','蛋'],          alg:['蛋','麦'], desc:'灌进鸡蛋，刷酱卷生菜', hot:87 },
+  { id:'c25', name:'麻辣香锅',         cat:'other',  role:'single', cui:'川',   price:52,  spicy:3, tags:['辣','重口','自由搭配','聚餐'],    alg:[],          desc:'想吃什么夹什么，一锅炒', hot:91 },
+
+  // ==================== 轻食 / 健康 ====================
+  { id:'l01', name:'牛油果鸡胸沙拉',   cat:'other',  role:'single', cui:'健康', price:38, spicy:0, tags:['沙拉','鸡','健康','清淡','凉'],  alg:['鸡'],       desc:'高蛋白低脂，吃完不困', hot:82 },
+  { id:'l02', name:'藜麦蔬菜碗',       cat:'other',  role:'single', cui:'健康', price:36, spicy:0, tags:['健康','素','清淡','凉'],          alg:[],           desc:'五色搭配，饱腹感强', hot:78 },
+  { id:'l03', name:'全麦鸡胸三明治',   cat:'other',  role:'single', cui:'健康', price:28, spicy:0, tags:['鸡','三明治','快','清淡'],        alg:['鸡','麦'],  desc:'全麦面包夹鸡胸，轻负担', hot:83 },
+  { id:'l04', name:'贝果＋奶油奶酪',   cat:'other',  role:'single', cui:'健康', price:22, spicy:0, tags:['西餐','麦','早餐','快'],          alg:['乳','麦'],  desc:'有嚼劲，配咖啡刚好', hot:76 },
+  { id:'l05', name:'帕尼尼',           cat:'other',  role:'single', cui:'健康', price:32, spicy:0, tags:['西餐','麦','热','芝士'],          alg:['乳','麦'],  desc:'压烤过的热三明治', hot:77 },
+  { id:'l06', name:'希腊酸奶碗',       cat:'other',  role:'side',   cui:'健康', price:26, spicy:0, tags:['甜品','乳','早餐','清淡'],        alg:['乳'],       desc:'配坚果和莓果，酸甜适中', hot:80 },
+  { id:'l07', name:'凯撒沙拉',         cat:'other',  role:'side',   cui:'健康', price:30, spicy:0, tags:['沙拉','清淡','凉','素'],          alg:['乳','蛋'],  desc:'酱汁减油，菜量给足', hot:79 },
+  { id:'l08', name:'鸡胸肉蛋白餐',     cat:'rice',   role:'single', cui:'健康', price:42, spicy:0, tags:['鸡','健身','健康','碳水'],        alg:['鸡'],       desc:'鸡胸配糙米和西兰花', hot:81 },
+
+  // ==================== 甜品 / 饮品 ====================
+  { id:'de01', name:'珍珠奶茶',        cat:'other', role:'drink', cui:'甜品', price:16, spicy:0, tags:['饮品','甜口','凉'],        alg:['乳'],           desc:'三分糖去冰，加珍珠', hot:95 },
+  { id:'de02', name:'杨枝甘露',        cat:'other', role:'drink', cui:'甜品', price:22, spicy:0, tags:['甜品','甜口','凉','芒果'],  alg:['乳'],           desc:'芒果西柚椰浆，夏天必备', hot:88 },
+  { id:'de03', name:'蛋挞（2个）',     cat:'other', role:'side',  cui:'甜品', price:12, spicy:0, tags:['甜品','甜口','烤','蛋'],    alg:['蛋','乳','麦'], desc:'酥皮层层，出炉最香', hot:86 },
+  { id:'de04', name:'提拉米苏',        cat:'other', role:'side',  cui:'甜品', price:28, spicy:0, tags:['甜品','甜口','西餐','乳'],  alg:['乳','蛋','麦'], desc:'咖啡酒香，入口即化', hot:84 },
+  { id:'de05', name:'双皮奶',          cat:'other', role:'side',  cui:'粤',   price:18, spicy:0, tags:['甜品','甜口','粤','乳'],    alg:['乳'],           desc:'滑得像布丁，甜而不腻', hot:80 },
+  { id:'de06', name:'冰淇淋（2球）',   cat:'other', role:'side',  cui:'甜品', price:20, spicy:0, tags:['甜品','凉','甜口','乳'],    alg:['乳'],           desc:'吃完辣的最想来这个', hot:85 },
+  { id:'de07', name:'鲜榨橙汁',        cat:'other', role:'drink', cui:'甜品', price:18, spicy:0, tags:['饮品','解腻','凉','素'],    alg:[],               desc:'现榨，不加糖', hot:78 },
+  { id:'de08', name:'冰美式',          cat:'other', role:'drink', cui:'甜品', price:15, spicy:0, tags:['饮品','咖啡','快','凉'],    alg:[],               desc:'吃完午饭提个神', hot:83 },
+
+  { id:'d33', name:'麻辣烫（自选）',   cat:'other',  cui:'小吃', price:26,  spicy:2, tags:['自由搭配','辣','热','重口'],    alg:[],          desc:'想吃什么自己夹，性价比高', hot:93 },
+  { id:'d34', name:'韩式部队锅',       cat:'other',  cui:'韩',   price:48,  spicy:2, tags:['辣','聚餐','热','芝士'],        alg:['猪','乳','麦'], desc:'泡面午餐肉芝士一锅端', hot:70 },
+  { id:'d35', name:'潮汕牛肉火锅',     cat:'other',  cui:'火锅', price:118, spicy:0, tags:['牛','聚餐','鲜','热'],          alg:['牛'],      desc:'现切牛肉，八秒即涮', hot:85 },
+  { id:'d36', name:'生煎＋小馄饨',     cat:'other',  cui:'小吃', price:22,  spicy:0, tags:['猪','小吃','咸香','汤'],        alg:['猪','麦'], desc:'四只生煎配一碗馄饨', hot:80 },
+  { id:'d37', name:'汉堡薯条套餐',     cat:'other',  cui:'西',   price:30,  spicy:0, tags:['西餐','炸','快','薯条'],        alg:['麦','乳'], desc:'快、顶饱、不用等', hot:72 },
+  { id:'d38', name:'寿司拼盘',         cat:'other',  cui:'日',   price:68,  spicy:0, tags:['海鲜','生鲜','清淡','日式'],    alg:['海鲜'],    desc:'一口一个，清淡不腻', hot:76 },
+  { id:'d39', name:'鸡胸沙拉碗',       cat:'other',  cui:'健康', price:32,  spicy:0, tags:['健康','清淡','凉','健身','素'], alg:[],         desc:'低卡高蛋白，吃完不困', hot:64 },
+  { id:'d40', name:'韩式炸鸡啤酒',     cat:'other',  cui:'韩',   price:55,  spicy:1, tags:['鸡','炸','聚餐','甜辣'],        alg:['鸡','麦'], desc:'甜辣双拼，配冰啤酒', hot:82 },
+  { id:'d41', name:'铜锅涮羊肉',       cat:'other',  cui:'火锅', price:95,  spicy:0, tags:['羊','聚餐','暖','热'],          alg:['羊'],      desc:'清汤铜锅，羊肉配麻酱', hot:75 },
+  { id:'d42', name:'成都冷锅串串',     cat:'other',  cui:'川',   price:45,  spicy:3, tags:['辣','串串','重口','聚餐'],      alg:[],          desc:'串签泡在红油里，香辣过瘾', hot:86 },
+  { id:'d43', name:'广式茶点（虾饺烧卖）', cat:'other', cui:'粤', price:66, spicy:0, tags:['虾','小吃','甜口','精致'],     alg:['虾','麦'], desc:'一盅两件，慢慢吃', hot:67 },
+  { id:'d44', name:'炭火烤串＋凉菜',   cat:'other',  cui:'烧烤', price:45,  spicy:1, tags:['烧烤','串串','夜宵','啤酒'],    alg:[],          desc:'烟火气十足，适合晚上', hot:88 },
+  { id:'d45', name:'轻食鸡胸卷',       cat:'other',  cui:'健康', price:18,  spicy:0, tags:['鸡','快','清淡','凉'],          alg:['鸡','麦'], desc:'边走边吃，五分钟解决', hot:58 }
+  ,
+  /* ===== 八大菜系补齐：湘 / 鲁 / 闽 / 徽（原来库里没有，界面上点"湘菜"会是死标签）===== */
+  { id:'x01', name:'剁椒鱼头',        cat:'other',  role:'main', cui:'湘', price:68,  spicy:3, tags:['鱼','辣','重口','蒸','湘','聚餐'],       alg:['海鲜'],     desc:'红剁椒盖满鱼头，蒸得鲜辣', hot:84 },
+  { id:'x02', name:'农家小炒肉',      cat:'other',  role:'main', cui:'湘', price:36,  spicy:3, tags:['猪','辣','重口','下饭','湘'],             alg:['猪'],       desc:'螺丝椒炒五花，湖南下饭王', hot:88 },
+  { id:'x03', name:'长沙口味虾',      cat:'other',  role:'main', cui:'湘', price:88,  spicy:3, tags:['虾','辣','重口','聚餐','湘','夜宵'],      alg:['海鲜'],     desc:'油焖小龙虾，嗦壳才是重点', hot:80 },
+  { id:'x04', name:'擂辣椒皮蛋',      cat:'other',  role:'side', cui:'湘', price:22,  spicy:2, tags:['素','辣','凉','下饭','湘'],               alg:['蛋'],       desc:'青椒烧过擂碎拌皮蛋', hot:66 },
+  { id:'x05', name:'湘西外婆菜炒蛋',  cat:'other',  role:'side', cui:'湘', price:26,  spicy:2, tags:['素','蛋','辣','下饭','湘','外婆菜'],      alg:['蛋'],       desc:'腌菜脆爽，拌饭一绝', hot:62 },
+
+  { id:'x06', name:'葱烧海参',        cat:'other',  role:'main', cui:'鲁', price:98,  spicy:0, tags:['海鲜','高级','鲁','葱烧','宴请'],         alg:['海鲜'],     desc:'鲁菜门面，浓汁裹海参', hot:58 },
+  { id:'x07', name:'九转大肠',        cat:'other',  role:'main', cui:'鲁', price:68,  spicy:0, tags:['猪','酸甜','重口','鲁','老字号'],         alg:['猪'],       desc:'酸甜咸香辣五味俱全', hot:60 },
+  { id:'x08', name:'糖醋鲤鱼',        cat:'other',  role:'main', cui:'鲁', price:58,  spicy:0, tags:['鱼','酸甜','聚餐','鲁','宴请'],          alg:['海鲜'],     desc:'鲁菜经典，外脆里嫩', hot:64 },
+  { id:'x09', name:'把子肉盖饭',      cat:'rice',                cui:'鲁', price:26,  spicy:0, tags:['猪','卤味','下饭','鲁','扎实'],          alg:['猪'],       desc:'大块五花卤到入口即化', hot:79 },
+  { id:'x10', name:'山东大包子',      cat:'other',  role:'staple', cui:'鲁', price:16,spicy:0, tags:['主食','猪','蒸','鲁','快'],               alg:['猪','麦'],  desc:'皮厚馅大，一个顶俩', hot:61 },
+
+  { id:'x11', name:'佛跳墙（小份）',  cat:'other',  role:'main', cui:'闽', price:128, spicy:0, tags:['海鲜','高级','汤','聚餐','闽','宴请'],    alg:['海鲜','猪'],desc:'一盅装十味，鲜到掉眉毛', hot:55 },
+  { id:'x12', name:'荔枝肉',          cat:'other',  role:'main', cui:'闽', price:42,  spicy:0, tags:['猪','酸甜','下饭','闽'],                  alg:['猪'],       desc:'形似荔枝的酸甜肉', hot:63 },
+  { id:'x13', name:'沙茶面',          cat:'noodle',               cui:'闽', price:26,  spicy:1, tags:['面','海鲜','汤','鲜','闽'],              alg:['海鲜','麦'],desc:'沙茶酱浓汤，配鱿鱼虾仁', hot:71 },
+  { id:'x14', name:'海蛎煎',          cat:'other',  role:'side', cui:'闽', price:28,  spicy:0, tags:['海鲜','贝','蛋','小吃','闽'],            alg:['海鲜','蛋'],desc:'地瓜粉裹海蛎，外焦里嫩', hot:68 },
+
+  { id:'x15', name:'臭鳜鱼',          cat:'other',  role:'main', cui:'徽', price:88,  spicy:1, tags:['鱼','重口','徽','发酵','聚餐'],          alg:['海鲜'],     desc:'闻着臭吃着香，徽菜灵魂', hot:70 },
+  { id:'x16', name:'毛豆腐',          cat:'other',  role:'side', cui:'徽', price:24,  spicy:1, tags:['素','徽','煎','小吃','豆'],             alg:['豆'],       desc:'长毛的豆腐，煎香蘸辣酱', hot:59 },
+  { id:'x17', name:'徽州一品锅',      cat:'other',  role:'main', cui:'徽', price:98,  spicy:0, tags:['猪','鸡','炖菜','热','聚餐','徽'],       alg:['猪','鸡'],  desc:'一层一层码起来炖的硬菜', hot:57 },
+
+  /* 面类补"炒面/炒粉"：原来库里一道都没有，标签"炒面"就是死的 */
+  { id:'x18', name:'家常炒面',        cat:'noodle',               cui:'家常', price:18,spicy:0, tags:['面','干爽','快','家常','炒'],            alg:['麦','蛋'],  desc:'锅气足，酱油香', hot:77 },
+  { id:'x19', name:'新疆炒米粉',      cat:'noodle',               cui:'西北', price:26,spicy:3, tags:['粉','辣','炒','扎实'],                    alg:['麦'],       desc:'辣得直冒汗，越吃越上瘾', hot:81 },
+  { id:'x20', name:'豉油皇炒面',      cat:'noodle',               cui:'粤',   price:28,spicy:0, tags:['面','干爽','炒','酱油','快'],             alg:['麦'],       desc:'大排档锅气，一筷子全是香', hot:73 },
+  /* 补几道"类别里太薄"的菜：闽菜/徽菜/健康轻食 在「吃饭」里原来只有 2 道，容易扑空 */
+  { id:'x21', name:'闽南沙茶牛肉盖饭', cat:'rice',                 cui:'闽',   price:38,spicy:1, tags:['牛','闽','沙茶','鲜','下饭'],            alg:['牛'],       desc:'沙茶酱炒牛肉，浇在热饭上', hot:69 },
+  { id:'x22', name:'徽州刀板香盖饭',   cat:'rice',                 cui:'徽',   price:32,spicy:0, tags:['猪','徽','腊味','咸香','下饭'],            alg:['猪'],       desc:'徽州腌肉蒸香，咸鲜拌饭', hot:65 },
+  { id:'x23', name:'低卡三文鱼糙米饭', cat:'rice',                 cui:'健康', price:46,spicy:0, tags:['海鲜','生鲜','健康','清淡','健身','碳水'],  alg:['海鲜'],     desc:'糙米配炙烤三文鱼，吃完不犯困', hot:67 }
+];
+
+// 饭店库：cui 擅长菜系，tags 实际经营品类（用于与菜品的口味标签做交集匹配），
+//        avg 人均，rating 评分，delivery 是否外卖，sig 招牌菜 id
+const RESTAURANTS = [
+  // 保定离线兜底库：联网搜索失败时用这批数据（标为"离线示例"）。
+  // 店名以保定真实老字号 + 常见品类命名，人均/评分为演示值。
+  { id:'r01', name:'白运章包子铺（裕华路）',      area:'裕华路',   cui:['保定'],              tags:['猪','蒸','小吃','保定','老字号','包子'],              avg:20,  rating:4.5, delivery:true,  sig:['d51','d57'] },
+  { id:'r02', name:'老保定驴肉火烧总店',          area:'裕华路',   cui:['保定'],              tags:['驴肉','火烧','小吃','快','保定','汤'],                avg:22,  rating:4.6, delivery:true,  sig:['d49','d50','d53'] },
+  { id:'r03', name:'直隶会馆（官府菜）',          area:'莲池区',   cui:['保定'],              tags:['高级','聚餐','热','保定','驴肉','河北'],              avg:120, rating:4.6, delivery:false, sig:['d52','d53','d54'] },
+  { id:'r04', name:'马家烧鸡老铺',                area:'军校广场', cui:['保定'],              tags:['鸡','卤味','老字号','保定','下饭'],                   avg:26,  rating:4.4, delivery:true,  sig:['d54','d53'] },
+  { id:'r05', name:'槐茂酱菜园（早点档）',        area:'莲池区',   cui:['保定'],              tags:['早点','清淡','老字号','保定','豆'],                   avg:12,  rating:4.3, delivery:true,  sig:['d59','d57'] },
+  { id:'r06', name:'河北人家常菜馆',              area:'竞秀区',   cui:['家常','河北'],       tags:['家常','猪','下饭','炖菜','河北','热','汤','素','凉','清淡','蛋','蔬菜'], avg:32, rating:4.4, delivery:true, sig:['d58','d02','d11','d23','m07','s06'] },
+  { id:'r07', name:'老保定饸饹面馆',              area:'三丰路',   cui:['河北'],              tags:['面','汤','暖','家常','河北','辣','牛'],               avg:18,  rating:4.3, delivery:true,  sig:['d55','d56','d26'] },
+  { id:'r08', name:'川味小馆（朝阳大街）',        area:'万博广场', cui:['川'],                tags:['川','辣','重口','下饭','鸡','猪','串串','火锅','汤','素','鱼','聚餐'], avg:40, rating:4.4, delivery:true, sig:['d10','d13','d17','d19','d42'] },
+  { id:'r09', name:'蜀香火锅（高新区店）',        area:'高新区',   cui:['川','火锅'],         tags:['火锅','辣','聚餐','热','串串','川','鱼','猪','鸡','重口'], avg:85, rating:4.5, delivery:false, sig:['d42','d34','d35'] },
+  { id:'r10', name:'老北京铜锅涮肉',              area:'竞秀区',   cui:['火锅'],              tags:['火锅','羊','聚餐','暖','热','牛','麻酱'],             avg:95,  rating:4.5, delivery:false, sig:['d41','d35'] },
+  { id:'r11', name:'兰州牛肉面（保定站店）',      area:'保定站',   cui:['西北'],              tags:['西北','牛','清汤','拉面','干拌','汤','辣','面','饼','快','碳水'], avg:22, rating:4.2, delivery:true, sig:['d18','d24','d27','c21'] },
+  { id:'r12', name:'樱之屋日本料理',              area:'万博广场', cui:['日'],                tags:['日式','刺身','丼','海鲜','生鲜','寿司','高级','鳗鱼','鸡','蛋','下饭','热','小吃','快','烤','夜宵','咖喱'], avg:110, rating:4.5, delivery:false, sig:['d07','d08','d09','d38','j01','j02'] },
+  { id:'r13', name:'一楽豚骨拉面',                area:'高新区',   cui:['日'],                tags:['日式','拉面','猪','浓汤','咖喱','荞麦','凉'],         avg:45,  rating:4.3, delivery:true,  sig:['d21','d06','d28'] },
+  { id:'r14', name:'粤香烧腊饭店',                area:'莲池区',   cui:['粤'],                tags:['粤','烧腊','猪','甜口','下饭','清汤','虾','汤','煲仔','鸡','清淡','鲜','鱼'], avg:48, rating:4.4, delivery:true, sig:['d04','d05','d15','d22'] },
+  { id:'r15', name:'广式茶点轩',                  area:'竞秀区',   cui:['粤'],                tags:['粤','虾','小吃','甜口','精致','蒸','茶点','清淡','鲜','鸡','鱼','素'], avg:70, rating:4.4, delivery:true, sig:['d43','d04'] },
+  { id:'r16', name:'韩味屋',                      area:'高新区',   cui:['韩'],                tags:['韩','辣','辣酱','芝士','炸','鸡','聚餐','甜辣','热','小吃','凉','快','蛋','汤','面','麦','猪','豆'], avg:55, rating:4.2, delivery:true, sig:['d12','d34','d40','kr01','kr03'] },
+  { id:'r17', name:'轻食工坊 GREEN',              area:'高新区',   cui:['健康'],              tags:['健康','清淡','健身','鸡','沙拉','凉','轻食','低卡','素','快','西餐','麦','乳','早餐'], avg:36, rating:4.4, delivery:true, sig:['d16','d39','d45','l01','l03','x23'] },
+  { id:'r18', name:'汉堡工坊（保定东站）',        area:'保定东站', cui:['西'],                tags:['西','快餐','炸','薯条','汉堡','快','可乐'],           avg:32,  rating:4.0, delivery:true,  sig:['d37'] },
+  { id:'r19', name:'意面小馆 Tavola',             area:'莲池区',   cui:['西'],                tags:['西餐','意面','番茄','芝士','干拌','披萨'],            avg:58,  rating:4.4, delivery:false, sig:['d32','d46','d47'] },
+  { id:'r20', name:'炭火烤串屋（军校广场）',      area:'军校广场', cui:['烧烤'],              tags:['烧烤','串串','夜宵','啤酒','辣','凉菜'],             avg:50,  rating:4.3, delivery:true,  sig:['d44'] },
+  { id:'r21', name:'保定小吃城（多档口）',        area:'裕华路',   cui:['保定','小吃','家常','河北'], tags:['小吃','驴肉','火烧','保定','快','汤','河北','早点','豆','素','凉','清淡','主食','蔬菜'], avg:25, rating:4.2, delivery:true, sig:['d49','d55','d56','d57','d60'] },
+  { id:'r22', name:'酸辣粉·螺蛳粉铺',             area:'保定东站', cui:['小吃'],              tags:['小吃','酸辣','粉','重口','辣','汤','米线','自由搭配','素','凉'], avg:24, rating:4.1, delivery:true, sig:['d25','d29','d33','d31'] },
+  { id:'r23', name:'江南小厨（江浙菜）',          area:'竞秀区',   cui:['江浙'],              tags:['江浙','海鲜','蟹','高级','鲜','面','拌饭','猪','牛','下饭','软糯','热','素','汤','鱼'], avg:130, rating:4.5, delivery:false, sig:['d14','d30','c04','c05'] },
+  { id:'r24', name:'保定大学城美食广场',          area:'河北大学', cui:['小吃','家常','川','西','健康','河北'], tags:['小吃','快','下饭','辣','猪','鸡','蛋','汤','河北','保定','素','凉'], avg:28, rating:4.1, delivery:true, sig:['d49','d56','d03'] },
+  // 点菜型饭馆（做组合推荐的主力）
+  { id:'r25', name:'川香苑（军校广场）',          area:'军校广场', cui:['川'],                  tags:['川','辣','重口','鱼','猪','鸡','聚餐','汤','素','下饭','热'], avg:65,  rating:4.5, delivery:true,  sig:['m01','m02','m03','m05','s03'] },
+  { id:'r26', name:'老保定菜馆（裕华路）',        area:'裕华路',   cui:['保定','河北','家常'],  tags:['保定','河北','驴肉','家常','汤','素','热','聚餐','下饭','猪','鸡'], avg:55, rating:4.4, delivery:true,  sig:['d49','d53','d58','m07','s04'] },
+  { id:'r27', name:'冀菜家宴（竞秀区）',          area:'竞秀区',   cui:['河北','家常'],         tags:['河北','家常','炖菜','猪','鸡','汤','素','热','聚餐','下饭'], avg:60, rating:4.3, delivery:false, sig:['m07','m08','d58','s06'] },
+  { id:'r28', name:'清真老马家饭庄（莲池区）',    area:'莲池区',   cui:['西北','家常'],         tags:['西北','牛','羊','面','汤','热','聚餐','下饭','孜然'], avg:58, rating:4.4, delivery:true,  sig:['m12','m13','d18','t05'] },
+  { id:'r29', name:'粤味轩（万博广场）',          area:'万博广场', cui:['粤'],                  tags:['粤','清淡','鲜','蒸','鸡','鱼','汤','素','下饭','聚餐'], avg:75, rating:4.5, delivery:false, sig:['m10','m11','s08','d05'] }
+  ,
+  // ===== 快餐 / 洋味 / 烤肉 / 东南亚 / 甜品 =====
+  { id:'r30', name:'汉堡工厂（万博广场）',        area:'万博广场', cui:['汉堡','西'],    tags:['汉堡','炸','薯条','快餐','西餐','鸡','牛','快','麦','乳','芝士','汉堡'], avg:32, rating:4.2, delivery:true, sig:['f01','f02','f06','f12'] },
+  { id:'r31', name:'炸鸡研究所（河北大学）',      area:'河北大学', cui:['汉堡'],         tags:['鸡','炸','小吃','快餐','夜宵','聚餐','啤酒','快','麦','牛'], avg:28, rating:4.1, delivery:true, sig:['f04','f05','f11','f07'] },
+  { id:'r32', name:'那不勒斯披萨（万博广场）',    area:'万博广场', cui:['披萨','西'],    tags:['披萨','西餐','芝士','番茄','烤','麦','乳','海鲜','虾','猪','牛','碳水','热'], avg:75, rating:4.5, delivery:true, sig:['z01','z03','z06','z08'] },
+  { id:'r33', name:'意风意面馆（莲池区）',        area:'莲池区',   cui:['披萨','西'],    tags:['西餐','意面','芝士','番茄','面','麦','乳','牛','海鲜','虾','热'], avg:60, rating:4.4, delivery:true, sig:['z07','z09','z05','d32'] },
+  { id:'r34', name:'首尔炭火烤肉（军校广场）',    area:'军校广场', cui:['烤肉','韩'],    tags:['烤肉','猪','牛','鸡','聚餐','热','辣','烧烤','夜宵','麦','汤','素','凉'], avg:88, rating:4.6, delivery:false, sig:['k01','k03','k06','k07'] },
+  { id:'r35', name:'日式烧肉一番（高新区）',      area:'高新区',   cui:['烤肉','日'],    tags:['烤肉','牛','高级','聚餐','日式','热','烤','海鲜','贝'], avg:145, rating:4.5, delivery:false, sig:['k02','k04','k03'] },
+  { id:'r36', name:'芭提雅泰国餐厅（万博广场）',  area:'万博广场', cui:['东南亚'],       tags:['东南亚','酸辣','海鲜','虾','鱼','汤','鸡','牛','咖喱','粉','热带','聚餐'], avg:68, rating:4.4, delivery:false, sig:['se01','se02','se06','se03'] },
+  { id:'r37', name:'甜品奶茶站（裕华路）',        area:'裕华路',   cui:['甜品'],         tags:['甜品','饮品','甜口','凉','乳','蛋','咖啡','麦','芒果','冰淇淋'], avg:25, rating:4.3, delivery:true, sig:['de01','de03','de06','de02'] },
+  { id:'r38', name:'西安小吃铺（三丰路）',        area:'三丰路',   cui:['西北'],         tags:['西北','小吃','面','馍','饼','凉','快','猪','碳水','辣','酸辣','早餐'], avg:20, rating:4.2, delivery:true, sig:['c21','c22','c24','d24'] },
+  { id:'r39', name:'老北京烤鸭店（莲池区）',      area:'莲池区',   cui:['家常'],         tags:['鸭','烤','高级','聚餐','老字号','家常','下饭','热','麦','饼','猪','鸡','蔬菜','素','汤'], avg:110, rating:4.5, delivery:false, sig:['c01','m09','s05','c03'] },
+  { id:'r40', name:'川渝小馆（河北大学）',        area:'河北大学', cui:['川'],           tags:['川','辣','重口','下饭','鱼','猪','牛','鸡','聚餐','干锅','汤','素','凉'], avg:45, rating:4.3, delivery:true, sig:['c02','c06','c07','c25'] },
+  // ===== 八大菜系补齐：湘 / 鲁 / 闽 / 徽 + 面馆（新增菜品必须有店能做，否则点了没结果）=====
+  { id:'r41', name:'湘江水·湘菜馆（万博广场）',  area:'万博广场', cui:['湘','川'],   tags:['湘','辣','重口','下饭','鱼','虾','猪','鸡','蛋','素','蒸','凉','汤','聚餐','热'], avg:62, rating:4.5, delivery:true, sig:['x01','x02','x03','x04','x05'] },
+  { id:'r42', name:'鲁香居（古莲花池）',          area:'古莲花池', cui:['鲁','家常','河北'], tags:['鲁','宴请','高级','酸甜','重口','卤味','猪','鱼','海鲜','下饭','聚餐','热','素','汤','主食','蒸'], avg:95, rating:4.5, delivery:false, sig:['x06','x07','x08','x09','x10','m07'] },
+  { id:'r43', name:'闽南人家（高新区）',          area:'高新区',   cui:['闽','粤','东南亚'], tags:['闽','鲜','汤','海鲜','虾','贝','蛋','面','酸','甜口','小吃','聚餐','热','清淡','素'], avg:86, rating:4.4, delivery:false, sig:['x11','x12','x13','x14','x21','d05'] },
+  { id:'r44', name:'徽州小馆（三丰路）',          area:'三丰路',   cui:['徽','家常'], tags:['徽','炖菜','重口','发酵','素','猪','鸡','鱼','热','聚餐','下饭','豆','小吃','汤','煎','腊味'], avg:66, rating:4.3, delivery:true, sig:['x15','x16','x17','x22','d02','s06'] },
+  { id:'r45', name:'街角面馆（裕华路）',          area:'裕华路',   cui:['家常','西北','河北'], tags:['面','家常','干爽','快','炒','粉','辣','碳水','汤','麦','蛋','蔬菜','酱油'], avg:22, rating:4.2, delivery:true, sig:['x18','x19','x20','d20','d55'] }
+];
+
+/* ===== 「今日想吃」标签跟着第 2 步的类型联动 =====
+ * 选「吃饭」→ 问你配什么菜系（川菜/粤菜/湘菜…八大菜系 + 常见外来菜）
+ * 选「吃面」→ 问你面怎么吃（汤面/干拌/炒面/凉面/米线…）
+ * 选「其他」→ 问你吃什么吃法（火锅/烧烤/炸物/甜品…）
+ * 每一条标签都在菜品库里有真实命中（开发者面板的"标签体检"逐条验），
+ * 所以标签集合是照着菜品库反推的，不是随便编的——点了必须有菜。 */
+const CAT_CRAVE_TAGS = {
+  rice:   ['川菜','粤菜','湘菜','鲁菜','苏浙菜','闽菜','徽菜','家常菜','日式','韩式','东南亚','西北','健康轻食',
+           '想吃辣','清淡点','想吃肉','多吃菜'],
+  noodle: ['汤面','干拌面','炒面','凉面','米线/粉','馄饨水饺','拉面/刀削','意面',
+           '想吃辣','清淡点','有汤的','想吃肉'],
+  other:  ['火锅','麻辣烫/串串','烧烤','烤肉','炸物快乐','汉堡快餐','披萨','日式料理','甜品饮品','特色小吃',
+           '保定本地','轻食沙拉','想吃辣','和朋友一起吃','一个人随便吃']
+};
+
+// 还没选类型时的兜底 + 标签体检/提示词用的全集
+const CRAVE_TAGS = Object.keys(CAT_CRAVE_TAGS)
+  .reduce((all, k) => all.concat(CAT_CRAVE_TAGS[k]), [])
+  .filter((t, i, arr) => arr.indexOf(t) === i);
+
+// 某个类型下该显示哪些标签（没选类型时给全集，界面不会空着）
+function craveTagsFor(cat){ return CAT_CRAVE_TAGS[cat] || CRAVE_TAGS; }
+function isCraveTagOf(cat, tag){ return CAT_CRAVE_TAGS[cat] && CAT_CRAVE_TAGS[cat].indexOf(tag) !== -1; }
+
+/* 「今日想吃」标签 → 菜品库关键词 的显式映射。
+ * 界面上的标签是"人话"（炸物快乐、热乎的、有汤的），菜品库里是"炸""热""汤"这种短标签，
+ * 少了这层映射，标签就会空转（点炸物快乐却推出一堆非炸物）。 */
+const CRAVE_TAG_KEYS = {
+  '想吃辣':      ['辣','重口'],
+  '清淡点':      ['清淡','素'],
+  '有汤的':      ['汤','暖'],
+  '干拌/无汤':   ['干拌','无汤'],
+  '重口过瘾':    ['重口','辣'],
+  '健康低卡':    ['健康','低卡','清淡','沙拉'],
+  '热乎的':      ['热','暖','汤'],
+  '凉的/解腻':   ['凉','解腻','清淡','酸'],
+  '想吃肉':      ['肉'],
+  '多吃菜':      ['蔬菜','素','凉'],
+  '炸物快乐':    ['炸','薯条','酥'],
+  '生鲜/刺身':   ['生鲜','刺身'],
+  '甜口':        ['甜口','甜'],
+  '酸辣':        ['酸辣','酸','辣'],
+  '想吃烧烤':    ['烧烤','烤肉','烤'],
+  '想吃本地特色': ['保定','河北'],
+  '想吃驴肉火烧': ['驴肉','火烧','保定'],
+  '一个人随便吃': ['快','小吃','一人食'],
+  '和朋友一起吃': ['聚餐'],
+
+  /* —— 第 2 步选「吃饭」时出现的菜系标签 —— */
+  '川菜':    ['川','水煮','麻辣','回锅'],
+  '粤菜':    ['粤','烧腊','煲仔','白灼','茶点','清蒸'],
+  '湘菜':    ['湘','剁椒','小炒肉','口味虾','外婆菜'],
+  '鲁菜':    ['鲁','葱烧','九转','把子肉','糖醋鲤鱼'],
+  '苏浙菜':  ['江浙','狮子头','东坡','蟹粉','松鼠桂鱼'],
+  '闽菜':    ['闽','佛跳墙','荔枝肉','沙茶','海蛎'],
+  '徽菜':    ['徽','臭鳜鱼','毛豆腐','一品锅'],
+  '家常菜':  ['家常'],
+  '日式':    ['日','日式','刺身','寿司','天妇罗','丼'],
+  '韩式':    ['韩','韩式','辣酱','部队锅','泡菜'],
+  '东南亚':  ['东南亚','泰式','泰国','越南','冬阴功','河粉'],
+  '西北':    ['西北','孜然','大盘鸡','biangbiang','拉面','肉夹馍'],
+  '健康轻食': ['健康','轻食','沙拉','健身','低卡'],
+
+  /* —— 第 2 步选「吃面」时出现的做法标签 —— */
+  '汤面':    ['汤','清汤'],
+  '干拌面':  ['干拌'],
+  '炒面':    ['炒面','炒河粉','炒粉','炒米粉'],
+  '凉面':    ['凉','冷面'],
+  '米线/粉': ['米线','粉'],
+  '馄饨水饺': ['馄饨','云吞','饺'],
+  '拉面/刀削': ['拉面','烩面','刀削','拉条子'],
+  '意面':    ['意面','千层面','意式','西餐'],
+
+  /* —— 第 2 步选「其他」时出现的吃法标签 —— */
+  '火锅':    ['火锅','涮'],
+  '麻辣烫/串串': ['麻辣烫','串串','麻辣香锅'],
+  '烧烤':    ['烧烤','烤串','炭火'],
+  '烤肉':    ['烤肉'],
+  '汉堡快餐': ['汉堡','快餐','炸鸡','卷饼','热狗'],
+  '披萨':    ['披萨','比萨','意式','千层面'],
+  '日式料理': ['日式','刺身','生鲜','寿司','天妇罗','丼'],
+  '甜品饮品': ['甜品','饮品','奶茶','冰淇淋','咖啡','蛋糕'],
+  '特色小吃': ['小吃','早点','街头','包子','煎饼'],
+  '保定本地': ['保定','河北'],
+  '轻食沙拉': ['沙拉','轻食','健康','健身']
+};
+
+const ALLERGIES = ['香菜','花生','海鲜/虾蟹','牛肉','羊肉','猪肉','鸡肉','鸡蛋','豆制品','乳制品','麸质/面食'];
+
+const TASTE_TAGS = ['清淡','重口','爱喝汤','爱干拌','嗜辣','偏爱甜口','喜欢酸辣','碳水快乐','健康优先','下饭至上','爱吃烧烤','爱生鲜'];
+
+/* ===== 城市配置：整个应用围绕保定市 =====
+ * 有高德 key 时用高德做地理编码（坐标精确）；
+ * 没 key 时用下面的粗略坐标，只用于"以哪里为中心搜周边"，几百米的偏差不影响结果。 */
+/* ====== 可选城市 ======
+ * offline:true 表示这个城市有"离线兜底饭店库"（目前只有保定有）。
+ * 其它城市（北京/福州）只能靠联网（高德），没网或没 Key 时会提示"该城市暂无离线数据"。
+ * landmarks 的坐标是粗略值，只在没有高德 Key、需要确定"以哪里为中心搜周边"时使用；
+ * 有 Key 时走高德地理编码，坐标是精确的。 */
+const CITIES = {
+  baoding: {
+    key:'baoding', name:'保定市', adcode:'130600', full:'河北省保定市',
+    center:[115.4646, 38.8740], offline:true,
+    landmarks:['直隶总督署','裕华路步行街','古莲花池','河北大学','华北电力大学',
+               '万博广场','军校广场','保定东站','保定站','竞秀公园','三丰路','高新区'],
+    coords:{
+      '直隶总督署':[115.4640,38.8740], '裕华路步行街':[115.4670,38.8760], '古莲花池':[115.4660,38.8740],
+      '河北大学':[115.4930,38.8870],   '华北电力大学':[115.5380,38.8730], '万博广场':[115.4800,38.8830],
+      '军校广场':[115.4790,38.8900],   '保定东站':[115.5790,38.8500],     '保定站':[115.4580,38.8620],
+      '竞秀公园':[115.4580,38.8830],   '三丰路':[115.4720,38.8650],       '高新区':[115.5100,38.8900]
+    },
+    areas:{
+      '裕华路':['裕华','总督署','古莲花池','大慈阁','钟楼','保定百货','裕华路'],
+      '莲池区':['莲池','莲池区','永华','南市区'],
+      '竞秀区':['竞秀区','竞秀','新市区','东风路','向阳'],
+      '高新区':['高新区','高新','火炬','保百','鲁岗'],
+      '河北大学':['河北大学','河大','五四路','七一东路','七一路东'],
+      '华北电力':['华北电力','华电','永华北大街','华电路'],
+      '军校广场':['军校','军校广场','军校街','学府'],
+      '万博广场':['万博','万博广场','朝阳大街','朝阳路'],
+      '保定东站':['保定东站','东站','高铁站','白洋淀大道'],
+      '保定站':['保定站','火车站','站前','建华大街'],
+      '三丰路':['三丰路','三丰','南关'],
+      '高新区西':['乐凯','瑞祥','向阳大街','西二环']
+    }
+  },
+  beijing: {
+    key:'beijing', name:'北京市', adcode:'110100', full:'北京市',
+    center:[116.4074, 39.9042], offline:false,
+    landmarks:['天安门','三里屯','国贸','中关村','西单','王府井','望京','五道口','朝阳大悦城','北京南站'],
+    coords:{
+      '天安门':[116.3975,39.9087], '三里屯':[116.4551,39.9337], '国贸':[116.4610,39.9087],
+      '中关村':[116.3160,39.9836], '西单':[116.3740,39.9075],   '王府井':[116.4105,39.9151],
+      '望京':[116.4700,40.0000],   '五道口':[116.3380,39.9920], '朝阳大悦城':[116.5140,39.9230],
+      '北京南站':[116.3786,39.8654]
+    },
+    areas:{
+      '朝阳区':['朝阳','三里屯','国贸','望京','大悦城'],
+      '海淀区':['海淀','中关村','五道口','学院路','西二旗'],
+      '东城区':['东城','王府井','崇文','东直门'],
+      '西城区':['西城','西单','金融街','复兴门'],
+      '丰台区':['丰台','北京南站','方庄','丽泽'],
+      '通州区':['通州','副中心','梨园']
+    }
+  },
+  fuzhou: {
+    key:'fuzhou', name:'福州市', adcode:'350100', full:'福建省福州市',
+    center:[119.2965, 26.0745], offline:false,
+    landmarks:['三坊七巷','东街口','五四路','台江步行街','仓山万达','福州站','福州南站','上下杭','西湖公园','鼓山'],
+    coords:{
+      '三坊七巷':[119.2960,26.0810], '东街口':[119.3020,26.0870], '五四路':[119.3050,26.1030],
+      '台江步行街':[119.3110,26.0570], '仓山万达':[119.2830,26.0330], '福州站':[119.3180,26.1170],
+      '福州南站':[119.3620,25.9930], '上下杭':[119.3050,26.0700], '西湖公园':[119.2850,26.0960],
+      '鼓山':[119.3600,26.0500]
+    },
+    areas:{
+      '鼓楼区':['鼓楼','三坊七巷','东街口','五四路','西湖'],
+      '台江区':['台江','上下杭','步行街','金融街'],
+      '仓山区':['仓山','万达','学生街','金山'],
+      '晋安区':['晋安','福州站','鼓山','五四北'],
+      '闽侯县':['闽侯','大学城','上街']
+    }
+  }
+};
+
+let CITY = CITIES.baoding;                    // 当前城市（运行时可切换）
+let LANDMARKS = CITY.landmarks;               // 快捷地址按钮
+let LANDMARK_COORDS = CITY.coords;            // 粗略坐标（无 Key 时用）
+let CUISINE_KEYWORDS = CITY.areas;            // 商圈关键词（离线兜底估算距离用）
+
+// 切换城市：整体替换 CITY，代码里其它地方读 CITY.xxx 的地方都不用改
+function applyCity(key){
+  const c = CITIES[key];
+  if(!c) return false;
+  CITY = c;
+  LANDMARKS = c.landmarks;
+  LANDMARK_COORDS = c.coords;
+  CUISINE_KEYWORDS = c.areas;
+  state.profile.city = c.key;
+  saveProfile();
+  return true;
+}
+
+// 这个城市有没有离线兜底饭店库
+function hasOfflineData(){ return !!CITY.offline; }
+
+/* ------------------------------ 2. 状态与存储 ------------------------------ */
+
+const LS_PROFILE = 'eatAgent.profile.v1';
+const LS_SETTINGS = 'eatAgent.settings.v1';
+const SETTINGS_VERSION = 4;   // 换默认服务商 / 内置 Key 时递增，避免浏览器里存的旧配置把新默认值顶掉
+
+// 服务商预设（均为 OpenAI 兼容的 /chat/completions 接口）
+const PROVIDERS = {
+  deepseek:{
+    label:'DeepSeek',
+    base:'https://api.deepseek.com/v1',
+    models:[
+      { id:'deepseek-chat', note:'快（约 1-2 秒），推荐日常使用' },
+      { id:'deepseek-v4-pro', note:'更强推理，带思考链，较慢（约 10-25 秒）' },
+      { id:'deepseek-flash', note:'轻量快速，带思考链' }
+    ]
+  },
+  openai:{
+    label:'OpenAI',
+    base:'https://api.openai.com/v1',
+    models:[
+      { id:'gpt-4o-mini', note:'便宜快速' },
+      { id:'gpt-4o', note:'效果更好、更贵' }
+    ]
+  },
+  custom:{ label:'自定义', base:'', models:[] }
+};
+
+/* ============================================================================
+ * ★★★ 配置区：要改的东西基本都在这里，改完保存就行 ★★★
+ * ============================================================================
+ *  ① 高德地图 Key —— 联网搜"真实店铺"用（店名/地址/电话/评分/距离）
+ *     申请：lbs.amap.com → 注册个人开发者 → 创建应用 → 添加 Key → 类型选「Web服务」
+ *     填在这里之后，用它的人就不用自己填 Key 了（页面设置里也能看到"内置 Key"）
+ *     格式示例：const DEFAULT_AMAP_KEY = 'a1b2c3d4e5f6...';   ← 引号别丢
+ */
+const DEFAULT_AMAP_KEY = 'f54ea5a57d96f171cfd3a01451a16f30';                                   // ← ① 高德 Key 填这里
+
+//  ② DeepSeek Key —— 让大模型写推荐语用（不填也能用，只是少一段点评）
+//     注：这个文件会被分享给别人，Key 也会跟着一起被看到，别放太贵重的额度
+const DEFAULT_KEY = 'sk-21f864ce09aa412a81b42f06c5d38199';      // ← ② DeepSeek Key 填这里
+
+//  ③ 城市：在页面上用下拉框切换即可；要增删城市改下面的 CITIES 表
+//     （每个城市的 landmarks 快捷地址 / coords 粗略坐标 / areas 商圈关键词都在那张表里）
+/* ========================================================================== */
+
+const state = {
+  tier:null,          // small | mid | good
+  budget:60,          // 心理预算上限
+  cat:null,           // rice | noodle | other
+  craveTags:[],
+  craveText:'',
+  address:'',
+  mode:'delivery',
+  spiceMax:3,
+  profile:{ allergies:[], tastes:[], likes:{}, dislikes:{}, history:[],
+            spiceMax:3, defaultTier:null, savedAddresses:[] },
+  settings:{ v:SETTINGS_VERSION, enabled:'on', provider:'deepseek', model:'deepseek-chat', base:PROVIDERS.deepseek.base, key:DEFAULT_KEY,
+             online:'on', amapKey: DEFAULT_AMAP_KEY },
+  lastResult:null,
+  seed:1,
+  running:false
+};
+
+function loadStore(){
+  try{
+    const p = JSON.parse(localStorage.getItem(LS_PROFILE) || 'null');
+    if(p && typeof p === 'object'){
+      state.profile = Object.assign(state.profile, p);
+      state.profile.likes = p.likes || {};
+      state.profile.dislikes = p.dislikes || {};
+      state.profile.history = Array.isArray(p.history) ? p.history : [];
+      state.profile.allergies = Array.isArray(p.allergies) ? p.allergies : [];
+      state.profile.tastes = Array.isArray(p.tastes) ? p.tastes : [];
+      state.profile.history = Array.isArray(p.history) ? p.history : [];
+      state.profile.savedAddresses = Array.isArray(p.savedAddresses) ? p.savedAddresses : [];
+      state.profile.spiceMax = (typeof p.spiceMax === 'number') ? p.spiceMax : state.spiceMax;
+      state.profile.defaultTier = p.defaultTier || null;
+    }
+    const s = JSON.parse(localStorage.getItem(LS_SETTINGS) || 'null');
+    // 版本不一致时丢弃旧配置，保证新的默认服务商能生效
+    if(s && typeof s === 'object' && s.v === SETTINGS_VERSION){
+      state.settings = Object.assign(state.settings, s);
+      // 内置 Key 优先：浏览器里存的是空值时，不能让空值把代码里写好的 Key 顶掉
+      if(!String(state.settings.amapKey || '').trim() && DEFAULT_AMAP_KEY) state.settings.amapKey = DEFAULT_AMAP_KEY;
+    }
+  }catch(e){ /* 忽略损坏数据 */ }
+}
+function saveProfile(){
+  try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+}
+function saveSettings(){
+  try{ localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings)); }catch(e){}
+}
+
+/* ------------------------------ 3. 工具函数 ------------------------------ */
+
+const $ = (sel) => document.querySelector(sel);
+
+function toast(msg){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+// 稳定哈希：同一地址永远得到同一结果，方便演示与复现
+function hashStr(str){
+  let h = 2166136261;
+  for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return Math.abs(h);
+}
+// 伪随机：种子 + 字符串 → [0,1)
+function rand(seed, key){
+  return (hashStr(key + '#' + seed) % 100000) / 100000;
+}
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function pickTier(){ return TIERS.find(t=>t.id===state.tier) || null; }
+function dishById(id){ return DISHES.find(d=>d.id===id); }
+function catName(id){ const c = CATS.find(c=>c.id===id); return c ? c.name : ''; }
+
+function currentPeriod(){
+  const h = new Date().getHours();
+  if(h >= 5 && h < 10)  return { id:'breakfast', label:'早上',   need:['快','清淡','汤','蛋'] };
+  if(h >= 10 && h < 15) return { id:'lunch',     label:'午餐',   need:['下饭','扎实','热'] };
+  if(h >= 15 && h < 17) return { id:'teatime',   label:'下午',   need:['小吃','清淡','甜口'] };
+  if(h >= 17 && h < 22) return { id:'dinner',    label:'晚餐',   need:['热','聚餐','肉'] };
+  return { id:'night', label:'夜宵', need:['烧烤','辣','热','啤酒'] };
+}
+
+/* ------------------------------ 4. 距离工具（模拟定位） ------------------------------ */
+
+// 从地址文本推断所在商圈
+function detectArea(address){
+  const a = (address || '').trim();
+  if(!a) return null;
+  for(const area in CUISINE_KEYWORDS){
+    for(const kw of CUISINE_KEYWORDS[area]){
+      if(a.indexOf(kw) !== -1) return area;
+    }
+  }
+  return null;
+}
+
+// 返回 {km, areaMatched}。演示实现：地址哈希 → 稳定距离；命中商圈大幅拉近
+function distanceTo(restaurant, address){
+  const area = detectArea(address);
+  const sameArea = !!area && restaurant.area === area;
+  if(sameArea){
+    return { km: +(0.3 + rand(state.seed, 'near' + restaurant.id) * 0.9).toFixed(1), areaMatched:true };
+  }
+  const base = 0.8 + rand(state.seed, 'far' + restaurant.id + address.length) * 3.0;
+  return { km: +base.toFixed(1), areaMatched:false };
+}
+
+/* ------------------------------ 4b. 联网搜索（真实饭店数据） ------------------------------ */
+
+const AMAP_BASE = 'https://restapi.amap.com/v3';
+
+// 高德 POI 类型/名称 → 我们的菜系标签
+const AMAP_CUI_RULES = [
+  [/川菜|四川|重庆|串串/, '川'],
+  [/火锅/, '火锅'],
+  [/烧烤|烤串/, '烧烤'],
+  [/粤菜|广东|广式|茶餐厅|烧腊|潮汕/, '粤'],
+  [/日本|日式|寿司|拉面|居酒屋/, '日'],
+  [/韩国|韩式|部队锅/, '韩'],
+  [/江浙|沪菜|本帮|苏菜|杭帮/, '江浙'],
+  [/西餐|意大利|披萨|汉堡|牛排|快餐/, '西'],
+  [/轻食|沙拉|素食|健康/, '健康'],
+  [/西北|兰州|新疆/, '西北'],
+  [/汉堡|炸鸡|肯德基|麦当劳|快餐/, '汉堡'],
+  [/披萨|比萨|意式|意大利/, '披萨'],
+  [/烤肉|烧肉|韩式烧烤|铁板烧/, '烤肉'],
+  [/泰国|泰式|越南|东南亚|咖喱/, '东南亚'],
+  [/甜品|奶茶|蛋糕|冰淇淋|咖啡|面包/, '甜品'],
+  [/驴肉|罩饼|官府菜|保定|冀菜/, '保定'],
+  [/河北菜|家常|东北|鲁菜|中餐厅/, '家常'],
+  [/小吃|面馆|米粉|包子|早点|粥/, '小吃']
+];
+
+function amapCui(typeStr, name){
+  const s = (typeStr || '') + ' ' + (name || '');
+  for(const [re, cui] of AMAP_CUI_RULES) if(re.test(s)) return cui;
+  return '家常';
+}
+
+// 高德只告诉我们"这家店是什么类型"，没有菜单。
+// 这里按类型补一批口味标签，让它能和菜品库做交集，从而实现"按店配一桌菜"。
+const CUI_TAGS = {
+  '川':['辣','重口','下饭','聚餐','水煮'],
+  '粤':['清淡','鲜','下饭','汤','蒸'],
+  '日':['生鲜','清淡','高级','日式'],
+  '韩':['辣','聚餐','热','炸'],
+  '西':['西餐','炸','快','汉堡'],
+  '火锅':['辣','聚餐','热','涮','火锅'],
+  '烧烤':['烧烤','夜宵','聚餐','啤酒'],
+  '小吃':['小吃','快','汤','面','粉'],
+  '健康':['清淡','健康','凉','沙拉'],
+  '西北':['面','汤','牛','羊','热','孜然'],
+  '江浙':['清淡','鲜','高级','海鲜'],
+  '家常':['家常','下饭','热','猪','鸡','蛋','汤'],
+  '河北':['家常','下饭','热','面','汤','河北'],
+  '保定':['保定','驴肉','火烧','热','汤','下饭','河北'],
+  '汉堡':['汉堡','炸','薯条','快餐','快','麦','乳','芝士','鸡','牛'],
+  '披萨':['披萨','西餐','芝士','番茄','烤','麦','乳','碳水','热'],
+  '烤肉':['烤肉','烧烤','热','聚餐','夜宵','牛','猪','鸡','羊','孜然'],
+  '东南亚':['东南亚','酸辣','咖喱','粉','汤','海鲜','虾','鱼','鸡','牛','热带'],
+  '甜品':['甜品','饮品','甜口','凉','乳','蛋','咖啡','麦','蛋糕','冰淇淋']
+};
+
+// 从高德的类型/名称里抽一些关键词，用于和菜品标签做交集匹配
+function amapTags(poi){
+  const raw = [poi.type, poi.name, poi.keywords].filter(Boolean).join(';');
+  const tags = new Set();
+  raw.split(/[;；\/|]/).map(s => s.trim()).filter(t => t && t.length <= 6).forEach(t => tags.add(t));
+  const rules = [
+    [/驴肉/, '驴肉'], [/火烧/, '火烧'], [/罩饼/, '牛'], [/包子/, '蒸'],
+    [/烧鸡|卤煮|卤味|熟食/, '卤味'], [/火锅/, '火锅'], [/烧烤|烤串/, '烧烤'],
+    [/拉面|面馆|牛肉面|板面|饸饹/, '面'], [/米线|米粉/, '粉'],
+    [/麻辣烫|串串/, '自由搭配'], [/沙拉|轻食/, '沙拉'], [/披萨|意面|西餐|牛排/, '西餐'],
+    [/寿司|刺身|日料/, '刺身'], [/炸鸡/, '炸'], [/早餐|早点/, '早点'],
+    [/清真/, '牛'], [/海鲜/, '海鲜'], [/自助/, '聚餐'], [/粥/, '清淡'], [/汤/, '汤']
+  ];
+  rules.forEach(([re, tag]) => { if(re.test(raw)) tags.add(tag); });
+  return [...tags];
+}
+
+// 高德没给人均时按品类估一个，仅用于"人均匹配"打分
+function estimateAvg(poi){
+  const s = [poi.type, poi.name, poi.keywords].filter(Boolean).join(';');
+  if(/火锅|自助|官府菜|海鲜/.test(s)) return 90;
+  if(/日本|寿司|料理|牛排|西餐/.test(s)) return 80;
+  if(/烧烤|烤串|韩国|料理/.test(s)) return 60;
+  if(/快餐|小吃|包子|火烧|早点|面馆|米粉/.test(s)) return 25;
+  return 40;
+}
+
+function haversine(lng1, lat1, lng2, lat2){
+  const R = 6371, rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * rad, dLng = (lng2 - lng1) * rad;
+  const a = Math.sin(dLat/2) ** 2 + Math.cos(lat1*rad) * Math.cos(lat2*rad) * Math.sin(dLng/2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+async function fetchWithTimeout(url, opts, ms){
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { ...(opts||{}), signal: ctrl.signal }); }
+  finally { clearTimeout(timer); }
+}
+
+async function amapFetch(path, params, timeoutMs){
+  const key = (state.settings.amapKey || '').trim();
+  if(!key) throw new Error('没填写高德 Key');
+  const qs = new URLSearchParams({ key, ...params }).toString();
+  const res = await fetchWithTimeout(AMAP_BASE + path + '?' + qs, {}, timeoutMs || 8000);
+  if(!res.ok) throw new Error('高德 HTTP ' + res.status);
+  const j = await res.json();
+  if(String(j.status) !== '1'){
+    const hint = j.infocode === '10001' ? '（Key 无效或没开通"Web服务"）' :
+                 j.infocode === '10003' ? '（Key 已过期）' :
+                 j.infocode === '10009' ? '（Key 与平台类型不匹配，要选"Web服务"）' :
+                 j.infocode === '10044' || j.infocode === '10045' ? '（今日配额用完）' : '';
+    throw new Error((j.info || '高德调用失败') + hint + (j.infocode ? ' [' + j.infocode + ']' : ''));
+  }
+  return j;
+}
+
+// 地址 → 经纬度（高德地理编码；没 key 时用内置粗略坐标）
+async function resolveLocation(address){
+  const addr = (address || '').trim();
+  // 先看是不是内置地标
+  for(const name in LANDMARK_COORDS){
+    if(addr.indexOf(name) !== -1 || name.indexOf(addr) !== -1){
+      const [lng, lat] = LANDMARK_COORDS[name];
+      return { lng, lat, label: name, precise:false, source:'landmark' };
+    }
+  }
+  if(state.settings.amapKey && addr){
+    try{
+      const j = await amapFetch('/geocode', { address: addr, city: CITY.adcode }, 8000);
+      const g = (j.geocodes || [])[0];
+      if(g && g.location){
+        const [lng, lat] = g.location.split(',').map(Number);
+        return { lng, lat, label: g.formatted_address || addr, precise:true, source:'amap' };
+      }
+    }catch(e){ /* 失败就用中心点兜底 */ }
+  }
+  const [lng, lat] = CITY.center;
+  return { lng, lat, label: CITY.name + '市中心', precise:false, source:'city-center' };
+}
+
+function amapPoiToShop(poi, origin){
+  const [lng, lat] = String(poi.location || '').split(',').map(Number);
+  const km = (origin && !isNaN(lng) && !isNaN(lat)) ? haversine(origin.lng, origin.lat, lng, lat) : null;
+  const biz = poi.biz_ext || {};
+  const cost = Number(biz.cost) > 0 ? Math.round(Number(biz.cost)) : null;
+  const rating = Number(biz.rating) > 0 ? Number(biz.rating) : null;
+  const adname = poi.adname || '';
+  const address = poi.address || '';
+  const cui = amapCui(poi.type, poi.name);
+  return {
+    id:'amap-' + poi.id,
+    name: poi.name,
+    area: adname || CITY.name,
+    cui:[cui],
+    tags: [...new Set(amapTags(poi).concat(CUI_TAGS[cui] || []))],
+    avg: cost || estimateAvg(poi),
+    rating: rating,
+    delivery: true,
+    sig: [],
+    online:true,
+    source:'amap',
+    address: (typeof address === 'string' ? address : '') || adname,
+    tel: (typeof poi.tel === 'string' ? poi.tel : ''),
+    km: km === null ? null : +km.toFixed(2),
+    point:[lng, lat]
+  };
+}
+
+// 高德：按关键词搜店（限定当前城市），再按真实距离过滤半径
+async function amapSearchByKeyword(keyword, origin, radiusM){
+  const j = await amapFetch('/place/text', {
+    keywords: keyword, city: CITY.adcode, citylimit:'true', offset:25, page:1, extensions:'all'
+  });
+  const list = (j.pois || []).map(p => amapPoiToShop(p, origin)).filter(s => s.km !== null);
+  const near = list.filter(s => s.km * 1000 <= radiusM);
+  return (near.length ? near : list).slice(0, 8);
+}
+
+// 高德：直接搜"我附近有哪些餐饮"（POI 类型 050000 = 餐饮服务）
+async function amapAround(origin, radiusM){
+  const j = await amapFetch('/place/around', {
+    location: origin.lng + ',' + origin.lat, radius: radiusM, types:'050000',
+    offset:25, page:1, extensions:'all', sortrule:'distance'
+  });
+  return (j.pois || []).map(p => amapPoiToShop(p, origin)).slice(0, 25);
+}
+
+// OpenStreetMap 兜底（免 key）。国内实测：maps.mail.ru 镜像可用，其余多超时，所以按顺序试。
+const OSM_MIRRORS = [
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter'
+];
+
+async function osmAround(origin, radiusM){
+  const q = '[out:json][timeout:10];(' +
+    'node["amenity"~"^(restaurant|fast_food|cafe)$"](around:' + radiusM + ',' + origin.lat + ',' + origin.lng + ');' +
+    'way["amenity"~"^(restaurant|fast_food|cafe)$"](around:' + radiusM + ',' + origin.lat + ',' + origin.lng + ');' +
+    ');out center 40;';
+  let j = null, lastErr = null;
+  for(const base of OSM_MIRRORS){
+    try{
+      const res = await fetchWithTimeout(base + '?data=' + encodeURIComponent(q), {}, 12000);
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if(data && data.elements){ j = data; break; }
+      throw new Error('返回格式异常');
+    }catch(e){ lastErr = e; }
+  }
+  if(!j) throw new Error((lastErr && lastErr.message) || '所有 OSM 镜像都不可用');
+  return (j.elements || []).map(e => {
+    const t = e.tags || {};
+    const lat = e.lat || (e.center && e.center.lat), lng = e.lon || (e.center && e.center.lon);
+    if(!t.name || lat == null) return null;
+    const km = haversine(origin.lng, origin.lat, lng, lat);
+    const osmCui = amapCui(t.cuisine || '', t.name);
+    return {
+      id:'osm-' + e.type + e.id, name:t.name,
+      area: t['addr:district'] || CITY.name,
+      cui:[osmCui],
+      tags: [...new Set(amapTags({ type:t.cuisine || '', name:t.name, keywords:t['addr:street'] || '' }).concat(CUI_TAGS[osmCui] || []))],
+      avg: estimateAvg({ type:t.cuisine || '', name:t.name }),
+      rating:null, delivery:true, sig:[], online:true, source:'osm',
+      address:[t['addr:district'], t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' ') || CITY.name,
+      tel: t.phone || '', km:+km.toFixed(2), point:[lng, lat]
+    };
+  }).filter(Boolean).sort((a,b)=>a.km-b.km).slice(0, 20);
+}
+
+// 菜品 → 联网搜索关键词
+function dishSearchTerms(dish){
+  const byCui = {
+    '保定':[dish.name, '保定菜'],
+    '河北':[dish.name, '河北菜'],
+    '川':['川菜'], '粤':['粤菜'], '日':['日本料理'], '韩':['韩国料理'],
+    '西':['西餐'], '火锅':['火锅'], '烧烤':['烧烤'], '健康':['轻食'],
+    '西北':['兰州拉面'], '江浙':['江浙菜'], '家常':['家常菜'], '小吃':['小吃']
+  };
+  return byCui[dish.cui] || [dish.name];
+}
+
+/* ------------------------------ 5. 智能体核心：打分 ------------------------------ */
+
+const ALG_MAP = {
+  '香菜':['香菜'], '花生':['花生'], '海鲜/虾蟹':['海鲜','虾','蟹','鱼','贝'], '牛肉':['牛'], '羊肉':['羊'],
+  '猪肉':['猪'], '鸡肉':['鸡'], '鸡蛋':['蛋'], '豆制品':['豆'], '乳制品':['乳'], '麸质/面食':['麦']
+};
+
+// 忌口：把用户选择的忌口词展开成食材标签
+function allergyTags(){
+  const out = new Set();
+  state.profile.allergies.forEach(a => (ALG_MAP[a]||[]).forEach(t => out.add(t)));
+  return out;
+}
+
+// 把「生鲜/刺身」「想吃辣」这类用户语言，转成可用于匹配的关键词数组
+function craveKeys(tag){
+  // 先查显式映射：这是主要通道，保证界面标签一定能对上菜品库
+  const mapped = CRAVE_TAG_KEYS[tag];
+  if(mapped) return mapped.slice();
+
+  const cleaned = String(tag)
+    .replace(/^(想吃|想喝|想点|来份|来个|来碗|偏爱|爱|多吃|来点|有点|想要)/,'')
+    .replace(/[（(][^)）]*[)）]/g,'');
+  const keys = cleaned.split(/[\/／、,，]/).map(s=>s.trim()).filter(Boolean);
+  // 同义扩展：让口语标签也能命中菜品库标签
+  const extra = [];
+  if(/朋友|一起|多人|聚餐/.test(tag)) extra.push('聚餐');
+  if(/一个人|随便|不讲究/.test(tag)) extra.push('快');
+  if(/解腻|清爽/.test(tag)) extra.push('清淡');
+  if(/过瘾|够味|上头/.test(tag)) extra.push('重口');
+  if(/本地|当地|特色/.test(tag)){ extra.push('保定'); extra.push('河北'); }
+  // 口语 → 菜系（输入"想吃泰餐""想喝奶茶"也能命中）
+  const cuiWords = [
+    [/泰餐|泰式|泰国|越南|东南亚|冬阴功/, '东南亚'],
+    [/寿司|刺身|日料|日本|日式|烧鸟|丼/, '日'],
+    [/韩餐|韩式|韩国|部队锅|泡菜/, '韩'],
+    [/汉堡|炸鸡|薯条|快餐|肯德基|麦当劳/, '汉堡'],
+    [/披萨|比萨|意面|意式|千层面/, '披萨'],
+    [/烤肉|烧肉|铁板烧|烧烤|串串|烤串/, '烤肉'],
+    [/奶茶|甜品|蛋糕|冰淇淋|甜点|咖啡/, '甜品'],
+    [/火锅|涮锅/, '火锅'],
+    [/粤菜|广式|烧腊|茶点/, '粤'],
+    [/川菜|四川|重庆|麻辣|水煮/, '川'],
+    [/西北|兰州|新疆|肉夹馍|凉皮/, '西北'],
+    [/江浙|本帮|杭帮|苏菜/, '江浙'],
+    [/轻食|沙拉|健身餐/, '健康'],
+    [/驴肉|罩饼|官府菜|保定菜/, '保定']
+  ];
+  cuiWords.forEach(([re, cui]) => { if(re.test(tag) && extra.indexOf(cui) === -1) extra.push(cui); });
+  return keys.concat(extra);
+}
+
+// 「今日想吃」命中计算：标签命中 + 自由文本命中（两处都要用，抽出来共用）
+// 这几个单字关键词只认"口味标签"，不认菜名——否则"炸酱面"会被"炸"误伤（它不是炸的）
+const TAG_ONLY_KEYS = ['炸'];
+
+function craveHits(dish){
+  const hitTags = [], textHits = [];
+  let crave = 0;
+  state.craveTags.forEach(tag => {
+    const keys = craveKeys(tag);
+    let best = 0;
+    keys.forEach(key => {
+      if(!key) return;
+      const tagOnly = TAG_ONLY_KEYS.indexOf(key) !== -1;
+      if(tagOnly){
+        // 单字关键词只认口味标签，不看菜名/描述（否则"炸酱面"会被"炸"误伤）
+        if(dish.tags.some(t => t.indexOf(key) !== -1)) best = Math.max(best, 9);
+      }else{
+        if(dish.name.indexOf(key) !== -1) best = Math.max(best, 12);
+        // 正向包含总是成立；反向包含只允许 2 字以上的标签，避免单字（如"鲜"）误匹配
+        else if(dish.tags.some(t => t.indexOf(key) !== -1 || (t.length >= 2 && key.indexOf(t) !== -1))) best = Math.max(best, 9);
+        else if(dish.desc.indexOf(key) !== -1 || dish.cui.indexOf(key) !== -1) best = Math.max(best, 5);
+      }
+      // 「想吃肉」= 命中任意荤菜主料（水煮鱼、红烧肉、孜然羊肉都算）
+      if(key === '肉' && (dish.tags || []).some(t => ['鱼','猪','牛','羊','鸡','驴肉','虾','鸭'].indexOf(t) !== -1)) best = Math.max(best, 8);
+    });
+    if(best){ crave += best; hitTags.push(tag); }
+  });
+  // 自由输入：同样先归一化，"想吃汉堡""想吃泰餐"都能对上
+  const words = (state.craveText || '').split(/[\s,，、。；;／/]+/).filter(w => w.length >= 2);
+  words.forEach(w => {
+    craveKeys(w).forEach(k => {
+      if(!k) return;
+      // 权重和标签命中保持一致：菜名 > 标签 > 菜系 > 描述
+      let w2 = 0;
+      if(dish.name.indexOf(k) !== -1) w2 = 12;
+      else if(dish.tags.some(t => t.indexOf(k) !== -1 || (t.length >= 2 && k.indexOf(t) !== -1))) w2 = 9;
+      else if(dish.cui.indexOf(k) !== -1) w2 = 8;
+      else if(dish.desc.indexOf(k) !== -1) w2 = 5;
+      if(w2){ crave += w2; if(textHits.indexOf(k) === -1) textHits.push(k); }
+    });
+  });
+  return { crave: clamp(crave, 0, 26), hitTags, textHits };
+}
+
+// 自检用：某个标签在整个菜品库里能命中多少道菜（0 = 这个标签是"死的"）
+function tagHitCount(tag){
+  const saved = state.craveTags;
+  state.craveTags = [tag];
+  let n = 0;
+  DISHES.forEach(d => {
+    const h = craveHits(d);
+    if(h.hitTags.length + h.textHits.length) n++;
+  });
+  state.craveTags = saved;
+  return n;
+}
+
+// 全部标签的体检结果，给开发者面板用
+function tagAudit(){
+  return CRAVE_TAGS.map(t => {
+    const owns = Object.keys(CAT_CRAVE_TAGS).filter(c => isCraveTagOf(c, t));
+    const 本类别命中 = {};
+    owns.forEach(c => { 本类别命中[c] = tagHitCountInCat(t, c); });
+    return { 标签:t, 属于类别:owns.map(c=>catName(c)).join('/'),
+             关键词:craveKeys(t).join('/'), 命中菜品数:tagHitCount(t), 本类别命中 };
+  });
+}
+
+// 这个标签在"它自己所属的那个类型"里能命中多少道菜——0 就说明点了会扑空
+function tagHitCountInCat(tag, cat){
+  const saved = state.craveTags;
+  state.craveTags = [tag];
+  let n = 0;
+  DISHES.forEach(d => {
+    if(!inCat(d, cat)) return;
+    const h = craveHits(d);
+    if(h.hitTags.length + h.textHits.length) n++;
+  });
+  state.craveTags = saved;
+  return n;
+}
+
+function scoreDish(dish, ctx){
+  const tier = pickTier();
+  const period = currentPeriod();
+  const reasons = [];
+  const parts = {};
+
+  // ① 预算匹配：在档位区间内且不超过心理预算 → 满分
+  const ignoreBudget = !!(ctx && ctx.ignoreBudget);   // 组一桌菜时，预算按整桌算，单道菜不参与预算打分
+  const lo = tier ? tier.min : 0;
+  const hi = Math.min(tier ? tier.max : 999, state.budget);
+  let budgetFit = 0;
+  if(ignoreBudget){
+    budgetFit = 18;
+  }else if(dish.price <= hi && dish.price >= Math.max(0, lo - 6)){
+    budgetFit = 26;
+    reasons.push(`¥${dish.price} 正好落在「${tier.name}」区间里`);
+  }else if(dish.price < Math.max(0, lo - 6)){
+    // 比档位低得越多，越不符合这次「我想吃多大一口」的意图
+    const under = Math.max(0, lo - 6) - dish.price;
+    budgetFit = +clamp(12 - under * 0.28, -6, 12).toFixed(1);
+    reasons.push(`¥${dish.price} 比「${tier.name}」档位低一些，更省但不解馋`);
+  }else{
+    const over = dish.price - hi;
+    budgetFit = clamp(20 - over * 1.1, 0, 20);
+    reasons.push(`¥${dish.price} 略微超出心理预算`);
+  }
+  parts['预算匹配'] = { raw:budgetFit, max:26 };
+
+  // ①b 档位调性：吃好饭要"值得"，小饭要"快"
+  let tierVibe = 0;
+  if(tier){
+    if(tier.id === 'good'){
+      if(dish.tags.includes('高级')) tierVibe += 6;
+      if(dish.price >= lo) tierVibe += 2;
+      // 吃好饭通常是"进店正经吃一顿"，点菜型整份菜更对路
+      if(dish.role === 'main') tierVibe += 6;
+      if(tierVibe) reasons.push('这道菜的水准对得起「吃好饭」');
+    }else if(tier.id === 'mid'){
+      if(['下饭','扎实','聚餐','鲜','热'].some(t=>dish.tags.includes(t))) tierVibe += 4;
+    }else{
+      if(dish.tags.includes('快')) tierVibe += 5;
+      if(dish.price <= 20) tierVibe += 2;
+    }
+  }
+  parts['档位调性'] = { raw:clamp(tierVibe,0,8), max:8 };
+
+  // ② 今日想吃：标签 / 自由文本命中
+  const ch = craveHits(dish);
+  const crave = ch.crave, hitTags = ch.hitTags, textHits = ch.textHits;
+  if(hitTags.length) reasons.push(`命中你今天想吃的：${hitTags.join('、')}`);
+  if(textHits.length) reasons.push(`你说的「${textHits.join('、')}」这道菜对得上`);
+  parts['今日想吃'] = { raw:crave, max:26 };
+
+  // ③ 长期口味画像（含显式偏好 + 历史点赞/点踩）
+  let pref = 0;
+  const likedHits = [];
+  dish.tags.forEach(t => {
+    if(state.profile.likes[t]) { pref += 3 * Math.min(2, state.profile.likes[t]); likedHits.push(t); }
+    if(state.profile.dislikes[t]) { pref -= 8 * Math.min(2, state.profile.dislikes[t]); }
+  });
+  state.profile.tastes.forEach(taste => {
+    const map = { '清淡':'清淡','重口':'重口','爱喝汤':'汤','爱干拌':'干拌','嗜辣':'辣','偏爱甜口':'甜口','喜欢酸辣':'酸辣','碳水快乐':'下饭','健康优先':'健康','下饭至上':'下饭','爱吃烧烤':'烧烤','爱生鲜':'生鲜' };
+    const key = map[taste];
+    if(key && (dish.tags.some(x=>x.indexOf(key)!==-1) || dish.desc.indexOf(key)!==-1)){ pref += 5; }
+  });
+  pref = clamp(pref, -26, 22);
+  if(likedHits.length) reasons.push(`你以前喜欢：${[...new Set(likedHits)].join('、')}`);
+  parts['口味画像'] = { raw:pref, max:22 };
+
+  // ④ 辣度适配
+  let spiceFit = 0;
+  if(dish.spicy <= state.spiceMax){
+    spiceFit = dish.spicy >= 2 && state.spiceMax >= 2 ? 8 : 5;
+  }else{
+    spiceFit = -14 * (dish.spicy - state.spiceMax);
+    if(state.spiceMax === 0) spiceFit -= 8;
+  }
+  parts['辣度适配'] = { raw:clamp(spiceFit,-30,8), max:8 };
+
+  // ⑤ 时段契合
+  let timeFit = 0;
+  const needHit = period.need.filter(n => dish.tags.some(t=>t.indexOf(n)!==-1) || dish.name.indexOf(n)!==-1 || dish.desc.indexOf(n)!==-1);
+  timeFit = Math.min(10, needHit.length * 4);
+  if(period.id === 'night' && dish.cat === 'other' && dish.tags.includes('烧烤')) timeFit += 3;
+  if(period.id === 'breakfast' && dish.tags.includes('快')) timeFit += 3;
+  parts['时段契合'] = { raw:clamp(timeFit,0,12), max:12 };
+
+  // ⑥ 新鲜感 / 避免重复
+  const recent = state.profile.history.filter(h => Date.now() - h.ts < 7*24*3600*1000);
+  const eatenBefore = state.profile.history.some(h => h.id === dish.id);
+  const eatenRecent = recent.some(h => h.id === dish.id);
+  let novelty = eatenRecent ? -22 : (eatenBefore ? -4 : 9);
+  if(eatenRecent) reasons.push('最近刚吃过，已自动降权（换点新鲜的）');
+  parts['新鲜感'] = { raw:clamp(novelty,-22,10), max:10 };
+
+  // ⑦ 大众口碑（热度）
+  const hotFit = dish.hot / 16;
+  parts['大众口碑'] = { raw:+hotFit.toFixed(1), max:6 };
+
+  // ⑧ 随机探索（让每次"换一批"有变化，但不会盖过核心信号）
+  const explore = (rand(state.seed, 'x' + dish.id) - 0.5) * 6;
+  parts['随机探索'] = { raw:+explore.toFixed(1), max:3 };
+
+  const total = Object.values(parts).reduce((s,p)=>s+p.raw, 0);
+  return { dish, total:+total.toFixed(1), parts, reasons, hitTags, textHits, eatenRecent };
+}
+
+function scoreRestaurant(restaurant, dish, ctx){
+  // 联网搜到的店有真实距离；离线库用估算距离
+  let km, areaMatched = false;
+  if(restaurant.online && typeof restaurant.km === 'number'){
+    km = restaurant.km;
+    const addr = (state.address || '');
+    areaMatched = !!(restaurant.area && addr && (addr.indexOf(restaurant.area) !== -1 || restaurant.area.indexOf(addr) !== -1));
+  }else{
+    const d = distanceTo(restaurant, state.address);
+    km = d.km; areaMatched = d.areaMatched;
+  }
+  const d = { km, areaMatched };
+  const reasons = [];
+  const parts = {};
+
+  // 距离：越近越好（联网结果 = 真实直线距离）
+  const distScore = 34 * clamp(1 - d.km / 4.5, 0, 1);
+  parts['距离'] = { raw:+distScore.toFixed(1), max:34 };
+  if(d.areaMatched){ parts['距离'].raw = Math.min(34, parts['距离'].raw + 6); reasons.push(`就在你说的「${restaurant.area}」这一片`); }
+
+  // 评分（联网数据可能没有评分，用中性值兜底但不给额外加分）
+  const rating = restaurant.rating || 4.2;
+  const ratingScore = clamp((rating - 4.0) * 26, 0, 24);
+  parts['评分'] = { raw:+ratingScore.toFixed(1), max:24 };
+  if(restaurant.rating && restaurant.rating >= 4.5) reasons.push(`评分 ${restaurant.rating}，口碑不错`);
+
+  // 人均是否匹配预算
+  const gap = Math.abs(restaurant.avg - dish.price);
+  const priceScore = clamp(18 - gap * 0.5, 0, 18);
+  parts['人均匹配'] = { raw:+priceScore.toFixed(1), max:18 };
+
+  // 是不是招牌菜
+  const isSignature = restaurant.sig.includes(dish.id);
+  parts['招牌加成'] = { raw: isSignature ? 12 : (restaurant.cui.includes(dish.cui) ? 7 : 2), max:12 };
+  if(isSignature) reasons.push('这道是店里的招牌菜');
+
+  // 用餐方式
+  const modeOk = state.mode === 'delivery' ? restaurant.delivery : true;
+  parts['方式匹配'] = { raw: modeOk ? 8 : 0, max:8 };
+  if(state.mode === 'delivery' && restaurant.delivery) reasons.push('支持外卖配送');
+  if(state.mode === 'dinein') reasons.push('适合到店吃，热菜口感更好');
+
+  const total = Object.values(parts).reduce((s,p)=>s+p.raw, 0);
+  const eta = state.mode === 'delivery' ? Math.round(12 + d.km * 9) : Math.round(d.km * 13);
+  return { restaurant, total:+total.toFixed(1), parts, reasons, km:d.km, eta };
+}
+
+// 菜—店匹配：招牌菜直接命中；否则要求菜系一致 + 经营品类标签有交集
+function restaurantServes(restaurant, dish){
+  if(restaurant.sig.includes(dish.id)) return true;
+  // 主食（米饭/馒头/火烧）和饮品几乎所有店都能提供——组一桌菜时必须能配上
+  if(dish.role === 'staple' || dish.role === 'drink') return true;
+  if(!restaurant.cui.includes(dish.cui)) return false;
+  // 标签交集：单字标签（如"西""辣"）只允许完全相同，避免"西"误配"西餐"
+  return (restaurant.tags || []).some(t => dish.tags.some(dt =>
+    dt === t || (t.length >= 2 && dt.indexOf(t) !== -1) || (dt.length >= 2 && t.indexOf(dt) !== -1)
+  ));
+}
+
+/* ------------------------------ 6. 智能体主流程 ------------------------------ */
+
+function hardFilter(dish){
+  const bad = allergyTags();
+  const allergyHit = dish.alg.filter(a => bad.has(a));
+  if(allergyHit.length) return { ok:false, why:'忌口：' + allergyHit.map(a=>ingredientName(a)).join('、') };
+  if(state.spiceMax === 0 && dish.spicy >= 2) return { ok:false, why:'太辣（你不吃辣）' };
+  if(state.spiceMax === 1 && dish.spicy >= 3) return { ok:false, why:'太辣（只吃微辣）' };
+  return { ok:true };
+}
+function ingredientName(tag){
+  const back = {};
+  for(const k in ALG_MAP) ALG_MAP[k].forEach(t => back[t] = k);
+  return back[tag] || tag;
+}
+
+function recommend(){
+  const tier = pickTier();
+  const cap = Math.min(tier.max, state.budget) + 8;
+  // 「今天吃什么」只在"能当一顿饭"的菜里选；配菜/主食/汤/饮品只在组合搭配时用
+  const singleDishes = DISHES.filter(d => !d.role || d.role === 'single');
+  const catPool = singleDishes.filter(d => inCat(d, state.cat));
+  const hits = d => { const h = craveHits(d); return h.hitTags.length + h.textHits.length > 0; };
+
+  /* 类别优先，标签兜底：
+   *   本类别里有菜命中"今日想吃" → 只在本类别里挑，绝不跨类（否则"吃饭+炸物"会跳到汉堡店）
+   *   本类别里一道都没命中       → 才允许跨类别兜底（比如"吃面+炸物"，面类里确实没有炸的）
+   * 跨类捞进来的菜打 0.9 折，保证同类别的菜永远优先。 */
+  const catHits = catPool.filter(hits);
+  let crossCat = [];
+  if(!catHits.length && (state.craveTags.length || state.craveText)){
+    crossCat = singleDishes.filter(d => !inCat(d, state.cat) && hits(d));
+  }
+  const pool = catPool.concat(crossCat);
+  const inBudget = pool.filter(d => d.price <= cap);
+  const passed = [], filtered = [];
+  inBudget.forEach(d => {
+    const f = hardFilter(d);
+    if(f.ok) passed.push(d); else filtered.push({ dish:d, why:f.why });
+  });
+  const scored = passed.map(d => {
+    const s = scoreDish(d, {});
+    if(crossCat.indexOf(d) !== -1){ s.crossCat = true; s.total = +(s.total * 0.9).toFixed(1); }
+    return s;
+  }).sort((a,b)=>b.total-a.total);
+
+  // 点菜型整份菜（水煮鱼、红烧肉这类）：不参与"今天吃什么"的单菜排名，
+  // 但可以去当"一桌菜"的主菜，所以要单独算一遍分
+  const mains = DISHES
+    .filter(d => d.role === 'main' && d.price <= cap &&
+      (inCat(d, state.cat) || (crossCat.length && hits(d))))
+    .filter(d => hardFilter(d).ok)
+    .map(d => scoreDish(d, {}))
+    .sort((a,b)=>b.total-a.total);
+
+  // 配菜/汤/饮品平时只做配角，但"想喝奶茶"这种需求下可以当主角
+  const extras = DISHES
+    .filter(d => inCat(d, state.cat) && ['side','soup','drink'].indexOf(d.role) !== -1 && d.price <= cap)
+    .filter(d => hardFilter(d).ok)
+    .map(d => scoreDish(d, {}))
+    .sort((a,b)=>b.total-a.total);
+
+  return { pool, inBudget, passed, filtered, scored, mains, extras,
+           crossCatUsed: crossCat.length > 0, crossCatNames: crossCat.map(d => d.name) };
+}
+
+function recommendRestaurants(dish){
+  // 离线兜底库只有部分城市有（目前是保定）。切到没有离线数据的城市时，
+  // 这里直接返回空，让上层只走高德联网结果
+  if(!hasOfflineData()) return { list:[], note:'该城市暂无离线数据', offlineDisabled:true };
+  const candidates = RESTAURANTS.filter(r => restaurantServes(r, dish));
+  const preferred = state.mode === 'delivery' ? candidates.filter(r => r.delivery) : candidates;
+  // 外卖模式下如果没有任何可配送的店，就退回堂食候选，并给出提示
+  const useList = preferred.length ? preferred : candidates;
+  const list = useList.map(r => scoreRestaurant(r, dish, {})).sort((a,b)=>b.total-a.total);
+  const note = (state.mode === 'delivery' && !preferred.length && candidates.length)
+   ? '这道菜目前只有堂食店能做，已自动按到店方案给你排序' : '';
+  return { list, note };
+}
+
+/* ------------------------------ 6b. 联网检索 + 选店编排 ------------------------------ */
+
+// 联网搜索：先高德（真实且快），失败退 OpenStreetMap，都失败就标注清楚
+async function onlineSearch(topDishes){
+  const out = { on: state.settings.online !== 'off', origin:null, byDish:{}, around:[], source:null, error:null };
+  if(!out.on) return out;
+
+  out.origin = await resolveLocation(state.address);
+
+  // ① 高德
+  if((state.settings.amapKey || '').trim()){
+    try{
+      out.around = await amapAround(out.origin, 2500);
+      out.source = 'amap';
+      for(const dish of topDishes){
+        let shops = [];
+        for(const term of dishSearchTerms(dish)){
+          shops = await amapSearchByKeyword(term, out.origin, 3000);
+          if(shops.length) break;
+        }
+        out.byDish[dish.id] = shops;
+      }
+      return out;
+    }catch(e){
+      out.error = '高德：' + e.message;
+    }
+  }
+
+  // ② OpenStreetMap 兜底（按菜系匹配，不做关键词搜索）
+  try{
+    out.around = await osmAround(out.origin, 1800);
+    out.source = 'osm';
+    topDishes.forEach(dish => {
+      out.byDish[dish.id] = out.around
+        .filter(s => s.cui.includes(dish.cui) || restaurantServes(s, dish))
+        .slice(0, 6);
+    });
+  }catch(e){
+    out.error = (out.error ? out.error + '；' : '') + 'OSM：' + e.message;
+  }
+  return out;
+}
+
+// 联网优先选店：有真实店铺就用真实数据，没有就退回离线示例库
+function recommendRestaurantsSmart(dish, online){
+  const shops = online && online.on && online.byDish && online.byDish[dish.id];
+  if(shops && shops.length){
+    const usable = state.mode === 'delivery' ? shops : shops;
+    const list = usable.map(r => scoreRestaurant(r, dish, {})).sort((a,b)=>b.total-a.total);
+    return { list, note:'', source: shops[0].source, online:true };
+  }
+  // 没有联网结果时：只有有离线库的城市才能兜底
+  if(!hasOfflineData()){
+    return { list:[], note:'该城市暂无离线数据', source:'none', online:false, offlineDisabled:true };
+  }
+  const local = recommendRestaurants(dish);
+  return { ...local, source:'offline', online:false };
+}
+
+function sourceLabel(src){
+  if(src === 'amap') return '高德地图实时数据';
+  if(src === 'osm') return 'OpenStreetMap 实时数据';
+  if(src === 'offline') return '离线示例库';
+  if(src === 'none') return '无可用数据源';
+  return '本地数据';
+}
+
+/* ------------------------------ 6c. 组合搭配：一桌菜 ------------------------------ */
+
+const ROLE_LABEL = { single:'一人食', main:'荤主菜', side:'素菜／凉菜', staple:'主食', soup:'汤', drink:'饮品' };
+const ROLE_EMOJI = { single:'🍽', main:'🍖', side:'🥗', staple:'🍚', soup:'🥣', drink:'🥤' };
+const ROLE_ORDER = ['main','single','side','soup','staple','drink'];
+
+// 各档位想要的一桌菜结构：跟着"锚定菜"的类型走
+//  - 锚定菜是整份荤菜（水煮鱼）→ 要配主食、素菜、汤
+//  - 锚定菜本身是一顿饭（盖饭/面/粉）→ 已经是主食，只需补个小菜
+function comboPlan(tierId, mode, anchor){
+  const role = anchor ? (anchor.role || 'single') : 'single';
+  // 甜品/饮品/汤当主角时（比如"想喝奶茶"），就配个小食收尾，别硬塞米饭
+  if(role === 'drink' || role === 'side' || role === 'soup'){
+    return { slots:[role], extras: role === 'drink' ? ['side'] : ['drink'] };
+  }
+  const isMain = role === 'main';
+  // single = 本身就是一顿饭（盖饭/面/饺子/火烧），自带主食；
+  // main   = 整份菜（水煮鱼），必须再配主食才算一顿。
+  const isComplete = role === 'single';
+  if(tierId === 'small'){
+    return { slots: isMain ? ['main','staple'] : ['single'], extras:['drink','side'] };
+  }
+  if(tierId === 'mid'){
+    if(isMain) return { slots:['main','staple'], extras: mode === 'dinein' ? ['side','soup','drink'] : ['side','drink'] };
+    if(isComplete) return { slots:['single','side'], extras:['drink','soup'] };
+    return { slots:['single','staple'], extras:['side','drink'] };
+  }
+  // 吃好饭
+  if(isMain) return { slots:['main','side','staple'], extras:['soup','drink'] };
+  if(isComplete) return { slots:['single','side'], extras:['soup','drink'] };
+  return { slots:['single','side','staple'], extras:['soup','drink'] };
+}
+
+// 在某家店里，围绕"锚定菜"配出一桌菜
+function buildCombo(restaurant, anchorDish){
+  const tier = pickTier();
+  const cap = Math.min(tier.max, state.budget);
+  const floor = tier.min;
+  const plan = comboPlan(tier.id, state.mode, anchorDish);
+
+  // 这家店能做的菜（过忌口/辣度），单道菜不打预算分，预算按整桌算
+  const pool = DISHES
+    .filter(d => restaurantServes(restaurant, d) && hardFilter(d).ok)
+    .map(d => { const s = scoreDish(d, { ignoreBudget:true }); return { dish:d, role:d.role || 'single', score:s.total, reasons:s.reasons }; });
+  const byRole = role => pool.filter(x => x.role === role).sort((a,b) => b.score - a.score);
+
+  const items = [];
+  const used = new Set();
+  const usedMain = new Set();              // 避免两道菜同一个主料（比如两道鱼）
+  const total = () => items.reduce((n,i) => n + i.dish.price, 0);
+  const mainTagOf = d => (d.tags || []).find(t => ['鱼','猪','牛','羊','鸡','鸭','虾','驴肉'].indexOf(t) !== -1) || null;
+
+  function tryAdd(entry){
+    if(!entry || used.has(entry.dish.id)) return false;
+    const mt = mainTagOf(entry.dish);
+    if(mt && usedMain.has(mt) && entry.role !== 'staple') return false;
+    items.push(entry); used.add(entry.dish.id);
+    if(mt) usedMain.add(mt);
+    return true;
+  }
+
+  // ① 锚定菜（用户当下最想吃的那道）优先，且价格不能一上来就超预算
+  if(anchorDish && restaurantServes(restaurant, anchorDish) && hardFilter(anchorDish).ok && anchorDish.price <= cap){
+    const s = scoreDish(anchorDish, { ignoreBudget:true });
+    tryAdd({ dish:anchorDish, role:anchorDish.role || 'single', score:s.total, reasons:s.reasons, anchor:true });
+  }
+
+  // ② 按结构补齐主位：在预算内挑分最高的一道
+  for(const role of plan.slots){
+    if(items.some(i => i.role === role)) continue;
+    let candidates = byRole(role);
+    // 主食跟着第 2 步的类型走：点「吃饭」配米饭，点「吃面」配面食，
+    // 免得出现"粤菜一桌配手工水饺"这种别扭搭配（没有合适的再放开）
+    if(role === 'staple' && state.cat){
+      const fit = candidates.filter(x => inCat(x.dish, state.cat));
+      if(fit.length) candidates = fit;
+    }
+    const pick = candidates.find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
+    if(!tryAdd(pick)){
+      // 该角色没有合适菜：外卖场景用"一人食"顶上，堂食场景尝试用"一人食"当主菜
+      if(role === 'main'){
+        const alt = byRole('single').find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
+        tryAdd(alt);
+      }
+    }
+  }
+
+  // ③ 有富余再补汤/饮品/小菜，尽量让整桌价格贴近"人均区间"而不是压到最低
+  for(const role of plan.extras){
+    if(items.some(i => i.role === role)) continue;
+    const pick = byRole(role).find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
+    if(pick) tryAdd(pick);
+  }
+
+  // ④ 还是空的话（比如这家店压根没有合适的主菜），退一道这家店评分最高的菜
+  if(!items.length){
+    const fallback = pool.sort((a,b) => b.score - a.score)[0];
+    if(fallback) tryAdd(fallback);
+  }
+
+  items.sort((a,b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role));
+  const sum = total();
+
+  // 整桌的预算契合度
+  let budgetScore, budgetReason;
+  if(sum <= cap && sum >= floor){
+    // 在区间内还要看"用掉了多少预算"：吃好饭就该吃得像样一点，别配出一桌 ¥70
+    const span = Math.max(1, cap - floor);
+    const fill = clamp((sum - floor) / span, 0, 1);
+    budgetScore = 14 + 8 * fill;
+    budgetReason = '整桌 ¥' + sum + '，正好在「' + tier.name + '」人均 ¥' + (tier.min === 0 ? '≤' + tier.max : tier.min + '-' + tier.max) + ' 的区间里';
+  }else if(sum < floor){
+    budgetScore = Math.max(2, 12 - (floor - sum) * 0.3);
+    budgetReason = '整桌 ¥' + sum + '，比「' + tier.name + '」档位省一些';
+  }else{
+    budgetScore = Math.max(0, 16 - (sum - cap) * 0.6);
+    budgetReason = '整桌 ¥' + sum + '，略微超出预算上限 ¥' + cap;
+  }
+
+  // 搭配完整度
+  const roles = items.map(i => i.role);
+  const hasMain = roles.includes('main') || roles.includes('single');
+  const hasStaple = roles.includes('staple') || items.some(i => (i.dish.tags || []).indexOf('碳水') !== -1);
+  const hasSide = roles.includes('side');
+  let balance = 0;
+  const balanceReasons = [];
+  if(hasMain && hasStaple){ balance += 10; balanceReasons.push('主食配上了，不会干吃菜'); }
+  if(hasSide){ balance += 6; balanceReasons.push('有荤有素，不容易腻'); }
+  if(items.length >= 3){ balance += 4; }
+  if(roles.includes('soup')){ balance += 3; balanceReasons.push('加了汤，收尾舒服'); }
+  if(tier.id === 'good' && roles.includes('main')){ balance += 6; balanceReasons.push('有整份硬菜，像正经吃一顿'); }
+
+  const comboScore = items.reduce((n,i) => n + (i.anchor ? i.score * 0.8 : i.score * 0.35), 0) + budgetScore + balance;
+
+  return {
+    restaurant, items,
+    total: sum,
+    perPerson: sum,
+    score: +comboScore.toFixed(1),
+    budgetScore: +budgetScore.toFixed(1),
+    balance,
+    reasons: [budgetReason].concat(balanceReasons)
+  };
+}
+
+// 挑"锚定菜"（这一桌的主角候选）。联网搜索和组合搭配都要用同一份，
+// 否则会出现"组合锚定在没联网查过的菜上、结果退回了离线库"的情况。
+function pickAnchors(rec){
+  // single = 盖饭/面这类一份就够的；main = 水煮鱼这类整份硬菜（要配主食）
+  let anchors = rec.scored.slice(0, 3)
+    .concat(rec.mains || [])
+    .sort((a,b) => b.total - a.total)
+    .slice(0, 5);
+
+  // 用户明确说了"今天想吃XX"：只要有候选命中，就只在这些菜里挑主菜，
+  // 避免"想吃本地特色"却配出一桌川菜
+  const hitCount = s => (s.hitTags ? s.hitTags.length : 0) + (s.textHits ? s.textHits.length : 0);
+  const allAnchors = rec.scored.concat(rec.mains || []).sort((a,b) => b.total - a.total);
+  const matched = allAnchors.filter(s => hitCount(s) > 0);
+  if(matched.length){
+    anchors = matched.slice(0, 6);
+  }else{
+    // 正餐没命中时，看看是不是"想喝奶茶"这种甜点需求，让甜品/饮品当主角
+    const sweet = (rec.extras || []).filter(s => hitCount(s) > 0);
+    if(sweet.length) anchors = sweet.slice(0, 3);
+  }
+  return anchors;
+}
+
+// 在"菜 + 店"的候选里，选出整桌最合适的一单
+function planMeal(rec, online){
+  const anchors = pickAnchors(rec);
+  const combos = [];
+  for(const a of anchors){
+    const shops = recommendRestaurantsSmart(a.dish, online);
+    let pool = shops.list.slice(0, 2);
+    // 联网店铺信息有限，万一一桌都配不出来，就用离线库兜一下
+    if(!pool.length && shops.online){
+      const local = recommendRestaurants(a.dish);
+      pool = local.list.slice(0, 2);
+    }
+    for(const s of pool){
+      const combo = buildCombo(s.restaurant, a.dish);
+      if(!combo.items.length) continue;
+      combo.shopScore = s.total;
+      combo.km = s.km;
+      combo.eta = s.eta;
+      combo.score = +(combo.score + s.total * 0.5).toFixed(1);
+      combo.source = shops.source;
+      combo.anchorDish = a.dish;
+      // 「你说的想吃什么」是硬需求，命中度直接计入组合分，避免被"店更近、菜更全"盖过去
+      combo.craveFit = craveHits(a.dish).crave;
+      combo.score = +(combo.score + combo.craveFit * 1.8).toFixed(1);
+      combos.push(combo);
+    }
+  }
+  combos.sort((a,b) => b.score - a.score);
+
+  // 同一家店只保留最优的一单，避免备选全是同一家
+  const seen = new Set(), unique = [];
+  for(const c of combos){
+    if(seen.has(c.restaurant.id)) continue;
+    seen.add(c.restaurant.id); unique.push(c);
+  }
+  return { best: unique[0] || null, list: unique, source: unique[0] ? unique[0].source : 'offline' };
+}
+
+/* ------------------------------ 7. 渲染 ------------------------------ */
+
+function renderTiers(){
+  const box = $('#tierList');
+  box.innerHTML = '';
+  TIERS.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'tier';
+    b.type = 'button';
+    b.setAttribute('aria-pressed', String(state.tier === t.id));
+    b.innerHTML =
+      '<span class="emoji">' + t.emoji + '</span>' +
+      '<span class="t-main">' +
+        '<span class="t-name">' + t.name +
+          '<span class="t-price">' + (t.min === 0 ? '¥' + t.max + ' 以内' : '¥' + t.min + '–' + (t.max >= 200 ? t.max + '+' : t.max)) + '</span>' +
+        '</span>' +
+        '<span class="t-desc">' + t.desc + '</span>' +
+      '</span>' +
+      '<span class="t-check">✓</span>';
+    b.onclick = () => {
+      state.tier = t.id;
+      state.budget = t.max >= 200 ? 150 : t.max;
+      $('#budgetRange').value = state.budget;
+      renderTiers(); renderBudgetNote(); updateSummary(); revealNext();
+    };
+    box.appendChild(b);
+  });
+}
+
+function renderBudgetNote(){
+  const t = pickTier();
+  $('#budgetLabel').textContent = '¥' + state.budget;
+  if(!t){ $('#tierNote').textContent = '先选上面三个档位之一。'; return; }
+  const eff = Math.min(t.max, state.budget);
+  $('#tierNote').textContent = '当前档位「' + t.name + '」（' +
+    (t.min===0 ? '¥'+t.max+' 以内' : '¥'+t.min+'–'+t.max) + '），实际会优先推荐 ¥' + eff + ' 以内的选择。';
+}
+
+function renderCats(){
+  const box = $('#catList');
+  box.innerHTML = '';
+  CATS.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'cat'; b.type = 'button';
+    b.setAttribute('aria-pressed', String(state.cat === c.id));
+    b.innerHTML = '<span class="c-emoji">' + c.emoji + '</span><span class="c-name">' + c.name + '</span><span class="c-sub">' + c.sub + '</span>';
+    b.onclick = () => {
+      state.cat = c.id;
+      // 换了类型，上一类里勾的标签可能跟这一类的菜完全不搭
+      // （比如"吃饭 + 炸物快乐"），直接清掉，避免"看不见的标签"偷偷影响结果
+      const allowed = craveTagsFor(c.id);
+      state.craveTags = state.craveTags.filter(t => allowed.indexOf(t) !== -1);
+      renderCats(); renderChips(); updateSummary(); revealNext();
+    };
+    box.appendChild(b);
+  });
+}
+
+// 第 3 步标题下的说明：让人一眼看出"标签会跟着第 2 步变"
+const CAT_TAG_HINT = {
+  rice:   '第 2 步选了「吃饭」，所以这里问的是配什么菜系下饭：川菜、粤菜、湘菜……换类型这里会自动换一套标签',
+  noodle: '第 2 步选了「吃面」，所以这里问的是面怎么吃：汤面、干拌、炒面、凉面、米线……换类型这里会自动换一套标签',
+  other:  '第 2 步选了「其他」，所以这里问的是什么吃法：火锅、烧烤、烤肉、炸物、甜品……换类型这里会自动换一套标签'
+};
+
+function renderChips(){
+  const hint = $('#craveHint');
+  if(hint) hint.textContent = CAT_TAG_HINT[state.cat] || '先在第 2 步选类型，这里会自动换成对应的标签：吃饭→菜系，吃面→做法，其他→吃法';
+
+  const crave = $('#craveList'); crave.innerHTML = '';
+  craveTagsFor(state.cat).forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type='button';
+    b.textContent = t;
+    b.setAttribute('aria-pressed', String(state.craveTags.includes(t)));
+    b.onclick = () => {
+      const i = state.craveTags.indexOf(t);
+      if(i === -1) state.craveTags.push(t); else state.craveTags.splice(i,1);
+      renderChips(); updateSummary();
+    };
+    crave.appendChild(b);
+  });
+
+  const allergy = $('#allergyList'); allergy.innerHTML = '';
+  ALLERGIES.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'chip danger'; b.type='button';
+    b.textContent = t;
+    b.setAttribute('aria-pressed', String(state.profile.allergies.includes(t)));
+    b.onclick = () => {
+      const i = state.profile.allergies.indexOf(t);
+      if(i === -1) state.profile.allergies.push(t); else state.profile.allergies.splice(i,1);
+      saveProfile(); renderChips(); renderProfile();
+    };
+    allergy.appendChild(b);
+  });
+
+  const taste = $('#tasteList'); taste.innerHTML = '';
+  TASTE_TAGS.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type='button';
+    b.textContent = t;
+    b.setAttribute('aria-pressed', String(state.profile.tastes.includes(t)));
+    b.onclick = () => {
+      const i = state.profile.tastes.indexOf(t);
+      if(i === -1) state.profile.tastes.push(t); else state.profile.tastes.splice(i,1);
+      saveProfile(); renderChips(); renderProfile();
+    };
+    taste.appendChild(b);
+  });
+
+  renderLandmarks();
+}
+
+// 快捷地址按钮：跟着城市走，切城市时要重画
+function renderLandmarks(){
+  const quick = $('#addrQuick');
+  if(!quick) return;
+  quick.innerHTML = '';
+  (LANDMARKS || []).forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'addr-pill'; b.type='button'; b.textContent = a;
+    b.onclick = () => { state.address = a; $('#addr').value = a; updateSummary(); };
+    quick.appendChild(b);
+  });
+}
+
+// 城市下拉框
+function renderCitySelect(){
+  const sel = $('#citySelect');
+  if(!sel) return;
+  const confirmed = !!state.profile.city;
+  sel.innerHTML = '';
+  // 还没选过城市时，第一项是占位提示
+  if(!confirmed){
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = '请选择城市…';
+    sel.appendChild(ph);
+  }
+  Object.values(CITIES).forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.key;
+    o.textContent = c.name + (c.offline ? '（有离线数据）' : '（需联网）');
+    sel.appendChild(o);
+  });
+  sel.value = confirmed ? CITY.key : '';
+
+  // 首页的提醒卡 + 当前城市提示行
+  const reminder = $('#cityReminder');
+  if(reminder) reminder.classList.toggle('hidden', confirmed);
+  const line = $('#homeCityLine');
+  if(line){
+    line.textContent = confirmed
+      ? '📍 当前城市：' + CITY.name + '（换城市在「我的 › 我的习惯」）'
+      : '📍 还没选择城市 —— 去「我的 › 我的习惯」里选一个';
+    line.style.color = confirmed ? '' : '#b0461f';
+  }
+  const hint = $('#cityHint');
+  if(hint){
+    hint.textContent = !confirmed
+      ? '⚠️ 还没选择城市，选好之后才能按地址搜店'
+      : (CITY.offline
+          ? '📍 ' + CITY.full + ' · 离线兜底库覆盖这个城市，断网也能用'
+          : '📍 ' + CITY.full + ' · 这个城市没有离线数据，需要联网（高德 Key）才能搜到店铺');
+    hint.style.color = confirmed ? '' : '#b0461f';
+  }
+  const badge = $('#cityBadge');
+  if(badge) badge.textContent = confirmed ? '📍 ' + CITY.full : '📍 请选择城市';
+  const addr = $('#addr');
+  if(addr) addr.placeholder = '例：' + (CITY.landmarks[0] || '市中心');
+}
+
+// 切城市
+function changeCity(key){
+  if(!key){ toast('请选择一个城市'); return; }
+  if(!applyCity(key)) return;
+  state.address = '';                    // 旧地址属于旧城市，必须清掉
+  const addr = $('#addr'); if(addr) addr.value = '';
+  renderCitySelect(); renderLandmarks(); updateSummary(); renderMeHeader();
+  saveProfile();
+  toast('已切换到 ' + CITY.name + (CITY.offline ? '' : '（该城市需联网）'));
+}
+
+function renderProfile(){
+  const likes = Object.entries(state.profile.likes).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const dislikes = Object.entries(state.profile.dislikes).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  $('#pLikes').innerHTML = likes.length ? likes.map(([k,v])=>'<span class="mini">'+k+' ×'+v+'</span>').join('') : '<span class="mini grey">还没有</span>';
+  $('#pDislikes').innerHTML = dislikes.length ? dislikes.map(([k,v])=>'<span class="mini red">'+k+' ×'+v+'</span>').join('') : '<span class="mini grey">还没有</span>';
+  const hist = state.profile.history.slice(-8).reverse();
+  $('#pHistory').innerHTML = hist.length
+    ? hist.map(h => {
+        const d = dishById(h.id);
+        const days = Math.floor((Date.now()-h.ts)/(24*3600*1000));
+        return '<span class="mini grey">' + (d?d.name:h.id) + (days<=0?' · 今天':(days===1?' · 昨天':' · '+days+'天前')) + '</span>';
+      }).join('')
+    : '<span class="mini grey">还没有记录</span>';
+  $('#devMemory').textContent = JSON.stringify(state.profile, null, 2);
+  renderMeHeader();
+  renderHomePref();
+}
+
+/* ------------------------------ 7b. 「我的」页面 ------------------------------ */
+
+const SPICE_NAMES = ['完全不吃辣', '微辣可以', '中辣没问题', '无辣不欢'];
+
+function switchTab(name){
+  $('#pageHome').classList.toggle('hidden', name !== 'home');
+  $('#pageMe').classList.toggle('hidden', name !== 'me');
+  $('#tabHome').classList.toggle('active', name === 'home');
+  $('#tabMe').classList.toggle('active', name === 'me');
+  $('#tabHome').setAttribute('aria-selected', String(name === 'home'));
+  $('#tabMe').setAttribute('aria-selected', String(name === 'me'));
+  $('.bar').classList.toggle('hide', name !== 'home');   // "开始推荐"只在推荐页出现
+  try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
+  if(name === 'me'){ renderProfile(); renderSettingsUI(); renderSpiceSeg(); renderTierSeg(); renderAddrList(); }
+}
+
+function renderSpiceSeg(){
+  const v = String(state.spiceMax);
+  document.querySelectorAll('#spiceSeg button').forEach(b => {
+    b.setAttribute('aria-pressed', String(b.dataset.v === v));
+  });
+  const hint = $('#spiceHint');
+  if(hint) hint.textContent = '🌶 吃辣程度：' + SPICE_NAMES[state.spiceMax] + ' —— 想改去「我的 › 我的口味」';
+}
+
+function renderTierSeg(){
+  const box = $('#tierSeg');
+  if(!box) return;
+  box.innerHTML = '';
+  const opts = [{ v:'', t:'不预设' }].concat(TIERS.map(t => ({ v:t.id, t:t.emoji + t.name })));
+  opts.forEach(o => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.v = o.v;
+    b.textContent = o.t;
+    b.setAttribute('aria-pressed', String((state.profile.defaultTier || '') === o.v));
+    b.onclick = () => {
+      state.profile.defaultTier = o.v || null;
+      saveProfile(); renderTierSeg();
+      const t = TIERS.find(x => x.id === o.v);
+      toast(t ? '默认档位已设为「' + t.name + '」，下次打开自动选中' : '已取消默认档位');
+    };
+    box.appendChild(b);
+  });
+}
+
+function renderAddrList(){
+  const box = $('#addrList');
+  if(!box) return;
+  const list = state.profile.savedAddresses || [];
+  box.innerHTML = '';
+  if(!list.length){
+    box.innerHTML = '<span class="mini grey">还没有保存地址</span>';
+    renderHomePref();
+    return;
+  }
+  list.forEach(a => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.innerHTML = '<span>' + a + '</span> <span class="a-del" style="color:#d9b7a4;margin-left:3px">✕</span>';
+    chip.onclick = (ev) => {
+      const isDel = ev.target && ev.target.classList && ev.target.classList.contains('a-del');
+      if(isDel){
+        state.profile.savedAddresses = list.filter(x => x !== a);
+        saveProfile(); renderAddrList();
+        toast('已删除常用地址');
+        return;
+      }
+      // 点正文 = 一键填到首页地址栏
+      state.address = a;
+      $('#addr').value = a;
+      updateSummary(); switchTab('home');
+      toast('已填入地址：' + a);
+    };
+    box.appendChild(chip);
+  });
+  renderHomePref();
+}
+
+function renderMeHeader(){
+  const p = state.profile;
+  $('#meSub').textContent = (p.allergies.length || p.tastes.length)
+    ? '已设置 ' + p.tastes.length + ' 项口味偏好 · ' + p.allergies.length + ' 项忌口'
+    : '还没有设置口味偏好，从下面开始选';
+  // 还没设置过喜好、或还没选城市时，底部「我的」Tab 上点一个小红点提示
+  const needSetup = (!p.allergies.length && !p.tastes.length) || !p.city;
+  const tabMe = $('#tabMe');
+  if(tabMe) tabMe.classList.toggle('has-dot', needSetup);
+  const chips = [];
+  (p.tastes || []).slice(0, 4).forEach(t => chips.push(t));
+  (p.allergies || []).slice(0, 3).forEach(a => chips.push('不吃' + a));
+  if(state.profile.defaultTier){
+    const t = TIERS.find(x => x.id === state.profile.defaultTier);
+    if(t) chips.push('默认' + t.name);
+  }
+  if(!chips.length) chips.push('口味待设置');
+  $('#meChips').innerHTML = chips.map(c => '<span class="mh-chip">' + c + '</span>').join('');
+}
+
+// 首页那张"我的口味档案"卡片上的摘要
+function renderHomePref(){
+  const p = state.profile;
+  const bits = [];
+  if(p.tastes.length) bits.push(p.tastes.slice(0,3).join('、'));
+  if(p.allergies.length) bits.push('忌口 ' + p.allergies.slice(0,3).join('、'));
+  if(p.savedAddresses && p.savedAddresses.length) bits.push('常用地址 ' + p.savedAddresses.length + ' 个');
+  if(!bits.length) bits.push('还没有设置偏好，点这里去选');
+  $('#homePrefSummary').textContent = bits.join(' · ');
+}
+
+function updateSummary(){
+  const t = pickTier();
+  const bits = [];
+  if(t) bits.push(t.emoji + ' ' + t.name + '（≤¥' + Math.min(t.max, state.budget) + '）');
+  if(state.cat) bits.push(CATS.find(c=>c.id===state.cat).emoji + ' ' + catName(state.cat));
+  if(state.craveTags.length) bits.push('想：' + state.craveTags.slice(0,2).join('/') + (state.craveTags.length>2?'…':''));
+  if(state.address) bits.push('📍' + state.address.slice(0,10) + (state.address.length>10?'…':''));
+
+  const done = [state.tier, state.cat].filter(Boolean).length;
+  $('#sumMain').textContent = bits.length ? bits[0] + (bits[1] ? ' · ' + bits[1] : '') : '请先选择预算档位';
+  $('#sumSub').textContent = bits.length ? bits.slice(2).join(' · ') || (done + ' / 3 步已完成') : '1 / 3 步';
+  $('#goBtn').disabled = !(state.tier && state.cat);
+}
+
+function revealNext(){
+  if(state.tier) $('#secCat').classList.remove('hidden');
+  if(state.cat) $('#secCrave').classList.remove('hidden');
+  if(state.cat && !revealNext._scrolled){
+    revealNext._scrolled = true;
+    setTimeout(()=>$('#secCrave').scrollIntoView({behavior:'smooth', block:'start'}), 120);
+  }
+}
+
+/* -------- Agent 思考过程动画 -------- */
+
+function traceReset(){ $('#traceList').innerHTML=''; $('#traceCard').classList.add('show'); }
+function traceAdd(title, detail, status){
+  const li = document.createElement('li');
+  li.className = status || 'done';
+  li.innerHTML = '<span class="dot">' + (status==='active' ? '⋯' : '✓') + '</span>' +
+                 '<span class="t-body"><span class="t-title">' + title + '</span>' +
+                 (detail ? '<span class="t-detail">' + detail + '</span>' : '') + '</span>';
+  $('#traceList').appendChild(li);
+  requestAnimationFrame(()=>li.classList.add('in'));
+  return li;
+}
+function traceUpdate(li, title, detail, status){
+  if(!li) return;
+  li.className = 'in ' + (status || 'done');
+  li.querySelector('.dot').textContent = status === 'active' ? '⋯' : '✓';
+  li.querySelector('.t-title').textContent = title;
+  const d = li.querySelector('.t-detail');
+  if(d) d.textContent = detail || '';
+}
+const sleep = (ms) => new Promise(r=>setTimeout(r, ms));
+
+/* -------- 结果渲染 -------- */
+
+function scoreBars(parts){
+  const order = ['预算匹配','档位调性','今日想吃','口味画像','辣度适配','时段契合','新鲜感','大众口碑','随机探索'];
+  return '<div class="scorebar">' + order.filter(k=>parts[k]).map(k => {
+    const p = parts[k];
+    const pct = clamp((p.raw / (p.max||1)) * 100, 2, 100);
+    const sign = p.raw < 0 ? '负向' : '';
+    return '<div class="row"><span>' + k + '</span>' +
+           '<span class="track"><span class="fill" style="width:' + pct + '%"></span></span>' +
+           '<span>' + (p.raw>0?'+':'') + p.raw + '</span></div>';
+  }).join('') + '</div>';
+}
+
+function dishEmoji(dish){
+  if(dish.cat === 'rice') return '🍚';
+  if(dish.cat === 'noodle') return '🍜';
+  return '🍢';
+}
+
+function comboItemRow(item){
+  const d = item.dish;
+  return '<div class="combo-item">' +
+    '<span class="ci-emoji">' + (ROLE_EMOJI[item.role] || '🍽') + '</span>' +
+    '<span class="ci-main">' +
+      '<span class="ci-name">' + d.name +
+        (item.anchor ? '<span class="ci-badge">你想吃的</span>' : '') +
+        '<span class="ci-role">' + (ROLE_LABEL[item.role] || '') + '</span>' +
+      '</span>' +
+      '<span class="ci-desc">' + (d.desc || '') + '</span>' +
+    '</span>' +
+    '<span class="ci-price">¥' + d.price + '</span>' +
+  '</div>';
+}
+
+// 结果卡片：一桌菜 + 店铺
+// 备选组合的卡片（可展开：完整菜单 + 为什么这么配 + 选它）
+function altCardHtml(c, i){
+  const r = c.restaurant;
+  const medals = ['🥈','🥉','🏅','🏅'];
+  const anchorReasons = c.anchorDish ? scoreDish(c.anchorDish, { ignoreBudget:true }).reasons.slice(0,2) : [];
+  const reasons = (c.reasons || []).concat(anchorReasons);
+  const srcText = c.source === 'offline' ? '离线示例数据' : sourceLabel(c.source);
+  return '<div class="alt-card" data-idx="' + i + '">' +
+    '<div class="alt alt-toggle">' +
+      '<span class="a-emoji">' + (medals[i] || '🏅') + '</span>' +
+      '<span class="a-main">' +
+        '<span class="a-name">' + r.name + (r.area ? '（' + r.area + '）' : '') + '</span>' +
+        '<span class="a-sub">' + c.items.map(x => x.dish.name).join(' ＋ ') + '</span>' +
+      '</span>' +
+      '<span class="a-score">¥' + c.perPerson + '<span>人均</span></span>' +
+      '<span class="a-caret">›</span>' +
+    '</div>' +
+    '<div class="alt-detail hidden">' +
+      '<div class="combo-list">' + c.items.map(comboItemRow).join('') + '</div>' +
+      '<div class="combo-total" style="margin-top:9px"><span>合计 <b>¥' + c.total + '</b></span>' +
+        '<span>' + c.items.length + ' 道 · ' + (state.mode === 'delivery' ? '外卖' : '到店') + '</span></div>' +
+      '<div class="why" style="margin-top:9px"><div class="w-title">为什么这样配</div>' +
+        '<ul>' + reasons.slice(0,5).map(x => '<li>' + x + '</li>').join('') + '</ul></div>' +
+      '<div style="margin-top:9px">' +
+        '<div class="ad-kv"><span>距离</span><b>' + c.km + ' km</b>' + (r.online ? '<span>（经纬度实算）</span>' : '<span>（按商圈估算）</span>') + '</div>' +
+        (r.rating ? '<div class="ad-kv"><span>店铺评分</span><b>' + r.rating + ' 分</b></div>' : '') +
+        (r.avg ? '<div class="ad-kv"><span>店家标称人均</span><b>¥' + r.avg + '</b></div>' : '') +
+        '<div class="ad-kv"><span>数据来源</span><b>' + srcText + '</b></div>' +
+        (r.online && r.address ? '<div class="ad-kv"><span>地址</span><b>' + r.address + '</b></div>' : '') +
+        (r.online && r.tel ? '<div class="ad-kv"><span>电话</span><b>' + r.tel + '</b></div>' : '') +
+      '</div>' +
+      '<button class="alt-pick" type="button">就选这一桌</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderResult(combo, meal, extra, online){
+  const box = $('#result');
+  const r = combo.restaurant;
+  const etaText = state.mode === 'delivery' ? ('约 ' + combo.eta + ' 分钟送达') : ('步行/骑行约 ' + combo.eta + ' 分钟');
+  const srcTag = combo.source === 'offline'
+    ? '<span class="badge" style="background:#f6f0ea;border-color:#e8dbd0;color:#7b6a5c">离线示例数据</span>'
+    : '<span class="badge" style="background:#e9f7f0;border-color:#c9ecdd;color:#0b7a58">' + sourceLabel(combo.source) + '</span>';
+  const others = (meal && meal.list ? meal.list.slice(1,4) : []);   // 备选最多 3 家
+  const anchorName = combo.anchorDish ? combo.anchorDish.name : combo.items[0].dish.name;
+  const bars = [
+    { k:'主菜契合', raw: Math.round((combo.anchorDish ? scoreDish(combo.anchorDish,{ignoreBudget:true}).total : 50) / 90 * 100) },
+    { k:'预算契合', raw: Math.round((combo.budgetScore || 0) / 20 * 100) },
+    { k:'搭配完整', raw: Math.round((combo.balance || 0) / 23 * 100) },
+    { k:'店铺靠谱', raw: Math.round((combo.shopScore || 0) / 96 * 100) }
+  ];
+
+  box.innerHTML =
+    '<div class="card-main">' +
+      '<div class="card-head">' +
+        '<div class="kicker">AI 推荐这一桌 · ' + CITY.name + ' · ' + catName(state.cat) + ' · ' + currentPeriod().label + '</div>' +
+        '<div class="dish">🍽 ' + combo.items.length + ' 道菜 · 人均 ¥' + combo.perPerson + '</div>' +
+        '<div class="meta">' + r.name + (r.area ? '（' + r.area + '）' : '') + ' · ' + r.cui.join('/') +
+          ' · ' + combo.km + 'km · ' + etaText + '</div>' +
+      '</div>' +
+      '<div class="card-body">' +
+        ((state.lastDeadTags || []).length
+          ? '<p class="note" style="margin:0 0 10px;color:#b0461f">⚠️ 你选的「' + state.lastDeadTags.join('」「') +
+            '」暂时没有对应的菜品，这一桌是按预算、口味和口碑综合推出来的，可能不完全符合那个标签。</p>'
+          : '') +
+        ((state.lastCrossCat || []).length
+          ? '<p class="note" style="margin:0 0 10px;color:#b0461f">↔️ 你想吃的在「' + catName(state.cat) +
+            '」类里没有找到，这几道是从其它类别补进来的：' + state.lastCrossCat.slice(0,4).join('、') + '。</p>'
+          : '') +
+        '<div class="combo-list">' + combo.items.map(comboItemRow).join('') + '</div>' +
+        '<div class="combo-total"><span>合计 <b>¥' + combo.total + '</b>' + (combo.items.length > 1 ? '（' + combo.items.length + ' 道）' : '') + '</span>' +
+          '<span>' + (state.mode === 'delivery' ? '外卖' : '到店') + ' 人均 ¥' + combo.perPerson + '</span></div>' +
+        '<div class="kv" style="margin-top:10px"><span class="k">推荐店铺</span><span class="v"><b>' + r.name + '</b>' +
+          (r.area ? '（' + r.area + '）' : '') +
+          (r.online && r.address && r.address !== r.area ? '<br><span style="color:var(--muted)">' + r.address + '</span>' : '') +
+          (r.online && r.tel ? '<br><span style="color:var(--muted)">☎ ' + r.tel + '</span>' : '') +
+        '</span></div>' +
+        '<div class="kv"><span class="k">距离</span><span class="v">' + combo.km + ' km（' +
+          (r.online ? '经纬度实算' : '按商圈估算') + '）</span></div>' +
+        '<div class="kv"><span class="k">店铺评分</span><span class="v">' +
+          (r.rating ? r.rating + ' 分' : '暂无评分数据') + ' ｜ 店家标称人均 ¥' + r.avg + '</span></div>' +
+        '<div class="kv"><span class="k">数据来源</span><span class="v">' + srcTag +
+          (combo.source === 'offline' ? ' <span style="color:var(--muted)">（填个高德 Key 就能搜到' + CITY.name + '真实店铺）</span>' : '') + '</span></div>' +
+        (combo.source === 'offline' ? '' :
+          '<p class="note" style="margin:2px 0 0">店铺信息（店名/地址/电话/评分）来自' + sourceLabel(combo.source) +
+          '实时检索；这桌菜是按店铺类型智能搭配的，实际菜单和价格以店里为准。</p>') +
+        '<div class="why">' +
+          '<div class="w-title">为什么这样配</div>' +
+          '<ul>' + combo.reasons.concat(
+            (combo.anchorDish ? scoreDish(combo.anchorDish, { ignoreBudget:true }).reasons : []).slice(0,2)
+          ).slice(0,6).map(x => '<li>' + x + '</li>').join('') + '</ul>' +
+        '</div>' +
+        '<div class="scorebar">' + bars.map(b =>
+          '<div class="row"><span>' + b.k + '</span>' +
+          '<span class="track"><span class="fill" style="width:' + clamp(b.raw,4,100) + '%"></span></span>' +
+          '<span>' + b.raw + '</span></div>').join('') + '</div>' +
+        '<div class="why hidden" id="llmWrap" style="margin-top:12px"><div class="w-title">🤖 大模型点评</div><div id="llmText">' + (extra || '') + '</div></div>' +
+        '<div class="actions">' +
+          '<button class="btn" id="acceptBtn">就吃这一桌</button>' +
+          '<button class="btn ghost" id="rerollBtn">换一批</button>' +
+          '<button class="btn ghost" id="dislikeBtn">不喜欢</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    (others.length
+      ? '<div class="alt-list"><div class="mini-title" style="color:#8b7a6c">换一家也行（点开看菜单和理由）</div>' +
+        others.map((c,i) => altCardHtml(c, i)).join('') + '</div>'
+      : '');
+
+  box.classList.add('show');
+
+  $('#acceptBtn').onclick = () => acceptCombo(combo);
+  $('#rerollBtn').onclick = () => { state.seed++; run(); };
+  $('#dislikeBtn').onclick = () => dislikeDish(combo.anchorDish || combo.items[0].dish);
+
+  // 记下这一单，供大模型点评用
+  state.lastCombo = combo;
+  // 备选：点标题行就地展开（菜单 + 理由 + 店铺信息），点按钮才切换成主推荐
+  box.querySelectorAll('.alt-card').forEach(card => {
+    const idx = parseInt(card.getAttribute('data-idx'), 10);
+    const target = others[idx];
+    const head = card.querySelector('.alt-toggle');
+    const detail = card.querySelector('.alt-detail');
+    if(head && detail){
+      head.addEventListener('click', () => {
+        const open = card.classList.toggle('open');
+        detail.classList.toggle('hidden', !open);
+        if(open){
+          setTimeout(() => { try{ card.scrollIntoView({ behavior:'smooth', block:'nearest' }); }catch(e){} }, 60);
+        }
+      });
+    }
+    const pick = card.querySelector('.alt-pick');
+    if(pick) pick.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if(target) renderResult(target, meal, '', online);
+    });
+  });
+  return { anchorName: anchorName };
+}
+
+function renderEmpty(msg){
+  $('#result').innerHTML = '<div class="card-main"><div class="empty">' + msg + '</div></div>';
+  $('#result').classList.add('show');
+}
+
+/* ------------------------------ 8. 记忆学习 ------------------------------ */
+
+function bump(map, key, delta){
+  map[key] = (map[key] || 0) + delta;
+  if(map[key] <= 0) delete map[key];
+}
+
+function acceptDish(dish){
+  dish.tags.forEach(t => bump(state.profile.likes, t, 1));
+  state.profile.history.push({ id:dish.id, ts:Date.now(), price:dish.price });
+  if(state.profile.history.length > 60) state.profile.history = state.profile.history.slice(-60);
+  saveProfile(); renderProfile();
+  toast('已记住：你喜欢「' + dish.tags.slice(0,3).join('、') + '」');
+}
+
+// 一桌菜全部记进历史与偏好
+function acceptCombo(combo){
+  combo.items.forEach(it => {
+    (it.dish.tags || []).forEach(t => bump(state.profile.likes, t, 1));
+    state.profile.history.push({ id:it.dish.id, ts:Date.now(), price:it.dish.price });
+  });
+  if(state.profile.history.length > 60) state.profile.history = state.profile.history.slice(-60);
+  saveProfile(); renderProfile();
+  toast('已记住这一桌：' + combo.items.map(i => i.dish.name).join('、'));
+}
+
+function dislikeDish(dish){
+  dish.tags.forEach(t => bump(state.profile.dislikes, t, 1));
+  saveProfile(); renderProfile();
+  toast('好的，已把「' + dish.tags.slice(0,2).join('、') + '」记为不喜欢，重新挑');
+  setTimeout(()=>{ state.seed++; run(); }, 420);
+}
+
+/* ------------------------------ 9. 可选：调用真实大模型 ------------------------------ */
+
+const SYSTEM_PROMPT =
+  '你是一名懂吃的美食决策智能体，负责给用户推荐吃什么、去哪家店。\n' +
+  '用户会给你：预算档位、食物类型、今日口味、地址，以及系统已经配好的一桌菜（mealPlan：' +
+  '包含饭店、每道菜的角色与价格、合计与人均、搭配理由），另外还有备选组合和单菜候选。\n' +
+  '关于"食物类型"：它按"这道菜配什么主食"划分，不是按菜系划分——配米饭吃算「吃饭」，' +
+  '配面或粉吃算「吃面」，整份菜、小吃、火锅烧烤算「其他」。同一道菜可以同时属于多个类别' +
+  '（例如泰式咖喱鸡配饭算吃饭、单点也算其他），所以同一个菜系的目标菜出现在不同类别里是正常的。\n' +
+  '关于"今日口味"标签：它会跟着食物类型变——选「吃饭」时标签是菜系（川菜、粤菜、湘菜…），' +
+  '选「吃面」时是做法（汤面、干拌、炒面、凉面、米线），选「其他」时是吃法（火锅、烧烤、炸物、甜品）。' +
+  '用户勾的标签是硬需求，推荐语要点出这层呼应（勾了粤菜就别夸成一桌川菜）。\n' +
+  '要求：\n' +
+  '1) 要按"一桌菜"来推荐，把这桌的菜名和合计/人均说清楚，别只夸其中一道；\n' +
+  '2) 用中文 2-3 句，语气像贴心的朋友，不要用列表；\n' +
+  '3) 只能使用 mealPlan 里给出的店名、菜名、价格、距离、评分，绝对不能自己编造；\n' +
+  '4) 点出搭配上的用心，比如"一荤一素配主食"或"这道辣配碗汤刚好"；\n' +
+  '5) 如果 restaurantDataSource 是"离线示例库"，提醒一句这是示例数据、建议用地图 App 核对；\n' +
+  '6) 控制在 100 字以内；\n' +
+  '7) 直接输出推荐语本身，不要复述题目、不要展开推理过程，一次给出结论。';
+
+// 智能体实际调用的工具（前两个在页面内真实执行）
+const TOOL_SCHEMA = {
+  tools:[
+    {
+      name:'search_restaurants',
+      description:'在用户所在城市联网检索真实饭店。高德地图通道返回店名、地址、电话、评分、人均与到用户的真实距离。',
+      parameters:{
+        type:'object',
+        properties:{
+          keyword:{ type:'string', description:'搜索关键词，例如"驴肉火烧""川菜""火锅"' },
+          city:{ type:'string', description:'城市 adcode，例如保定 130600、北京 110100' },
+          center:{ type:'string', description:'检索中心点，格式 经度,纬度' },
+          radius_m:{ type:'integer', description:'搜索半径（米）', default:3000 },
+          types:{ type:'string', description:'POI 类型，050000 表示餐饮服务' }
+        },
+        required:['keyword']
+      },
+      executor:'amapSearchByKeyword / amapAround'
+    },
+    {
+      name:'geocode_address',
+      description:'把用户输入的中文地址解析成经纬度，用于计算到各饭店的真实距离。',
+      parameters:{
+        type:'object',
+        properties:{ address:{ type:'string' }, city:{ type:'string' } },
+        required:['address']
+      },
+      executor:'amapGeocode → resolveLocation()'
+    },
+    {
+      name:'rank_restaurants',
+      description:'按距离、评分、人均匹配、是否招牌菜、外卖/堂食方式给候选店铺打分排序（本地执行）。',
+      parameters:{
+        type:'object',
+        properties:{ dish:{type:'string'}, shops:{type:'array', items:{type:'object'}} },
+        required:['dish','shops']
+      },
+      executor:'scoreRestaurant()'
+    }
+  ]
+};
+
+function providerLabel(){
+  const p = PROVIDERS[state.settings.provider];
+  return p ? p.label : '自定义';
+}
+
+// 把 state.settings 渲染到设置区的表单控件
+function renderSettingsUI(){
+  const s = state.settings;
+  const p = PROVIDERS[s.provider] || PROVIDERS.custom;
+  $('#llmEnabled').value = s.enabled;
+  $('#llmProvider').value = s.provider;
+
+  const sel = $('#llmModelSelect');
+  sel.innerHTML = '';
+  p.models.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id;
+    o.textContent = m.id + (m.note ? '（' + m.note + '）' : '');
+    sel.appendChild(o);
+  });
+  const customModel = !p.models.some(m => m.id === s.model);
+  if(customModel){
+    const o = document.createElement('option');
+    o.value = '__custom__';
+    o.textContent = '自定义模型名…';
+    sel.appendChild(o);
+    sel.value = '__custom__';
+  }else{
+    sel.value = s.model;
+  }
+  const customBox = $('#llmModelCustom');
+  if(customModel){ customBox.classList.remove('hidden'); customBox.value = s.model; }
+  else { customBox.classList.add('hidden'); customBox.value = ''; }
+
+  $('#llmBase').value = s.base;
+  $('#llmKey').value = s.key;
+  $('#llmStatus').textContent = s.key
+    ? '当前：' + p.label + ' · ' + s.model + ' · 密钥已填写（' + s.key.slice(0,5) + '…' + s.key.slice(-4) + '）'
+    : '当前：' + p.label + ' · ' + s.model + ' · 还没有填密钥';
+  $('#onlineEnabled').value = s.online || 'on';
+  $('#amapKey').value = s.amapKey || '';
+  const amapKey = (s.amapKey || '').trim();
+  const amapBuiltIn = !!DEFAULT_AMAP_KEY && amapKey === DEFAULT_AMAP_KEY;
+  $('#amapStatus').textContent = amapKey
+    ? '联网搜索：高德已配置' + (amapBuiltIn ? '（内置 Key，无需填写）' : '（自己填的）') +
+      '（' + amapKey.slice(0,6) + '…' + amapKey.slice(-4) + '），会搜到' + CITY.name + '的真实店铺'
+    : '联网搜索：还没填高德 Key，只能用 OpenStreetMap / 离线示例库';
+}
+
+// 从表单控件读回 state.settings（点保存/测试时调用）
+function readSettingsUI(){
+  const s = state.settings;
+  s.enabled = $('#llmEnabled').value;
+  s.provider = $('#llmProvider').value;
+  const selVal = $('#llmModelSelect').value;
+  s.model = (selVal === '__custom__' || !selVal)
+    ? ($('#llmModelCustom').value.trim() || 'deepseek-chat')
+    : selVal;
+  s.base = $('#llmBase').value.trim() || (PROVIDERS[s.provider] ? PROVIDERS[s.provider].base : '');
+  s.key = $('#llmKey').value.trim();
+  s.online = $('#onlineEnabled').value;
+  // 输入框留空时，回退到代码里内置的 Key（别把内置 Key 存成空）
+  s.amapKey = $('#amapKey').value.trim() || DEFAULT_AMAP_KEY || '';
+  s.v = SETTINGS_VERSION;
+  saveSettings();
+}
+
+async function callLLM(payload){
+  const s = state.settings;
+  const url = s.base.replace(/\/+$/,'') + '/chat/completions';
+  const t0 = Date.now();
+  const res = await fetch(url, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + s.key },
+    body: JSON.stringify({
+      model: s.model,
+      temperature: 0.7,
+      max_tokens: 4096,   // 推理型模型（deepseek-v4-pro / deepseek-flash）会先用掉一部分额度写思考链
+      messages:[
+        { role:'system', content: SYSTEM_PROMPT },
+        { role:'user', content: JSON.stringify(payload) }
+      ]
+    })
+  });
+  if(!res.ok){
+    const t = await res.text().catch(()=> '');
+    const hint = res.status === 401 ? '（密钥无效或已过期）' : (res.status === 402 ? '（余额不足）' : (res.status === 429 ? '（请求太频繁）' : ''));
+    throw new Error('HTTP ' + res.status + hint + ' ' + t.slice(0,160));
+  }
+  const j = await res.json();
+  const msg = (j && j.choices && j.choices[0] && j.choices[0].message) || {};
+  const text = String(msg.content || '').trim();
+  const reasoning = String(msg.reasoning_content || '').trim();
+  if(!text){
+    if(reasoning){
+      const e = new Error('模型只输出了思考过程没给结论');
+      e.code = 'REASONING_ONLY';
+      e.reasoning = reasoning;
+      throw e;
+    }
+    throw new Error('返回内容为空');
+  }
+  return {
+    text,
+    reasoning,
+    model: (j && j.model) || s.model,
+    ms: Date.now() - t0,
+    usage: j && j.usage ? { prompt:j.usage.prompt_tokens, completion:j.usage.completion_tokens } : null
+  };
+}
+
+/* ------------------------------ 10. 主流程编排 ------------------------------ */
+
+async function run(){
+  if(!state.tier || !state.cat || state.running) return;
+  // 没选城市就先提醒去设置（城市决定搜哪个城市的店）
+  if(!state.profile.city){
+    toast('请先在「我的」里选择城市，再开始推荐');
+    switchTab('me');
+    setTimeout(() => {
+      const sel = $('#citySelect');
+      if(sel && sel.scrollIntoView) { try{ sel.scrollIntoView({ behavior:'smooth', block:'center' }); }catch(e){} }
+    }, 260);
+    return;
+  }
+  state.running = true;
+  $('#goBtn').disabled = true;
+  $('#result').classList.remove('show');
+  traceReset();
+  $('#traceCard').scrollIntoView({behavior:'smooth', block:'start'});
+
+  const tier = pickTier(), period = currentPeriod();
+  const addr = state.address || '（未填写地址，按全部商圈估算）';
+
+  // ① 意图解析
+  let li = traceAdd('① 解析需求', '档位 ' + tier.name + '（' + (tier.min===0?'≤¥'+tier.max:'¥'+tier.min+'–'+tier.max) + '，心理上限 ¥' + Math.min(tier.max,state.budget) + '）｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食'), 'active');
+  await sleep(320); traceUpdate(li, '① 解析需求', '档位 ' + tier.name + '｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食') + '｜📍' + addr);
+
+  // ② 记忆
+  const memBits = [];
+  if(state.profile.allergies.length) memBits.push('忌口 ' + state.profile.allergies.join('、'));
+  if(state.profile.tastes.length) memBits.push('偏好 ' + state.profile.tastes.join('、'));
+  const likeTop = Object.keys(state.profile.likes).slice(0,5);
+  if(likeTop.length) memBits.push('历史喜欢 ' + likeTop.join('、'));
+  if(state.profile.history.length) memBits.push('历史用餐 ' + state.profile.history.length + ' 条');
+  li = traceAdd('② 读取长期记忆', memBits.length ? memBits.join('；') : '暂无记忆，先按通用口味推荐', 'active');
+  await sleep(300); traceUpdate(li, '② 读取长期记忆', memBits.length ? memBits.join('；') : '暂无记忆，先按通用口味推荐');
+
+  const rec = recommend();
+
+  // ③ 检索
+  const catDetail = '「' + catName(state.cat) + '」类 ' + (rec.pool.length - (rec.crossCatNames ? rec.crossCatNames.length : 0)) + ' 道' +
+    (rec.crossCatUsed
+      ? '，另外你说的想吃什么在「' + catName(state.cat) + '」里一道都没命中，所以从其它类别补了 ' + rec.crossCatNames.length + ' 道（' + rec.crossCatNames.slice(0,3).join('、') + '）'
+      : '（你点的"今日想吃"在本类别里就有对应菜，所以不跨类别）');
+  li = traceAdd('③ 检索菜品知识库', '库内 ' + DISHES.length + ' 道菜 · ' + catDetail, 'active');
+  await sleep(340); traceUpdate(li, '③ 检索菜品知识库', catDetail + ' → 预算内 ' + rec.inBudget.length + ' 道候选');
+  state.lastCrossCat = rec.crossCatUsed ? rec.crossCatNames : null;
+
+  // ④ 过滤
+  const filterDetail = rec.filtered.length
+    ? '过滤掉 ' + rec.filtered.length + ' 道：' + rec.filtered.slice(0,3).map(f=>f.dish.name+'（'+f.why+'）').join('；')
+    : '没有触发忌口／辣度过滤，全部通过';
+  li = traceAdd('④ 硬性规则过滤', filterDetail, 'active');
+  await sleep(320); traceUpdate(li, '④ 硬性规则过滤', filterDetail);
+
+  if(!rec.scored.length){
+    traceUpdate(li, '④ 硬性规则过滤', '所有候选都被过滤了，建议放宽忌口或提高预算', 'done');
+    state.running = false; updateSummary();
+    renderEmpty('这个条件下没有可推荐的了 😢<br>试试放宽忌口、提高预算，或者换一个类型。');
+    return;
+  }
+
+  // ⑤ 打分
+  const top3 = rec.scored.slice(0,3);
+  // 自检：用户点了、但菜品库里根本没有对应菜的标签（之前会静默忽略）
+  const deadTags = state.craveTags.filter(t => tagHitCount(t) === 0);
+  state.lastDeadTags = deadTags;
+  li = traceAdd('⑤ 多维打分排序', top3.map(s=>s.dish.name+' '+s.total+'分').join('　'), 'active');
+  await sleep(420);
+  traceUpdate(li, '⑤ 多维打分排序', '预算匹配／今日想吃／口味画像／辣度／时段／新鲜感／口碑／探索 加权后：' + top3.map(s=>s.dish.name+' '+s.total+'分').join('，') +
+    (deadTags.length ? '　⚠️ 注意：「' + deadTags.join('」「') + '」在菜品库里没找到对应的菜，这次只能靠其它维度推荐' : ''));
+
+  // ⑤b 联网检索真实饭店（高德 / OpenStreetMap）
+  // 用和组合搭配完全一致的"锚定菜"列表去搜，保证每道可能当主角的菜都有联网结果
+  const searchDishes = pickAnchors(rec).map(s => s.dish);
+  const online = await onlineSearch(searchDishes);
+  if(online.on){
+    let onlineDetail;
+    if(online.source === 'amap'){
+      const dishHits = Object.values(online.byDish).reduce((n, arr) => n + (arr ? arr.length : 0), 0);
+      onlineDetail = '高德地图：以「' + online.origin.label + '」为中心，搜到周边餐饮 ' + online.around.length +
+                     ' 家，其中能对上今天这几道菜的 ' + dishHits + ' 家';
+    }else if(online.source === 'osm'){
+      onlineDetail = '高德未配置或不可用，改用 OpenStreetMap：周边 ' + online.around.length + ' 家餐饮';
+    }else{
+      onlineDetail = '联网搜索没成功（' + (online.error || '原因未知') + '）' +
+        (hasOfflineData() ? '，本次改用离线示例库' : '，而' + CITY.name + '没有离线兜底数据');
+    }
+    li = traceAdd('⑥ 联网检索真实饭店', onlineDetail, 'active');
+    await sleep(360);
+    traceUpdate(li, '⑥ 联网检索真实饭店', onlineDetail);
+  }
+
+  // ⑦ 组合搭配：把"一道菜"变成"一桌菜"
+  const meal = planMeal(rec, online);
+  if(!meal.best){
+    state.running = false; updateSummary();
+    const noOffline = !hasOfflineData() && !online.source;
+    renderEmpty(noOffline
+      ? '📍 ' + CITY.name + ' 暂无离线数据 😢<br>这个城市只能联网搜店：请先在「我的 › 联网与模型设置」里填好高德 Key（或检查网络），也可以切回有离线数据的城市。'
+      : '这个条件下凑不出一桌菜 😢<br>换个类型、放宽预算或取消部分忌口再试试。');
+    return;
+  }
+  const combo = meal.best;
+  const comboDesc = combo.items.map(i => i.dish.name).join(' ＋ ');
+  li = traceAdd('⑦ 组合搭配（一桌菜）', comboDesc, 'active');
+  await sleep(420);
+  traceUpdate(li, '⑦ 组合搭配（一桌菜）', '按「' + tier.name + '」人均档位配成 ' + combo.items.length + ' 道：' + comboDesc +
+    '，合计 ¥' + combo.total + (combo.items.length > 1 ? '（人均 ¥' + combo.perPerson + '）' : ''));
+
+  // ⑧ 选址
+  li = traceAdd('⑧ 按地址选饭店', combo.restaurant.name + '（' + combo.km + 'km，' + combo.eta + '分钟）', 'active');
+  await sleep(340);
+  traceUpdate(li, '⑧ 按地址选饭店', '数据来源：' + sourceLabel(combo.source) + '。这一桌菜都能在「' + combo.restaurant.name + '」一次点齐' +
+    (combo.restaurant.online ? '' : '（离线示例库）') + '：' + combo.km + 'km' + (combo.restaurant.rating ? ' · 评分' + combo.restaurant.rating : ''));
+
+  // ⑨ 生成
+  li = traceAdd('⑨ 生成推荐方案', '主推一桌 + 2 个备选', 'active');
+  await sleep(280);
+  traceUpdate(li, '⑨ 生成推荐方案', '主推：' + combo.restaurant.name + ' 的 ' + combo.items.length + ' 道菜（合计 ¥' + combo.total + '），另外给 2 个备选组合');
+
+  state.lastResult = { combo, meal, addr, online };
+  state.running = false;
+  renderResult(combo, meal, '', online);
+  updateSummary();
+  $('#devScores').textContent = JSON.stringify(
+    rec.scored.slice(0,6).map(s=>({ dish:s.dish.name, total:s.total, parts:Object.fromEntries(Object.entries(s.parts).map(([k,v])=>[k,v.raw])) })),
+    null, 2
+  );
+  $('#devPrompt').textContent = SYSTEM_PROMPT;
+  $('#devTools').textContent = JSON.stringify(TOOL_SCHEMA, null, 2);
+  const audit = tagAudit();
+  const dead = audit.filter(x => Object.keys(x.本类别命中).some(c => x.本类别命中[c] === 0));
+  $('#devTags').textContent =
+    '各类型的标签数量：' + Object.keys(CAT_CRAVE_TAGS).map(c => catName(c) + ' ' + CAT_CRAVE_TAGS[c].length + ' 个').join(' / ') + '\n' +
+    '（"本类别命中"才是关键：你在哪个类型点它，就得在那个类型里有菜）\n\n' +
+    audit.map(x => {
+      const inCat = Object.keys(x.本类别命中).map(c => catName(c) + ' ' + x.本类别命中[c] + ' 道').join(' / ');
+      const flag = Object.keys(x.本类别命中).some(c => x.本类别命中[c] === 0) ? '⚠️ ' : '✅ ';
+      return flag + x.标签.padEnd(12, ' ') + ' → ' + inCat.padEnd(18, ' ') + ' ｜全库 ' + x.命中菜品数 + ' 道 ｜ 关键词 ' + x.关键词;
+    }).join('\n') +
+    '\n\n点了会扑空的标签：' + (dead.map(x => x.标签).join('、') || '无');
+  $('#devSearch').textContent = JSON.stringify({
+    online: online.on,
+    source: sourceLabel(online.source),
+    origin: online.origin,
+    aroundCount: online.around.length,
+    error: online.error || null,
+    byDish: Object.fromEntries(Object.entries(online.byDish).map(([dishId, shops]) => [
+      (dishById(dishId) || {}).name || dishId,
+      (shops || []).slice(0, 5).map(s => ({
+        name:s.name, area:s.area, km:s.km, rating:s.rating, avg:s.avg,
+        address:s.address, tel:s.tel, type:(s.tags || []).join('/'), source:s.source
+      }))
+    ]))
+  }, null, 2);
+
+  // ⑧ 可选：大模型润色
+  if(state.settings.enabled === 'on'){
+    if(!state.settings.key){ toast('还没填 API Key，先按本地引擎的结果来'); return; }
+    const wrap = $('#llmWrap'); if(wrap) wrap.classList.remove('hidden');
+    const t = $('#llmText');
+    const payload = {
+      city: CITY.full,
+      tier:{ id:tier.id, name:tier.name, range:'¥'+tier.min+'-'+tier.max, budgetCap:Math.min(tier.max,state.budget) },
+      category:{ id:state.cat, name:catName(state.cat) },
+      craving:{ tags:state.craveTags, text:state.craveText },
+      address: state.address || null,
+      location: online.origin ? { label: online.origin.label, precise: online.origin.precise } : null,
+      mode:state.mode,
+      period:period.label,
+      restaurantDataSource: sourceLabel(combo.source),
+      // 这次配好的一桌菜
+      mealPlan:{
+        restaurant: combo.restaurant.name,
+        area: combo.restaurant.area,
+        address: combo.restaurant.online ? combo.restaurant.address : null,
+        tel: combo.restaurant.online ? combo.restaurant.tel : null,
+        km: combo.km,
+        rating: combo.restaurant.rating,
+        dishes: combo.items.map(i => ({ role: ROLE_LABEL[i.role], name:i.dish.name, price:i.dish.price, highlight: !!i.anchor })),
+        total: combo.total,
+        perPerson: combo.perPerson,
+        pairingReasons: combo.reasons
+      },
+      alternativeCombos: (meal.list || []).slice(1,3).map(c => ({
+        restaurant: c.restaurant.name,
+        dishes: c.items.map(i => i.dish.name),
+        total: c.total, km: c.km
+      })),
+      profile:{ allergies:state.profile.allergies, tastes:state.profile.tastes, likes:likeTop },
+      candidates: rec.scored.slice(0,5).map(s=>{
+        const r = recommendRestaurantsSmart(s.dish, online);
+        return {
+          dish:s.dish.name, cuisine:s.dish.cui, price:s.dish.price, score:s.total, spicy:s.dish.spicy,
+          reasons:s.reasons,
+          shops: r.list.slice(0,2).map(x=>({
+            name:x.restaurant.name, area:x.restaurant.area, km:x.km,
+            rating:x.restaurant.rating, eta:x.eta,
+            address:x.restaurant.online ? x.restaurant.address : undefined,
+            tel:(x.restaurant.online && x.restaurant.tel) ? x.restaurant.tel : undefined,
+            source:x.restaurant.online ? sourceLabel(x.restaurant.source) : undefined
+          }))
+        };
+      })
+    };
+    $('#devPayload').textContent = JSON.stringify(payload, null, 2);
+    if(t) t.innerHTML = providerLabel() + ' ' + state.settings.model + ' 正在写推荐语<span class="spin"></span>';
+    const llmStep = traceAdd('⑨ 调用大模型润色', providerLabel() + ' ' + state.settings.model + ' 正在读候选数据…', 'active');
+    try{
+      let r = null, degradedFrom = null, degradedReasoning = null;
+      try{
+        r = await callLLM(payload);
+      }catch(err){
+        // 推理型模型偶尔会"想太久"没给出结论：自动降级到 deepseek-chat 重试一次
+        if(err.code === 'REASONING_ONLY' && state.settings.model !== 'deepseek-chat'){
+          degradedFrom = state.settings.model;
+          degradedReasoning = err.reasoning || null;
+          traceUpdate(llmStep, '⑨ 调用大模型润色', degradedFrom + ' 只返回了思考链、没有结论，自动降级到 deepseek-chat 重试…', 'active');
+          state.settings.model = 'deepseek-chat';
+          try{ r = await callLLM(payload); }
+          finally{ state.settings.model = degradedFrom; }
+        }else{
+          throw err;
+        }
+      }
+      if(t) t.innerHTML = r.text +
+        '<div class="note" style="margin-top:7px">—— ' + providerLabel() + ' · ' + r.model + ' · ' +
+        (r.ms/1000).toFixed(1) + 's' + (r.usage ? ' · ' + r.usage.prompt + ' + ' + r.usage.completion + ' tokens' : '') +
+        (degradedFrom ? ' · 由 ' + degradedFrom + ' 自动降级重试' : '') + '</div>';
+      traceUpdate(llmStep, '⑨ 调用大模型润色', providerLabel() + ' ' + r.model + ' 已生成推荐语（' + (r.ms/1000).toFixed(1) + 's）' +
+        (degradedFrom ? '｜原模型 ' + degradedFrom + ' 思考超时，已自动降级' : ''));
+      $('#devReasoning').textContent = r.reasoning || degradedReasoning ||
+        '（这次调用没有思考链：deepseek-chat 是纯对话模型，deepseek-v4-pro / deepseek-flash 才会返回 reasoning_content）';
+      $('#llmStatus').textContent = '✅ 上次调用成功：' + providerLabel() + ' ' + r.model + '，耗时 ' + (r.ms/1000).toFixed(1) + ' 秒。';
+    }catch(err){
+      const msg2 = '调用大模型失败：' + err.message + '（本地引擎的结果依然有效）';
+      if(t) t.textContent = msg2;
+      traceUpdate(llmStep, '⑨ 调用大模型润色', '失败：' + err.message);
+      $('#devReasoning').textContent = '—';
+      $('#llmStatus').textContent = '❌ ' + msg2;
+    }
+  }
+}
+
+/* ------------------------------ 11. 事件绑定与初始化 ------------------------------ */
+
+function init(){
+  loadStore();
+
+  // 应用「我的」里保存的偏好
+  if(state.profile.city && CITIES[state.profile.city]) applyCity(state.profile.city);
+  if(typeof state.profile.spiceMax === 'number') state.spiceMax = state.profile.spiceMax;
+  $('#spice').value = String(state.spiceMax);
+  if(state.profile.defaultTier){
+    const dt = TIERS.find(x => x.id === state.profile.defaultTier);
+    if(dt){
+      state.tier = dt.id;
+      state.budget = dt.max >= 200 ? 150 : dt.max;
+      $('#budgetRange').value = state.budget;
+    }
+  }
+
+  $('#kbBadge').textContent = '📚 知识库（' + DISHES.length + ' 道菜 / ' + RESTAURANTS.length + ' 家离线兜底店）';
+  renderTiers(); renderCats(); renderChips(); renderCitySelect(); renderBudgetNote();
+  renderSpiceSeg(); renderTierSeg(); renderAddrList();
+  renderProfile(); updateSummary(); revealNext();
+
+  // 底部 Tab
+  $('#tabHome').addEventListener('click', () => switchTab('home'));
+  $('#tabMe').addEventListener('click', () => switchTab('me'));
+  $('#goMeCard').addEventListener('click', () => switchTab('me'));
+
+  // 城市切换
+  $('#citySelect').addEventListener('change', e => changeCity(e.target.value));
+  // 首页的"还没选城市"提醒卡 → 跳到「我的」的城市设置
+  $('#goCityCard').addEventListener('click', () => {
+    switchTab('me');
+    setTimeout(() => {
+      const sel = $('#citySelect');
+      if(sel){ try{ sel.scrollIntoView({ behavior:'smooth', block:'center' }); }catch(e){} if(sel.focus) sel.focus(); }
+    }, 260);
+  });
+
+  // 辣度分段选择
+  document.querySelectorAll('#spiceSeg button').forEach(b => {
+    b.addEventListener('click', () => {
+      state.spiceMax = +b.dataset.v;
+      state.profile.spiceMax = state.spiceMax;
+      $('#spice').value = String(state.spiceMax);
+      saveProfile(); renderSpiceSeg(); renderProfile();
+      toast('吃辣程度已设为「' + SPICE_NAMES[state.spiceMax] + '」');
+    });
+  });
+
+  // 常用地址
+  $('#addAddr').addEventListener('click', () => {
+    const v = $('#newAddr').value.trim();
+    if(!v){ toast('先输入一个地址'); return; }
+    const list = state.profile.savedAddresses || [];
+    if(list.indexOf(v) !== -1){ toast('这个地址已经存过了'); return; }
+    list.push(v);
+    state.profile.savedAddresses = list;
+    saveProfile();
+    $('#newAddr').value = '';
+    renderAddrList(); renderProfile();
+    toast('已保存常用地址，点一下就能填到首页');
+  });
+
+  $('#budgetRange').addEventListener('input', (e) => {
+    state.budget = +e.target.value;
+    renderBudgetNote(); updateSummary();
+  });
+  $('#craveText').addEventListener('input', e => { state.craveText = e.target.value.trim(); });
+  $('#addr').addEventListener('input', e => { state.address = e.target.value.trim(); updateSummary(); });
+  $('#mode').addEventListener('change', e => { state.mode = e.target.value; });
+  $('#spice').addEventListener('change', e => {
+    state.spiceMax = +e.target.value;
+    state.profile.spiceMax = state.spiceMax;
+    saveProfile(); renderSpiceSeg();
+  });
+
+  $('#goBtn').addEventListener('click', run);
+  $('#clearMemory').addEventListener('click', () => {
+    state.profile.likes = {}; state.profile.dislikes = {}; state.profile.history = [];
+    saveProfile(); renderProfile(); toast('记忆已清空');
+  });
+
+  // 设置区
+  renderSettingsUI();
+
+  $('#llmProvider').addEventListener('change', () => {
+    const p = PROVIDERS[$('#llmProvider').value] || PROVIDERS.custom;
+    state.settings.provider = $('#llmProvider').value;
+    if(p.base) state.settings.base = p.base;
+    if(p.models.length) state.settings.model = p.models[0].id;
+    renderSettingsUI();
+  });
+  $('#llmModelSelect').addEventListener('change', () => {
+    const v = $('#llmModelSelect').value;
+    const box = $('#llmModelCustom');
+    if(v === '__custom__'){ box.classList.remove('hidden'); box.focus(); }
+    else { box.classList.add('hidden'); state.settings.model = v; }
+  });
+  $('#llmModelCustom').addEventListener('input', e => { state.settings.model = e.target.value.trim(); });
+  $('#llmEnabled').addEventListener('change', e => {
+    state.settings.enabled = e.target.value;
+    saveSettings();
+  });
+  $('#saveSettings').addEventListener('click', () => {
+    readSettingsUI(); renderSettingsUI();
+    toast('设置已保存到本机：' + providerLabel() + ' · ' + state.settings.model);
+  });
+  $('#clearKey').addEventListener('click', () => {
+    state.settings.key = '';
+    saveSettings(); renderSettingsUI();
+    toast('已清除本机保存的密钥（页面源码里的预填值仍在）');
+  });
+
+  $('#onlineEnabled').addEventListener('change', e => {
+    state.settings.online = e.target.value;
+    saveSettings();
+    toast(e.target.value === 'on' ? '联网搜索已开启' : '联网搜索已关闭，改用离线示例库');
+  });
+  $('#amapKey').addEventListener('input', e => { state.settings.amapKey = e.target.value.trim(); });
+  $('#clearAmap').addEventListener('click', () => {
+    // 如果文件里内置了 Key，清空 = 恢复成内置的那个（避免误删后自己反而用不了）
+    state.settings.amapKey = DEFAULT_AMAP_KEY || '';
+    saveSettings(); renderSettingsUI();
+    toast(DEFAULT_AMAP_KEY ? '已恢复为内置的高德 Key' : '已清除高德 Key');
+  });
+  $('#testAmap').addEventListener('click', async () => {
+    readSettingsUI();
+    if(!(state.settings.amapKey || '').trim()){ toast('请先粘贴高德 Key'); return; }
+    $('#amapStatus').textContent = '正在测试高德联网搜索…';
+    try{
+      const origin = await resolveLocation(state.address || CITY.name);
+      const shops = await amapSearchByKeyword('驴肉火烧', origin, 5000);
+      if(!shops.length) throw new Error('没搜到结果（可能该片区数据少）');
+      $('#amapStatus').textContent = '✅ 联网搜索成功：以「' + origin.label + '」为中心，搜到 ' + shops.length +
+        ' 家，例如「' + shops.slice(0,3).map(s=>s.name + '（' + s.km + 'km' + (s.rating ? ' · ' + s.rating + '分' : '') + '）').join('、') + '」';
+      toast('✅ 高德联网搜索可用');
+    }catch(err){
+      $('#amapStatus').textContent = '❌ 高德调用失败：' + err.message;
+      toast('❌ ' + err.message.slice(0, 50));
+    }
+  });
+  $('#testLLM').addEventListener('click', async () => {
+    readSettingsUI();
+    if(!state.settings.key){ toast('请先填 API Key'); return; }
+    $('#llmStatus').textContent = '正在测试 ' + providerLabel() + ' ' + state.settings.model + ' …';
+    try{
+      const r = await callLLM({ test:true, say:'只回复四个字：连接成功' });
+      $('#llmStatus').textContent = '✅ 连通成功：' + providerLabel() + ' ' + r.model + '，' + (r.ms/1000).toFixed(1) + ' 秒返回「' + r.text.slice(0,20) + '」';
+      toast('✅ ' + providerLabel() + ' 连接成功');
+    }catch(err){
+      $('#llmStatus').textContent = '❌ 失败：' + err.message;
+      toast('❌ 失败：' + err.message.slice(0,60));
+    }
+  });
+
+  // 初始化开发者面板里的提示
+  $('#devPrompt').textContent = SYSTEM_PROMPT;
+  $('#devTools').textContent = JSON.stringify(TOOL_SCHEMA, null, 2);
+  $('#devMemory').textContent = JSON.stringify(state.profile, null, 2);
+
+  // 默认体验：预填地址，降低上手门槛
+  if(!state.address){
+    state.address = CITY.landmarks[0] || CITY.name;
+    $('#addr').value = state.address;
+    updateSummary();
+  }
+
+  // 第一次用、还没选城市：提醒一下
+  if(!state.profile.city){
+    setTimeout(() => toast('还没选择城市，去「我的 › 我的习惯」里选一个'), 700);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
