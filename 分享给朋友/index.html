@@ -510,7 +510,7 @@
   <div class="me-card">
     <div class="me-block">
       <div class="me-label"><span class="l-icon">📍</span>城市</div>
-      <div class="me-hint">决定搜哪个城市的店铺。保定有内置离线兜底库（断网也能用），北京、福州需要联网（高德 Key）</div>
+      <div class="me-hint">决定搜哪个城市的店铺。店铺数据全部来自实时联网检索（高德 Key），所以没网、没填 Key 的时候搜不到饭店</div>
       <select id="citySelect"></select>
       <p class="note" id="cityHint">—</p>
     </div>
@@ -564,7 +564,7 @@
       <label class="field" for="onlineEnabled">🌐 联网搜索真实饭店</label>
       <select id="onlineEnabled">
         <option value="on">开启（推荐）</option>
-        <option value="off">关闭，只用离线示例库</option>
+        <option value="off">关闭，不搜饭店（只推荐菜品）</option>
       </select>
       <label class="field" for="amapKey">高德地图 Key（填了就能搜到真实店铺）</label>
       <input type="password" id="amapKey" placeholder="粘贴高德「Web服务」Key">
@@ -574,7 +574,7 @@
       </div>
       <p class="note" id="amapStatus">—</p>
       <p class="note">如果这个文件的作者已经内置了高德 Key，上面的输入框会自动填好，你什么都不用做。</p>
-      <p class="note">为什么要 Key：高德的 POI 搜索返回真实店名、地址、评分、人均和距离，国内很快（实测 0.3 秒、支持浏览器直连）。去 <b>lbs.amap.com</b> 注册个人开发者，创建应用时选「Web服务」类型拿 Key，个人免费额度够这个 Demo 用。没填 Key 时自动退回 OpenStreetMap（免 Key，但国内节点常超时），再不行用离线示例库并明确标注。</p>
+      <p class="note">为什么要 Key：高德的 POI 搜索返回真实店名、地址、评分、人均和距离，国内很快（实测 0.3 秒、支持浏览器直连）。去 <b>lbs.amap.com</b> 注册个人开发者，创建应用时选「Web服务」类型拿 Key，个人免费额度够这个 Demo 用。没填 Key 时自动退回 OpenStreetMap（免 Key，但国内节点常超时），两个都不行时就暂时搜不到店铺了。</p>
 
       <div style="border-top:1px dashed var(--line);margin:16px 0 4px"></div>
       <div class="two-col">
@@ -653,8 +653,8 @@
     <div class="me-block">
       <p class="note" style="margin:0">
         🍽 推荐结果不是一道菜，而是<b>一桌菜</b>：按你的人均档位配「荤主菜＋素菜＋主食」，人多或预算宽裕时再加汤和饮品，全部来自同一家店，能一次点齐。<br>
-        🏙 <b>城市</b>：保定有内置的离线兜底饭店库，断网也能用；北京、福州等其它城市没有离线数据，需要联网（高德 Key）才能搜到店铺。<br>
-        📍 店铺数据来自高德地图实时检索；未配置 Key 时退回 OpenStreetMap；都不用时使用离线示例库并明确标注。<br>
+        🏙 <b>城市</b>：决定搜哪个城市的店铺，在「我的 › 我的习惯」里切换。<br>
+        📍 店铺数据只来自实时检索：高德地图优先，没配 Key 时退回 OpenStreetMap。<b>应用不内置任何示例饭店</b>，所以没网或没 Key 时不会给你假店名。<br>
         菜品／口味部分为人工整理的知识库，距离由经纬度实时计算。<br>
         口味、忌口、城市、记忆只保存在本机浏览器（localStorage），不会上传。
       </p>
@@ -999,61 +999,19 @@ const DISHES = [
   { id:'x23', name:'低卡三文鱼糙米饭', cat:'rice',                 cui:'健康', price:46,spicy:0, tags:['海鲜','生鲜','健康','清淡','健身','碳水'],  alg:['海鲜'],     desc:'糙米配炙烤三文鱼，吃完不犯困', hot:67 }
 ];
 
-// 饭店库：cui 擅长菜系，tags 实际经营品类（用于与菜品的口味标签做交集匹配），
-//        avg 人均，rating 评分，delivery 是否外卖，sig 招牌菜 id
-const RESTAURANTS = [
-  // 保定离线兜底库：联网搜索失败时用这批数据（标为"离线示例"）。
-  // 店名以保定真实老字号 + 常见品类命名，人均/评分为演示值。
-  { id:'r01', name:'白运章包子铺（裕华路）',      area:'裕华路',   cui:['保定'],              tags:['猪','蒸','小吃','保定','老字号','包子'],              avg:20,  rating:4.5, delivery:true,  sig:['d51','d57'] },
-  { id:'r02', name:'老保定驴肉火烧总店',          area:'裕华路',   cui:['保定'],              tags:['驴肉','火烧','小吃','快','保定','汤'],                avg:22,  rating:4.6, delivery:true,  sig:['d49','d50','d53'] },
-  { id:'r03', name:'直隶会馆（官府菜）',          area:'莲池区',   cui:['保定'],              tags:['高级','聚餐','热','保定','驴肉','河北'],              avg:120, rating:4.6, delivery:false, sig:['d52','d53','d54'] },
-  { id:'r04', name:'马家烧鸡老铺',                area:'军校广场', cui:['保定'],              tags:['鸡','卤味','老字号','保定','下饭'],                   avg:26,  rating:4.4, delivery:true,  sig:['d54','d53'] },
-  { id:'r05', name:'槐茂酱菜园（早点档）',        area:'莲池区',   cui:['保定'],              tags:['早点','清淡','老字号','保定','豆'],                   avg:12,  rating:4.3, delivery:true,  sig:['d59','d57'] },
-  { id:'r06', name:'河北人家常菜馆',              area:'竞秀区',   cui:['家常','河北'],       tags:['家常','猪','下饭','炖菜','河北','热','汤','素','凉','清淡','蛋','蔬菜'], avg:32, rating:4.4, delivery:true, sig:['d58','d02','d11','d23','m07','s06'] },
-  { id:'r07', name:'老保定饸饹面馆',              area:'三丰路',   cui:['河北'],              tags:['面','汤','暖','家常','河北','辣','牛'],               avg:18,  rating:4.3, delivery:true,  sig:['d55','d56','d26'] },
-  { id:'r08', name:'川味小馆（朝阳大街）',        area:'万博广场', cui:['川'],                tags:['川','辣','重口','下饭','鸡','猪','串串','火锅','汤','素','鱼','聚餐'], avg:40, rating:4.4, delivery:true, sig:['d10','d13','d17','d19','d42'] },
-  { id:'r09', name:'蜀香火锅（高新区店）',        area:'高新区',   cui:['川','火锅'],         tags:['火锅','辣','聚餐','热','串串','川','鱼','猪','鸡','重口'], avg:85, rating:4.5, delivery:false, sig:['d42','d34','d35'] },
-  { id:'r10', name:'老北京铜锅涮肉',              area:'竞秀区',   cui:['火锅'],              tags:['火锅','羊','聚餐','暖','热','牛','麻酱'],             avg:95,  rating:4.5, delivery:false, sig:['d41','d35'] },
-  { id:'r11', name:'兰州牛肉面（保定站店）',      area:'保定站',   cui:['西北'],              tags:['西北','牛','清汤','拉面','干拌','汤','辣','面','饼','快','碳水'], avg:22, rating:4.2, delivery:true, sig:['d18','d24','d27','c21'] },
-  { id:'r12', name:'樱之屋日本料理',              area:'万博广场', cui:['日'],                tags:['日式','刺身','丼','海鲜','生鲜','寿司','高级','鳗鱼','鸡','蛋','下饭','热','小吃','快','烤','夜宵','咖喱'], avg:110, rating:4.5, delivery:false, sig:['d07','d08','d09','d38','j01','j02'] },
-  { id:'r13', name:'一楽豚骨拉面',                area:'高新区',   cui:['日'],                tags:['日式','拉面','猪','浓汤','咖喱','荞麦','凉'],         avg:45,  rating:4.3, delivery:true,  sig:['d21','d06','d28'] },
-  { id:'r14', name:'粤香烧腊饭店',                area:'莲池区',   cui:['粤'],                tags:['粤','烧腊','猪','甜口','下饭','清汤','虾','汤','煲仔','鸡','清淡','鲜','鱼'], avg:48, rating:4.4, delivery:true, sig:['d04','d05','d15','d22'] },
-  { id:'r15', name:'广式茶点轩',                  area:'竞秀区',   cui:['粤'],                tags:['粤','虾','小吃','甜口','精致','蒸','茶点','清淡','鲜','鸡','鱼','素'], avg:70, rating:4.4, delivery:true, sig:['d43','d04'] },
-  { id:'r16', name:'韩味屋',                      area:'高新区',   cui:['韩'],                tags:['韩','辣','辣酱','芝士','炸','鸡','聚餐','甜辣','热','小吃','凉','快','蛋','汤','面','麦','猪','豆'], avg:55, rating:4.2, delivery:true, sig:['d12','d34','d40','kr01','kr03'] },
-  { id:'r17', name:'轻食工坊 GREEN',              area:'高新区',   cui:['健康'],              tags:['健康','清淡','健身','鸡','沙拉','凉','轻食','低卡','素','快','西餐','麦','乳','早餐'], avg:36, rating:4.4, delivery:true, sig:['d16','d39','d45','l01','l03','x23'] },
-  { id:'r18', name:'汉堡工坊（保定东站）',        area:'保定东站', cui:['西'],                tags:['西','快餐','炸','薯条','汉堡','快','可乐'],           avg:32,  rating:4.0, delivery:true,  sig:['d37'] },
-  { id:'r19', name:'意面小馆 Tavola',             area:'莲池区',   cui:['西'],                tags:['西餐','意面','番茄','芝士','干拌','披萨'],            avg:58,  rating:4.4, delivery:false, sig:['d32','d46','d47'] },
-  { id:'r20', name:'炭火烤串屋（军校广场）',      area:'军校广场', cui:['烧烤'],              tags:['烧烤','串串','夜宵','啤酒','辣','凉菜'],             avg:50,  rating:4.3, delivery:true,  sig:['d44'] },
-  { id:'r21', name:'保定小吃城（多档口）',        area:'裕华路',   cui:['保定','小吃','家常','河北'], tags:['小吃','驴肉','火烧','保定','快','汤','河北','早点','豆','素','凉','清淡','主食','蔬菜'], avg:25, rating:4.2, delivery:true, sig:['d49','d55','d56','d57','d60'] },
-  { id:'r22', name:'酸辣粉·螺蛳粉铺',             area:'保定东站', cui:['小吃'],              tags:['小吃','酸辣','粉','重口','辣','汤','米线','自由搭配','素','凉'], avg:24, rating:4.1, delivery:true, sig:['d25','d29','d33','d31'] },
-  { id:'r23', name:'江南小厨（江浙菜）',          area:'竞秀区',   cui:['江浙'],              tags:['江浙','海鲜','蟹','高级','鲜','面','拌饭','猪','牛','下饭','软糯','热','素','汤','鱼'], avg:130, rating:4.5, delivery:false, sig:['d14','d30','c04','c05'] },
-  { id:'r24', name:'保定大学城美食广场',          area:'河北大学', cui:['小吃','家常','川','西','健康','河北'], tags:['小吃','快','下饭','辣','猪','鸡','蛋','汤','河北','保定','素','凉'], avg:28, rating:4.1, delivery:true, sig:['d49','d56','d03'] },
-  // 点菜型饭馆（做组合推荐的主力）
-  { id:'r25', name:'川香苑（军校广场）',          area:'军校广场', cui:['川'],                  tags:['川','辣','重口','鱼','猪','鸡','聚餐','汤','素','下饭','热'], avg:65,  rating:4.5, delivery:true,  sig:['m01','m02','m03','m05','s03'] },
-  { id:'r26', name:'老保定菜馆（裕华路）',        area:'裕华路',   cui:['保定','河北','家常'],  tags:['保定','河北','驴肉','家常','汤','素','热','聚餐','下饭','猪','鸡'], avg:55, rating:4.4, delivery:true,  sig:['d49','d53','d58','m07','s04'] },
-  { id:'r27', name:'冀菜家宴（竞秀区）',          area:'竞秀区',   cui:['河北','家常'],         tags:['河北','家常','炖菜','猪','鸡','汤','素','热','聚餐','下饭'], avg:60, rating:4.3, delivery:false, sig:['m07','m08','d58','s06'] },
-  { id:'r28', name:'清真老马家饭庄（莲池区）',    area:'莲池区',   cui:['西北','家常'],         tags:['西北','牛','羊','面','汤','热','聚餐','下饭','孜然'], avg:58, rating:4.4, delivery:true,  sig:['m12','m13','d18','t05'] },
-  { id:'r29', name:'粤味轩（万博广场）',          area:'万博广场', cui:['粤'],                  tags:['粤','清淡','鲜','蒸','鸡','鱼','汤','素','下饭','聚餐'], avg:75, rating:4.5, delivery:false, sig:['m10','m11','s08','d05'] }
-  ,
-  // ===== 快餐 / 洋味 / 烤肉 / 东南亚 / 甜品 =====
-  { id:'r30', name:'汉堡工厂（万博广场）',        area:'万博广场', cui:['汉堡','西'],    tags:['汉堡','炸','薯条','快餐','西餐','鸡','牛','快','麦','乳','芝士','汉堡'], avg:32, rating:4.2, delivery:true, sig:['f01','f02','f06','f12'] },
-  { id:'r31', name:'炸鸡研究所（河北大学）',      area:'河北大学', cui:['汉堡'],         tags:['鸡','炸','小吃','快餐','夜宵','聚餐','啤酒','快','麦','牛'], avg:28, rating:4.1, delivery:true, sig:['f04','f05','f11','f07'] },
-  { id:'r32', name:'那不勒斯披萨（万博广场）',    area:'万博广场', cui:['披萨','西'],    tags:['披萨','西餐','芝士','番茄','烤','麦','乳','海鲜','虾','猪','牛','碳水','热'], avg:75, rating:4.5, delivery:true, sig:['z01','z03','z06','z08'] },
-  { id:'r33', name:'意风意面馆（莲池区）',        area:'莲池区',   cui:['披萨','西'],    tags:['西餐','意面','芝士','番茄','面','麦','乳','牛','海鲜','虾','热'], avg:60, rating:4.4, delivery:true, sig:['z07','z09','z05','d32'] },
-  { id:'r34', name:'首尔炭火烤肉（军校广场）',    area:'军校广场', cui:['烤肉','韩'],    tags:['烤肉','猪','牛','鸡','聚餐','热','辣','烧烤','夜宵','麦','汤','素','凉'], avg:88, rating:4.6, delivery:false, sig:['k01','k03','k06','k07'] },
-  { id:'r35', name:'日式烧肉一番（高新区）',      area:'高新区',   cui:['烤肉','日'],    tags:['烤肉','牛','高级','聚餐','日式','热','烤','海鲜','贝'], avg:145, rating:4.5, delivery:false, sig:['k02','k04','k03'] },
-  { id:'r36', name:'芭提雅泰国餐厅（万博广场）',  area:'万博广场', cui:['东南亚'],       tags:['东南亚','酸辣','海鲜','虾','鱼','汤','鸡','牛','咖喱','粉','热带','聚餐'], avg:68, rating:4.4, delivery:false, sig:['se01','se02','se06','se03'] },
-  { id:'r37', name:'甜品奶茶站（裕华路）',        area:'裕华路',   cui:['甜品'],         tags:['甜品','饮品','甜口','凉','乳','蛋','咖啡','麦','芒果','冰淇淋'], avg:25, rating:4.3, delivery:true, sig:['de01','de03','de06','de02'] },
-  { id:'r38', name:'西安小吃铺（三丰路）',        area:'三丰路',   cui:['西北'],         tags:['西北','小吃','面','馍','饼','凉','快','猪','碳水','辣','酸辣','早餐'], avg:20, rating:4.2, delivery:true, sig:['c21','c22','c24','d24'] },
-  { id:'r39', name:'老北京烤鸭店（莲池区）',      area:'莲池区',   cui:['家常'],         tags:['鸭','烤','高级','聚餐','老字号','家常','下饭','热','麦','饼','猪','鸡','蔬菜','素','汤'], avg:110, rating:4.5, delivery:false, sig:['c01','m09','s05','c03'] },
-  { id:'r40', name:'川渝小馆（河北大学）',        area:'河北大学', cui:['川'],           tags:['川','辣','重口','下饭','鱼','猪','牛','鸡','聚餐','干锅','汤','素','凉'], avg:45, rating:4.3, delivery:true, sig:['c02','c06','c07','c25'] },
-  // ===== 八大菜系补齐：湘 / 鲁 / 闽 / 徽 + 面馆（新增菜品必须有店能做，否则点了没结果）=====
-  { id:'r41', name:'湘江水·湘菜馆（万博广场）',  area:'万博广场', cui:['湘','川'],   tags:['湘','辣','重口','下饭','鱼','虾','猪','鸡','蛋','素','蒸','凉','汤','聚餐','热'], avg:62, rating:4.5, delivery:true, sig:['x01','x02','x03','x04','x05'] },
-  { id:'r42', name:'鲁香居（古莲花池）',          area:'古莲花池', cui:['鲁','家常','河北'], tags:['鲁','宴请','高级','酸甜','重口','卤味','猪','鱼','海鲜','下饭','聚餐','热','素','汤','主食','蒸'], avg:95, rating:4.5, delivery:false, sig:['x06','x07','x08','x09','x10','m07'] },
-  { id:'r43', name:'闽南人家（高新区）',          area:'高新区',   cui:['闽','粤','东南亚'], tags:['闽','鲜','汤','海鲜','虾','贝','蛋','面','酸','甜口','小吃','聚餐','热','清淡','素'], avg:86, rating:4.4, delivery:false, sig:['x11','x12','x13','x14','x21','d05'] },
-  { id:'r44', name:'徽州小馆（三丰路）',          area:'三丰路',   cui:['徽','家常'], tags:['徽','炖菜','重口','发酵','素','猪','鸡','鱼','热','聚餐','下饭','豆','小吃','汤','煎','腊味'], avg:66, rating:4.3, delivery:true, sig:['x15','x16','x17','x22','d02','s06'] },
-  { id:'r45', name:'街角面馆（裕华路）',          area:'裕华路',   cui:['家常','西北','河北'], tags:['面','家常','干爽','快','炒','粉','辣','碳水','汤','麦','蛋','蔬菜','酱油'], avg:22, rating:4.2, delivery:true, sig:['x18','x19','x20','d20','d55'] }
-];
+/* ===== 饭店库（离线兜底示例店）：已按需求清空 =====
+ * 这里原来放着一批自编的保定示例饭店（白运章包子铺、川香苑、粤香烧腊…），
+ * 作用是"联网搜不到店的时候拿它们顶上"。问题是店名、人均、评分都是人工编的，
+ * 公开之后容易让人以为是真店，所以整份数据删掉。
+ *
+ * 现在的行为：所有城市的店铺都只来自实时检索（高德 → OpenStreetMap），
+ * 搜不到就是搜不到，绝不再拿示例店糊弄人。
+ *
+ * 想把离线店库加回来，就往下面的数组里塞这种对象，同时把 CITIES 里对应城市的 offline 改成 true：
+ *   { id:'r01', name:'某店（商圈）', area:'裕华路', cui:['川'],
+ *     tags:['川','辣','鱼','聚餐'], avg:45, rating:4.4, delivery:true, sig:['m01','s03'] }
+ */
+const RESTAURANTS = [];
 
 /* ===== 「今日想吃」标签跟着第 2 步的类型联动 =====
  * 选「吃饭」→ 问你配什么菜系（川菜/粤菜/湘菜…八大菜系 + 常见外来菜）
@@ -1150,14 +1108,14 @@ const TASTE_TAGS = ['清淡','重口','爱喝汤','爱干拌','嗜辣','偏爱�
  * 有高德 key 时用高德做地理编码（坐标精确）；
  * 没 key 时用下面的粗略坐标，只用于"以哪里为中心搜周边"，几百米的偏差不影响结果。 */
 /* ====== 可选城市 ======
- * offline:true 表示这个城市有"离线兜底饭店库"（目前只有保定有）。
- * 其它城市（北京/福州）只能靠联网（高德），没网或没 Key 时会提示"该城市暂无离线数据"。
+ * offline 表示这个城市有没有"离线兜底饭店库"。现在这份数据已经清空（见 RESTAURANTS），
+ * 所以所有城市都是 offline:false：必须联网（高德 → OpenStreetMap）才能搜到真实店铺。
  * landmarks 的坐标是粗略值，只在没有高德 Key、需要确定"以哪里为中心搜周边"时使用；
  * 有 Key 时走高德地理编码，坐标是精确的。 */
 const CITIES = {
   baoding: {
     key:'baoding', name:'保定市', adcode:'130600', full:'河北省保定市',
-    center:[115.4646, 38.8740], offline:true,
+    center:[115.4646, 38.8740], offline:false,
     landmarks:['直隶总督署','裕华路步行街','古莲花池','河北大学','华北电力大学',
                '万博广场','军校广场','保定东站','保定站','竞秀公园','三丰路','高新区'],
     coords:{
@@ -1223,7 +1181,7 @@ const CITIES = {
 let CITY = CITIES.baoding;                    // 当前城市（运行时可切换）
 let LANDMARKS = CITY.landmarks;               // 快捷地址按钮
 let LANDMARK_COORDS = CITY.coords;            // 粗略坐标（无 Key 时用）
-let CUISINE_KEYWORDS = CITY.areas;            // 商圈关键词（离线兜底估算距离用）
+let CUISINE_KEYWORDS = CITY.areas;            // 商圈关键词（没有坐标时用它估算距离）
 
 // 切换城市：整体替换 CITY，代码里其它地方读 CITY.xxx 的地方都不用改
 function applyCity(key){
@@ -1238,8 +1196,8 @@ function applyCity(key){
   return true;
 }
 
-// 这个城市有没有离线兜底饭店库
-function hasOfflineData(){ return !!CITY.offline; }
+// 这个城市有没有离线兜底饭店库（数据已清空，所以现在恒为 false）
+function hasOfflineData(){ return !!CITY.offline && RESTAURANTS.length > 0; }
 
 /* ------------------------------ 2. 状态与存储 ------------------------------ */
 
@@ -1878,7 +1836,7 @@ function scoreDish(dish, ctx){
 }
 
 function scoreRestaurant(restaurant, dish, ctx){
-  // 联网搜到的店有真实距离；离线库用估算距离
+  // 联网搜到的店有真实距离；没有坐标的店按商圈关键词估算
   let km, areaMatched = false;
   if(restaurant.online && typeof restaurant.km === 'number'){
     km = restaurant.km;
@@ -2003,9 +1961,9 @@ function recommend(){
 }
 
 function recommendRestaurants(dish){
-  // 离线兜底库只有部分城市有（目前是保定）。切到没有离线数据的城市时，
-  // 这里直接返回空，让上层只走高德联网结果
-  if(!hasOfflineData()) return { list:[], note:'该城市暂无离线数据', offlineDisabled:true };
+  // 离线兜底店库已经清空（原因见 RESTAURANTS 那段注释）：
+  // 这里只会返回空，把选店完全交给联网搜到的真实店铺
+  if(!hasOfflineData()) return { list:[], note:'没有离线店铺数据，需要联网才能搜到店', offlineDisabled:true };
   const candidates = RESTAURANTS.filter(r => restaurantServes(r, dish));
   const preferred = state.mode === 'delivery' ? candidates.filter(r => r.delivery) : candidates;
   // 外卖模式下如果没有任何可配送的店，就退回堂食候选，并给出提示
@@ -2059,7 +2017,7 @@ async function onlineSearch(topDishes){
   return out;
 }
 
-// 联网优先选店：有真实店铺就用真实数据，没有就退回离线示例库
+// 选店：只用联网搜到的真实店铺（离线示例店库已清空）
 function recommendRestaurantsSmart(dish, online){
   const shops = online && online.on && online.byDish && online.byDish[dish.id];
   if(shops && shops.length){
@@ -2067,9 +2025,9 @@ function recommendRestaurantsSmart(dish, online){
     const list = usable.map(r => scoreRestaurant(r, dish, {})).sort((a,b)=>b.total-a.total);
     return { list, note:'', source: shops[0].source, online:true };
   }
-  // 没有联网结果时：只有有离线库的城市才能兜底
+  // 没有联网结果时：没有离线库可兜底了，如实告诉上层"这次没搜到店"
   if(!hasOfflineData()){
-    return { list:[], note:'该城市暂无离线数据', source:'none', online:false, offlineDisabled:true };
+    return { list:[], note:'这次没搜到店铺（没联网 / 没配高德 Key）', source:'none', online:false, offlineDisabled:true };
   }
   const local = recommendRestaurants(dish);
   return { ...local, source:'offline', online:false };
@@ -2078,7 +2036,7 @@ function recommendRestaurantsSmart(dish, online){
 function sourceLabel(src){
   if(src === 'amap') return '高德地图实时数据';
   if(src === 'osm') return 'OpenStreetMap 实时数据';
-  if(src === 'offline') return '离线示例库';
+  if(src === 'offline') return '离线店铺数据';
   if(src === 'none') return '无可用数据源';
   return '本地数据';
 }
@@ -2229,7 +2187,7 @@ function buildCombo(restaurant, anchorDish){
 }
 
 // 挑"锚定菜"（这一桌的主角候选）。联网搜索和组合搭配都要用同一份，
-// 否则会出现"组合锚定在没联网查过的菜上、结果退回了离线库"的情况。
+// 否则会出现"组合锚定在没联网查过的菜上、最后一桌都配不出来"的情况。
 function pickAnchors(rec){
   // single = 盖饭/面这类一份就够的；main = 水煮鱼这类整份硬菜（要配主食）
   let anchors = rec.scored.slice(0, 3)
@@ -2259,11 +2217,7 @@ function planMeal(rec, online){
   for(const a of anchors){
     const shops = recommendRestaurantsSmart(a.dish, online);
     let pool = shops.list.slice(0, 2);
-    // 联网店铺信息有限，万一一桌都配不出来，就用离线库兜一下
-    if(!pool.length && shops.online){
-      const local = recommendRestaurants(a.dish);
-      pool = local.list.slice(0, 2);
-    }
+    // 离线兜底店库已清空：联网没搜到店就是没结果，不再拿示例店顶上
     for(const s of pool){
       const combo = buildCombo(s.restaurant, a.dish);
       if(!combo.items.length) continue;
@@ -2287,7 +2241,7 @@ function planMeal(rec, online){
     if(seen.has(c.restaurant.id)) continue;
     seen.add(c.restaurant.id); unique.push(c);
   }
-  return { best: unique[0] || null, list: unique, source: unique[0] ? unique[0].source : 'offline' };
+  return { best: unique[0] || null, list: unique, source: unique[0] ? unique[0].source : 'none' };
 }
 
 /* ------------------------------ 7. 渲染 ------------------------------ */
@@ -2433,7 +2387,7 @@ function renderCitySelect(){
   Object.values(CITIES).forEach(c => {
     const o = document.createElement('option');
     o.value = c.key;
-    o.textContent = c.name + (c.offline ? '（有离线数据）' : '（需联网）');
+    o.textContent = c.name;
     sel.appendChild(o);
   });
   sel.value = confirmed ? CITY.key : '';
@@ -2452,9 +2406,7 @@ function renderCitySelect(){
   if(hint){
     hint.textContent = !confirmed
       ? '⚠️ 还没选择城市，选好之后才能按地址搜店'
-      : (CITY.offline
-          ? '📍 ' + CITY.full + ' · 离线兜底库覆盖这个城市，断网也能用'
-          : '📍 ' + CITY.full + ' · 这个城市没有离线数据，需要联网（高德 Key）才能搜到店铺');
+      : '📍 ' + CITY.full + ' · 店铺靠联网实时检索，没有离线店库';
     hint.style.color = confirmed ? '' : '#b0461f';
   }
   const badge = $('#cityBadge');
@@ -2471,7 +2423,7 @@ function changeCity(key){
   const addr = $('#addr'); if(addr) addr.value = '';
   renderCitySelect(); renderLandmarks(); updateSummary(); renderMeHeader();
   saveProfile();
-  toast('已切换到 ' + CITY.name + (CITY.offline ? '' : '（该城市需联网）'));
+  toast('已切换到 ' + CITY.name + '（搜店需要联网）');
 }
 
 function renderProfile(){
@@ -2691,7 +2643,7 @@ function altCardHtml(c, i){
   const medals = ['🥈','🥉','🏅','🏅'];
   const anchorReasons = c.anchorDish ? scoreDish(c.anchorDish, { ignoreBudget:true }).reasons.slice(0,2) : [];
   const reasons = (c.reasons || []).concat(anchorReasons);
-  const srcText = c.source === 'offline' ? '离线示例数据' : sourceLabel(c.source);
+  const srcText = sourceLabel(c.source);
   return '<div class="alt-card" data-idx="' + i + '">' +
     '<div class="alt alt-toggle">' +
       '<span class="a-emoji">' + (medals[i] || '🏅') + '</span>' +
@@ -2725,9 +2677,7 @@ function renderResult(combo, meal, extra, online){
   const box = $('#result');
   const r = combo.restaurant;
   const etaText = state.mode === 'delivery' ? ('约 ' + combo.eta + ' 分钟送达') : ('步行/骑行约 ' + combo.eta + ' 分钟');
-  const srcTag = combo.source === 'offline'
-    ? '<span class="badge" style="background:#f6f0ea;border-color:#e8dbd0;color:#7b6a5c">离线示例数据</span>'
-    : '<span class="badge" style="background:#e9f7f0;border-color:#c9ecdd;color:#0b7a58">' + sourceLabel(combo.source) + '</span>';
+  const srcTag = '<span class="badge" style="background:#e9f7f0;border-color:#c9ecdd;color:#0b7a58">' + sourceLabel(combo.source) + '</span>';
   const others = (meal && meal.list ? meal.list.slice(1,4) : []);   // 备选最多 3 家
   const anchorName = combo.anchorDish ? combo.anchorDish.name : combo.items[0].dish.name;
   const bars = [
@@ -2766,11 +2716,9 @@ function renderResult(combo, meal, extra, online){
           (r.online ? '经纬度实算' : '按商圈估算') + '）</span></div>' +
         '<div class="kv"><span class="k">店铺评分</span><span class="v">' +
           (r.rating ? r.rating + ' 分' : '暂无评分数据') + ' ｜ 店家标称人均 ¥' + r.avg + '</span></div>' +
-        '<div class="kv"><span class="k">数据来源</span><span class="v">' + srcTag +
-          (combo.source === 'offline' ? ' <span style="color:var(--muted)">（填个高德 Key 就能搜到' + CITY.name + '真实店铺）</span>' : '') + '</span></div>' +
-        (combo.source === 'offline' ? '' :
-          '<p class="note" style="margin:2px 0 0">店铺信息（店名/地址/电话/评分）来自' + sourceLabel(combo.source) +
-          '实时检索；这桌菜是按店铺类型智能搭配的，实际菜单和价格以店里为准。</p>') +
+        '<div class="kv"><span class="k">数据来源</span><span class="v">' + srcTag + '</span></div>' +
+        '<p class="note" style="margin:2px 0 0">店铺信息（店名/地址/电话/评分）来自' + sourceLabel(combo.source) +
+        '实时检索；这桌菜是按店铺类型智能搭配的，实际菜单和价格以店里为准。</p>' +
         '<div class="why">' +
           '<div class="w-title">为什么这样配</div>' +
           '<ul>' + combo.reasons.concat(
@@ -2881,7 +2829,7 @@ const SYSTEM_PROMPT =
   '2) 用中文 2-3 句，语气像贴心的朋友，不要用列表；\n' +
   '3) 只能使用 mealPlan 里给出的店名、菜名、价格、距离、评分，绝对不能自己编造；\n' +
   '4) 点出搭配上的用心，比如"一荤一素配主食"或"这道辣配碗汤刚好"；\n' +
-  '5) 如果 restaurantDataSource 是"离线示例库"，提醒一句这是示例数据、建议用地图 App 核对；\n' +
+  '5) 提醒一句店铺信息来自实时检索、实际菜单和价格以店里为准，建议用地图 App 核对店名和营业时间；\n' +
   '6) 控制在 100 字以内；\n' +
   '7) 直接输出推荐语本身，不要复述题目、不要展开推理过程，一次给出结论。';
 
@@ -2973,7 +2921,7 @@ function renderSettingsUI(){
   $('#amapStatus').textContent = amapKey
     ? '联网搜索：高德已配置' + (amapBuiltIn ? '（内置 Key，无需填写）' : '（自己填的）') +
       '（' + amapKey.slice(0,6) + '…' + amapKey.slice(-4) + '），会搜到' + CITY.name + '的真实店铺'
-    : '联网搜索：还没填高德 Key，只能用 OpenStreetMap / 离线示例库';
+    : '联网搜索：还没填高德 Key，只能用 OpenStreetMap（国内节点常超时，建议填一个）';
 }
 
 // 从表单控件读回 state.settings（点保存/测试时调用）
@@ -3123,8 +3071,7 @@ async function run(){
     }else if(online.source === 'osm'){
       onlineDetail = '高德未配置或不可用，改用 OpenStreetMap：周边 ' + online.around.length + ' 家餐饮';
     }else{
-      onlineDetail = '联网搜索没成功（' + (online.error || '原因未知') + '）' +
-        (hasOfflineData() ? '，本次改用离线示例库' : '，而' + CITY.name + '没有离线兜底数据');
+      onlineDetail = '联网搜索没成功（' + (online.error || '原因未知') + '），所以这次没有店铺可用';
     }
     li = traceAdd('⑥ 联网检索真实饭店', onlineDetail, 'active');
     await sleep(360);
@@ -3135,9 +3082,9 @@ async function run(){
   const meal = planMeal(rec, online);
   if(!meal.best){
     state.running = false; updateSummary();
-    const noOffline = !hasOfflineData() && !online.source;
-    renderEmpty(noOffline
-      ? '📍 ' + CITY.name + ' 暂无离线数据 😢<br>这个城市只能联网搜店：请先在「我的 › 联网与模型设置」里填好高德 Key（或检查网络），也可以切回有离线数据的城市。'
+    const noShop = !meal.list.length && (!online.source || online.source === 'none');
+    renderEmpty(noShop
+      ? '📍 这次没搜到饭店 😢<br>店铺只能实时联网检索：请先在「我的 › 联网与模型设置」里填好高德 Key（或检查网络）。应用不再内置示例饭店，所以没网时不会给你假店名。'
       : '这个条件下凑不出一桌菜 😢<br>换个类型、放宽预算或取消部分忌口再试试。');
     return;
   }
@@ -3152,7 +3099,7 @@ async function run(){
   li = traceAdd('⑧ 按地址选饭店', combo.restaurant.name + '（' + combo.km + 'km，' + combo.eta + '分钟）', 'active');
   await sleep(340);
   traceUpdate(li, '⑧ 按地址选饭店', '数据来源：' + sourceLabel(combo.source) + '。这一桌菜都能在「' + combo.restaurant.name + '」一次点齐' +
-    (combo.restaurant.online ? '' : '（离线示例库）') + '：' + combo.km + 'km' + (combo.restaurant.rating ? ' · 评分' + combo.restaurant.rating : ''));
+    '：' + combo.km + 'km' + (combo.restaurant.rating ? ' · 评分' + combo.restaurant.rating : ''));
 
   // ⑨ 生成
   li = traceAdd('⑨ 生成推荐方案', '主推一桌 + 2 个备选', 'active');
@@ -3301,7 +3248,7 @@ function init(){
     }
   }
 
-  $('#kbBadge').textContent = '📚 知识库（' + DISHES.length + ' 道菜 / ' + RESTAURANTS.length + ' 家离线兜底店）';
+  $('#kbBadge').textContent = '📚 知识库（' + DISHES.length + ' 道菜 · 店铺实时联网搜索）';
   renderTiers(); renderCats(); renderChips(); renderCitySelect(); renderBudgetNote();
   renderSpiceSeg(); renderTierSeg(); renderAddrList();
   renderProfile(); updateSummary(); revealNext();
@@ -3400,7 +3347,7 @@ function init(){
   $('#onlineEnabled').addEventListener('change', e => {
     state.settings.online = e.target.value;
     saveSettings();
-    toast(e.target.value === 'on' ? '联网搜索已开启' : '联网搜索已关闭，改用离线示例库');
+    toast(e.target.value === 'on' ? '联网搜索已开启' : '联网搜索已关闭：关掉之后搜不到饭店，只会推荐菜品');
   });
   $('#amapKey').addEventListener('input', e => { state.settings.amapKey = e.target.value.trim(); });
   $('#clearAmap').addEventListener('click', () => {

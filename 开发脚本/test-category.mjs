@@ -9,9 +9,20 @@ const document={querySelector(s){if(!cache.has(s))cache.set(s,fakeEl());return c
 const store=new Map();
 const localStorage={getItem:k=>store.has(k)?store.get(k):null,setItem:()=>{},removeItem:()=>{}};
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.T={state,recommend,planMeal,dishCats,inCat,craveHits,DISHES,pickAnchors,craveKeys};')
+  code + '\nglobalThis.T={state,recommend,planMeal,dishCats,inCat,craveHits,DISHES,RESTAURANTS,pickAnchors,craveKeys,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), ()=>Promise.reject(new Error('x')));
 const T = globalThis.T;
+
+/* 产品里的离线店库已经清空（真实用法只靠联网搜店）。为了还能测「一桌菜」组合逻辑，
+ * 这里塞一家"什么都能做"的测试店：cui / tags 直接从菜品库反推，保证每道菜它都能做。 */
+{
+  const cui = [...new Set(T.DISHES.map(d => d.cui))];
+  const tags = [...new Set(T.DISHES.flatMap(d => d.tags))];
+  T.CITY.offline = true;   // 测试环境：打开离线兜底开关，配合下面这家测试店
+  T.RESTAURANTS.push({ id:'test-shop', name:'测试餐厅（万能）', area:'裕华路', cui, tags,
+                       avg:40, rating:4.5, delivery:true, sig:[] });
+}
+
 
 let fail = 0;
 const ok = (cond, msg) => { console.log((cond ? '✅ ' : '❌ ') + msg); if(!cond) fail++; };
@@ -78,8 +89,10 @@ console.log('\n=== 四、标签兜底：本类别真的没有才跨类 ===');
   const crossScored = rec.scored.filter(s => s.crossCat);
   const raw = crossScored.map(s => s.total);
   ok(crossScored.length > 0 && raw.every(x => x > 0), '跨类的菜被打了 0.9 折（分数已下调）');
-  const itemNames = names(meal).join('、');
-  ok(/薯条|炸鸡|汉堡|鸡翅|里脊|鸡米花|鸡块|天妇罗/.test(itemNames), '结果确实是炸物：' + itemNames);
+  // 注意：测试环境塞了一家"万能店"，配菜可能不是炸的（一桌菜本来就可以有素菜/饮料），
+  // 所以这里只断言"主菜"是炸物
+  const anchorName = meal.best ? meal.best.anchorDish.name : '（没有配出组合）';
+  ok(/薯条|炸鸡|汉堡|鸡翅|里脊|鸡米花|鸡块|天妇罗|鸡腿堡/.test(anchorName), '主菜确实是炸物：' + anchorName);
 }
 {
   const { rec } = run('rice', ['想吃泰餐']);

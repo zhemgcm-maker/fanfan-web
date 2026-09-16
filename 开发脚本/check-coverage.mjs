@@ -15,14 +15,21 @@ new Function('document','localStorage','requestAnimationFrame','fetch',
 
 const { DISHES, RESTAURANTS, restaurantServes } = globalThis.__c;
 
-let orphans = 0;
 const bydish = new Map();
-DISHES.forEach(d => {
-  const shops = RESTAURANTS.filter(r => restaurantServes(r, d));
-  bydish.set(d.id, shops);
-  if (!shops.length) { orphans++; console.log('❌ 没有店能做：' + d.name + '（' + d.cui + ' / ' + d.tags.join(',') + '）'); }
-});
-console.log('菜品总数 ' + DISHES.length + '，无店可做的菜品 ' + orphans + ' 个');
+console.log('菜品总数 ' + DISHES.length);
+if (!RESTAURANTS.length) {
+  console.log('离线兜底店库已清空（RESTAURANTS 为空）→ 跳过"每道菜有没有店能做"的检查。');
+  console.log('现在店铺完全来自联网检索（高德 / OpenStreetMap），菜品库只负责"推荐吃什么"。');
+  DISHES.forEach(d => bydish.set(d.id, []));
+} else {
+  let orphans = 0;
+  DISHES.forEach(d => {
+    const shops = RESTAURANTS.filter(r => restaurantServes(r, d));
+    bydish.set(d.id, shops);
+    if (!shops.length) { orphans++; console.log('❌ 没有店能做：' + d.name + '（' + d.cui + ' / ' + d.tags.join(',') + '）'); }
+  });
+  console.log('无店可做的菜品 ' + orphans + ' 个');
+}
 
 // 各 role 的数量与覆盖
 const roles = {};
@@ -30,6 +37,7 @@ DISHES.forEach(d => { const r = d.role || 'single'; roles[r] = (roles[r] || 0) +
 console.log('角色分布: ' + Object.entries(roles).map(([k,v]) => k + ':' + v).join('  '));
 
 // 每个 档位 x 类型 组合下，外卖/堂食两种模式是否都有可用菜品
+if (RESTAURANTS.length) {
 const probe = globalThis.__c;
 const combos = [];
 for (const tier of ['small','mid','good']) {
@@ -52,3 +60,6 @@ DISHES.forEach(d => {
   if (shops.length && !shops.some(r => r.delivery)) onlyDinein++;
 });
 console.log('仅堂食可做的菜品数量：' + onlyDinein + '（这些在外卖模式下会提示切换到店方案）');
+} else {
+  console.log('（没有离线店库，档位 × 类型 × 外卖/堂食 的覆盖检查跳过）');
+}

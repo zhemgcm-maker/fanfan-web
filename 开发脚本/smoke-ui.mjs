@@ -64,7 +64,11 @@ const baodingPois = [
   { id:'B0FF1', name:'老保定驴肉火烧（裕华路店）', type:'餐饮服务;中餐厅;河北菜', location:'115.4690,38.8760', adname:'莲池区', address:'裕华路128号', tel:'0312-2012345', biz_ext:{ rating:'4.6', cost:'22' } },
   { id:'B0FF2', name:'直隶会馆', type:'餐饮服务;中餐厅;官府菜', location:'115.4620,38.8730', adname:'莲池区', address:'莲池大街1号', tel:'0312-2023456', biz_ext:{ rating:'4.7', cost:'120' } },
   { id:'B0FF3', name:'白运章包子铺', type:'餐饮服务;小吃快餐;包子', location:'115.4660,38.8780', adname:'莲池区', address:'裕华路65号', tel:'0312-2034567', biz_ext:{ rating:'4.5', cost:'18' } },
-  { id:'B0FF4', name:'川味小馆（朝阳大街店）', type:'餐饮服务;中餐厅;川菜', location:'115.4810,38.8830', adname:'竞秀区', address:'朝阳大街99号', tel:'0312-2045678', biz_ext:{ rating:'4.4', cost:'40' } }
+  { id:'B0FF4', name:'川味小馆（朝阳大街店）', type:'餐饮服务;中餐厅;川菜', location:'115.4810,38.8830', adname:'竞秀区', address:'朝阳大街99号', tel:'0312-2045678', biz_ext:{ rating:'4.4', cost:'40' } },
+  { id:'B0FF5', name:'蜀香火锅（竞秀区店）', type:'餐饮服务;中餐厅;火锅', location:'115.4720,38.8810', adname:'竞秀区', address:'朝阳大街200号', tel:'0312-2056789', biz_ext:{ rating:'4.5', cost:'85' } },
+  { id:'B0FF6', name:'炭火烤串屋', type:'餐饮服务;烧烤;烧烤', location:'115.4700,38.8760', adname:'莲池区', address:'军校广场北侧', tel:'0312-2067890', biz_ext:{ rating:'4.3', cost:'50' } },
+  { id:'B0FF7', name:'粤香烧腊饭店', type:'餐饮服务;中餐厅;粤菜', location:'115.4650,38.8740', adname:'莲池区', address:'莲池大街88号', tel:'0312-2078901', biz_ext:{ rating:'4.4', cost:'48' } },
+  { id:'B0FF8', name:'老味道面馆', type:'餐饮服务;小吃;面馆', location:'115.4740,38.8820', adname:'竞秀区', address:'三丰路12号', tel:'0312-2089012', biz_ext:{ rating:'4.2', cost:'20' } }
 ];
 
 async function mockFetch(url, opts) {
@@ -108,7 +112,7 @@ async function mockFetch(url, opts) {
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__s={state,run,renderTiers,renderCats,renderChips,renderProfile,updateSummary,acceptDish,dislikeDish,renderResult,recommend,recommendRestaurants,renderEmpty,scoreBars,PROVIDERS,DEFAULT_KEY,switchTab,renderTierSeg,renderAddrList,renderMeHeader,renderSpiceSeg,saveProfile,TIERS};')
+  code + '\nglobalThis.__s={state,run,renderTiers,renderCats,renderChips,renderProfile,updateSummary,acceptDish,dislikeDish,renderResult,recommend,recommendRestaurants,renderEmpty,scoreBars,PROVIDERS,DEFAULT_KEY,switchTab,renderTierSeg,renderAddrList,renderMeHeader,renderSpiceSeg,saveProfile,TIERS,CITIES,applyCity,changeCity,renderCitySelect,hasOfflineData,get CITY(){return CITY},onlineSearch,recommendRestaurantsSmart,DISHES};')
   (document, localStorage, (f) => setTimeout(f, 0), mockFetch);
 
 const api = globalThis.__s;
@@ -116,6 +120,36 @@ const api = globalThis.__s;
 function assert(cond, label) {
   console.log((cond ? '✅ ' : '❌ ') + label);
   if (!cond) errors.push(label);
+}
+
+// ---------- 还没选城市时的提醒 ----------
+console.log('--- 未设置城市时的提醒 ---');
+try {
+  api.applyCity('baoding');
+  api.state.profile.city = null;          // 模拟"从来没选过城市"
+  api.renderCitySelect();
+  assert(document.querySelector('#cityReminder').classList.contains('hidden') === false, '没选城市时首页顶部出现提醒卡');
+  assert(document.querySelector('#homeCityLine').textContent.includes('还没选择城市'), '首页提示「还没选择城市」');
+  assert(document.querySelector('#cityBadge').textContent.includes('请选择城市'), '顶部徽章提示「请选择城市」');
+  assert(document.querySelector('#citySelect').value === '', '「我的」里的下拉框显示占位「请选择城市…」');
+  assert(document.querySelector('#cityHint').textContent.includes('还没选择城市'), '「我的」里提示还没选城市');
+
+  // 没选城市就点开始推荐 → 拦住并跳到「我的」
+  api.state.tier = 'mid'; api.state.cat = 'rice';
+  const before = document.querySelector('#result').innerHTML;
+  await api.run();
+  await new Promise(r => setTimeout(r, 500));
+  assert(document.querySelector('#result').innerHTML === before, '没选城市时点了也不会出结果');
+  assert(document.querySelector('#pageMe').classList.contains('hidden') === false, '自动跳到「我的」让用户去设置城市');
+
+  // 选好城市后提醒消失
+  api.changeCity('baoding');
+  assert(document.querySelector('#cityReminder').classList.contains('hidden') === true, '选完城市后首页提醒卡消失');
+  assert(document.querySelector('#homeCityLine').textContent.includes('当前城市：保定市'), '首页显示当前城市');
+  assert(document.querySelector('#cityBadge').textContent.includes('保定市'), '徽章显示当前城市');
+  assert(api.state.profile.city === 'baoding', '城市写入偏好（localStorage）');
+} catch (err) {
+  assert(false, '未设置城市提醒异常：' + err.message);
 }
 
 const scenarios = [
@@ -240,8 +274,8 @@ try {
   assert(mock.amapCalls > 0, '配置高德 Key 后发起了高德请求（' + mock.amapCalls + ' 次）');
   const html = document.querySelector('#result').innerHTML;
   assert(html.includes('高德地图实时数据'), '结果卡片标注了数据来源=高德');
-  assert(/老保定驴肉火烧|白运章包子铺|直隶会馆|川味小馆/.test(html), '结果里用的是联网搜到的保定真实店名');
-  assert(document.querySelector('#devSearch').textContent.includes('老保定驴肉火烧'), '开发者面板显示了联网搜索原始数据');
+  assert(/老保定驴肉火烧|直隶会馆|白运章包子铺|川味小馆|蜀香火锅|炭火烤串屋|粤香烧腊|老味道面馆/.test(html), '结果里用的是联网搜到的保定真实店名');
+  assert(/老保定驴肉火烧|直隶会馆|白运章包子铺|川味小馆|蜀香火锅/.test(document.querySelector('#devSearch').textContent), '开发者面板显示了联网搜索原始数据');
 } catch (err) {
   assert(false, '高德联网路径异常：' + err.message);
 }
@@ -253,22 +287,22 @@ try {
   await new Promise(r => setTimeout(r, 3500));
   assert(mock.amapCalls > 0 && mock.osmCalls > 0, '高德失败后自动改走 OpenStreetMap');
   const html = document.querySelector('#result').innerHTML;
-  assert(html.includes('OpenStreetMap 实时数据') || html.includes('离线示例数据'), '降级后标注了实际数据来源');
+  assert(html.includes('OpenStreetMap 实时数据'), '降级后标注了实际数据来源');
 } catch (err) {
   assert(false, '高德降级路径异常：' + err.message);
 }
 
-// 完全没网 / 两个数据源都失败 → 离线示例库兜底
+// 完全没网 / 两个数据源都失败 → 离线店库已清空，应给友好提示而不是假店名
 mock.mode = 'osm-timeout'; mock.calls = 0;
 try {
   api.state.settings.amapKey = '';
   await api.run();
   await new Promise(r => setTimeout(r, 3500));
   const html = document.querySelector('#result').innerHTML;
-  assert(html.includes('离线示例数据'), '联网全失败时退回离线示例库并标注');
-  assert(html.includes('就吃这一桌'), '联网失败时结果依然可用');
+  assert(html.includes('这次没搜到饭店'), '联网全失败时提示「这次没搜到饭店」');
+  assert(!html.includes('就吃这一桌'), '不再拿示例店顶出一个结果');
 } catch (err) {
-  assert(false, '离线兜底路径异常：' + err.message);
+  assert(false, '无店兜底路径异常：' + err.message);
 }
 
 // ---------- 「我的」页面 ----------
@@ -317,6 +351,72 @@ try {
   assert(document.querySelector('#homePrefSummary').textContent.includes('常用地址 1 个'), '首页摘要显示常用地址数量');
 } catch (err) {
   assert(false, '常用地址异常：' + err.message);
+}
+
+// ---------- 城市切换 ----------
+console.log('\n--- 备选组合可展开 ---');
+try {
+  api.applyCity('baoding');
+  // 离线店库已清空 → 这里必须走联网路径（用假的高德响应），否则一家店都搜不到，自然没有备选
+  api.state.settings.enabled = 'off'; api.state.settings.online = 'on'; api.state.settings.amapKey = 'fake-amap-key';
+  mock.mode = 'ok'; mock.calls = 0; mock.amapCalls = 0;
+  Object.assign(api.state, { tier:'good', cat:'other', spiceMax:3, mode:'dinein',
+    address:'保定市裕华路步行街', craveTags:[], craveText:'', seed:1, budget:150 });
+  api.state.profile.allergies = [];
+  await api.run();
+  await new Promise(r => setTimeout(r, 3500));
+  const h = document.querySelector('#result').innerHTML;
+  assert(h.indexOf('alt-card') !== -1, '备选组合渲染成可展开卡片');
+  assert(h.indexOf('alt-detail') !== -1, '备选卡片里有详情区（菜单＋理由）');
+  assert(h.indexOf('alt-pick') !== -1, '备选卡片里有「就选这一桌」按钮');
+  assert(h.indexOf('换一家也行（点开看菜单和理由）') !== -1, '备选区标题提示可点开');
+  assert(h.indexOf('为什么这样配') !== -1, '展开详情里包含搭配理由');
+  const n = (h.match(/alt-card/g) || []).length;
+  // 备选数量取决于"搜到几家店能做这一桌菜"：离线店库已清空，假数据里只有 8 家店，
+  // 所以这里只断言"渲染出来了"，不硬要求 2 个
+  assert(n >= 1, '备选组合渲染出来了（实际 ' + n + ' 个）');
+} catch (err) {
+  assert(false, '备选展开异常：' + err.message);
+}
+
+console.log('\n--- 城市切换（离线店库已清空）---');
+try {
+  assert(Object.keys(api.CITIES).length === 3, '城市表里有 3 个城市：' + Object.keys(api.CITIES).join('/'));
+  assert(Object.values(api.CITIES).every(c => c.offline === false), '所有城市都没有离线店库（offline 全为 false）');
+
+  // 保定：离线店库已删除，选店只能靠联网
+  api.applyCity('baoding');
+  assert(api.hasOfflineData() === false, '切到保定：离线兜底已关闭');
+  const localBaoding = api.recommendRestaurants(api.DISHES.find(d => d.name === '驴肉火烧'));
+  assert(localBaoding.list.length === 0, '保定：离线店库返回空（不再有示例店）');
+
+  // 北京：离线兜底关闭
+  api.changeCity('beijing');
+  assert(api.CITY.name === '北京市' && api.CITY.adcode === '110100', '切到北京：CITY 已换成北京（adcode 110100）');
+  assert(api.hasOfflineData() === false, '北京：离线兜底同样关闭');
+  assert(api.state.address === '', '切城市后旧地址被清空');
+  const localBeijing = api.recommendRestaurants(api.DISHES.find(d => d.name === '驴肉火烧'));
+  assert(localBeijing.list.length === 0 && localBeijing.note.indexOf('没有离线店铺数据') !== -1, '北京：离线店库返回空并给出说明');
+  assert(api.CITY.landmarks.indexOf('三里屯') !== -1, '北京的地标快捷地址已生效');
+
+  // 北京 + 没网 → 走空结果提示（高德和 OSM 都打成失败）
+  mock.mode = 'osm-timeout'; mock.calls = 0;
+  api.state.settings.online = 'on';
+  api.state.settings.amapKey = '';
+  api.state.tier = 'mid'; api.state.cat = 'other'; api.state.budget = 60; api.state.craveTags = []; api.state.craveText = '';
+  const onlineNone = await api.onlineSearch([]);
+  const smart = api.recommendRestaurantsSmart(api.DISHES[0], onlineNone);
+  assert(smart.list.length === 0 && smart.source === 'none', '没网时选店返回空（source=none）');
+  await api.run();
+  await new Promise(r => setTimeout(r, 3000));
+  assert(document.querySelector('#result').innerHTML.indexOf('这次没搜到饭店') !== -1, '没网时页面提示「这次没搜到饭店」');
+
+  // 切回保定
+  api.changeCity('baoding');
+  assert(api.CITY.name === '保定市', '切回保定正常');
+  assert(api.state.profile.city === 'baoding', '城市选择写入偏好（localStorage）');
+} catch (err) {
+  assert(false, '城市切换异常：' + err.message);
 }
 
 console.log('\n' + (errors.length ? '❌ 失败 ' + errors.length + ' 项' : '✅ 全部交互路径通过'));

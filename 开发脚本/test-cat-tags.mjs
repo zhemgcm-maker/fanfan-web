@@ -33,9 +33,20 @@ const localStorage = { getItem:k => store.has(k) ? store.get(k) : null, setItem:
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
   code + '\nglobalThis.T={state,recommend,planMeal,dishCats,inCat,craveHits,DISHES,RESTAURANTS,' +
-         'CATS,CAT_CRAVE_TAGS,CRAVE_TAGS,craveTagsFor,isCraveTagOf,renderCats,renderChips,catName,craveKeys,restaurantServes};')
+         'CATS,CAT_CRAVE_TAGS,CRAVE_TAGS,craveTagsFor,isCraveTagOf,renderCats,renderChips,catName,craveKeys,restaurantServes,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), ()=>Promise.reject(new Error('x')));
 const T = globalThis.T;
+
+/* 产品里的离线店库已经清空（真实用法只靠联网搜店）。为了还能测「一桌菜」组合逻辑，
+ * 这里塞一家"什么都能做"的测试店：cui / tags 直接从菜品库反推，保证每道菜它都能做。 */
+{
+  const cui = [...new Set(T.DISHES.map(d => d.cui))];
+  const tags = [...new Set(T.DISHES.flatMap(d => d.tags))];
+  T.CITY.offline = true;   // 测试环境：打开离线兜底开关，配合下面这家测试店
+  T.RESTAURANTS.push({ id:'test-shop', name:'测试餐厅（万能）', area:'裕华路', cui, tags,
+                       avg:40, rating:4.5, delivery:true, sig:[] });
+}
+
 
 let fail = 0;
 const ok = (cond, msg) => { console.log((cond ? '✅ ' : '❌ ') + msg); if(!cond) fail++; };
