@@ -544,6 +544,11 @@
         </div>
       </div>
       <div class="p-box" style="margin-top:10px">
+        <div class="p-title">被屏蔽的推荐（点「不喜欢」会加到这儿，24 小时后自动恢复）</div>
+        <div class="p-val" id="pBanned"><span class="mini grey">还没有</span></div>
+        <button class="btn ghost small" id="clearBanned" style="margin-top:8px">清空屏蔽记录</button>
+      </div>
+      <div class="p-box" style="margin-top:10px">
         <div class="p-title">最近吃过（7 天内会相应降权，避免重复）</div>
         <div class="p-val" id="pHistory"><span class="mini grey">还没有记录</span></div>
       </div>
@@ -1255,11 +1260,18 @@ const state = {
   mode:'delivery',
   spiceMax:3,
   profile:{ allergies:[], tastes:[], likes:{}, dislikes:{}, history:[],
+            banned:{ dishes:{}, shops:{} },     // 「不喜欢」点过的菜/店，24 小时内不再出现
             spiceMax:3, defaultTier:null, savedAddresses:[] },
   settings:{ v:SETTINGS_VERSION, enabled:'on', provider:'deepseek', model:'deepseek-chat', base:PROVIDERS.deepseek.base, key:DEFAULT_KEY,
              online:'on', amapKey: DEFAULT_AMAP_KEY },
   lastResult:null,
   seed:1,
+  reroll:0,            // 「换一批」点了多少次：用来轮换饭店，保证点一次真的换一家
+  shownShopIds:[],     // 上一批已经出现过的店（换一批优先避开）
+  shownDishIds:[],     // 上一批已经出现过的主菜
+  lastShopId:'',       // 刚才主推的店（轮完一轮后用它兜底避开）
+  lastSig:'',          // 上一次结果的指纹，用来判断"换了一批还是老样子"
+  questionSig:'',      // 当前这个问题的指纹：换了类型/口味/地址就重置轮换状态
   running:false
 };
 
@@ -1275,6 +1287,11 @@ function loadStore(){
       state.profile.tastes = Array.isArray(p.tastes) ? p.tastes : [];
       state.profile.history = Array.isArray(p.history) ? p.history : [];
       state.profile.savedAddresses = Array.isArray(p.savedAddresses) ? p.savedAddresses : [];
+      // 屏蔽记录：只保留 24 小时内的，顺手清掉过期项
+      const ban = (p.banned && typeof p.banned === 'object') ? p.banned : {};
+      const keepFresh = obj => { const out = {}; const now = Date.now();
+        Object.keys(obj || {}).forEach(k => { if(now - Number(obj[k] || 0) < BAN_TTL) out[k] = obj[k]; }); return out; };
+      state.profile.banned = { dishes: keepFresh(ban.dishes), shops: keepFresh(ban.shops) };
       state.profile.spiceMax = (typeof p.spiceMax === 'number') ? p.spiceMax : state.spiceMax;
       state.profile.defaultTier = p.defaultTier || null;
     }
@@ -1521,23 +1538,60 @@ function amapPoiToShop(poi, origin){
   };
 }
 
-// 高德：按关键词搜店（限定当前城市），再按真实距离过滤半径
+/* 高德：以用户位置为中心"按关键词搜周边"，按距离排序并翻页，尽量多拿几家真实店铺。
+ * 以前用的是 /place/text 只取第 1 页 25 条、再截断成 8 家——实测保定 3km 内有 75 家火锅店，
+ * 但第 1 页里只有 7 家在 3km 内，所以用户翻来覆去就是那三四家（"搜火锅太单调"的根因）。 */
 async function amapSearchByKeyword(keyword, origin, radiusM){
-  const j = await amapFetch('/place/text', {
-    keywords: keyword, city: CITY.adcode, citylimit:'true', offset:25, page:1, extensions:'all'
-  });
-  const list = (j.pois || []).map(p => amapPoiToShop(p, origin)).filter(s => s.km !== null);
-  const near = list.filter(s => s.km * 1000 <= radiusM);
-  return (near.length ? near : list).slice(0, 8);
+  const seen = new Set(), all = [];
+  const pages = radiusM > 3500 ? 3 : 2;          // 每页 25 条：2 页=50 家，3 页=75 家
+  for(let p = 1; p <= pages; p++){
+    const params = {
+      location: origin.lng + ',' + origin.lat, keywords: keyword, types:'050000',
+      radius: Math.round(radiusM), offset:25, page:p, extensions:'all', sortrule:'distance'
+    };
+    // 第 1 页的错要往外抛（Key 无效 / 配额用完时好让上层降级到 OpenStreetMap），
+    // 后面几页只是"多翻一页"，失败就用已有结果
+    let j;
+    if(p === 1) j = await amapFetch('/place/around', params);
+    else { try{ j = await amapFetch('/place/around', params); }catch(e){ break; } }
+    const pois = j.pois || [];
+    pois.forEach(poi => {
+      if(!poi || !poi.id || seen.has(poi.id)) return;
+      seen.add(poi.id);
+      const shop = amapPoiToShop(poi, origin);
+      if(shop.km !== null) all.push(shop);
+    });
+    if(pois.length < 25) break;                   // 没有下一页了
+  }
+  // 兜底：周边搜不到（比如地址解析偏了）就退回老的关键词搜索
+  if(!all.length){
+    // 周边搜不到（比如地址解析偏了）就退回老的关键词搜索；这里失败同样往外抛
+    const j = await amapFetch('/place/text', {
+      keywords: keyword, city: CITY.adcode, citylimit:'true', offset:25, page:1, extensions:'all'
+    });
+    (j.pois || []).forEach(poi => { const shop = amapPoiToShop(poi, origin); if(shop.km !== null) all.push(shop); });
+  }
+  const near = all.filter(x => x.km * 1000 <= radiusM);
+  return (near.length ? near : all).sort((a, b) => a.km - b.km).slice(0, 24);
 }
 
 // 高德：直接搜"我附近有哪些餐饮"（POI 类型 050000 = 餐饮服务）
 async function amapAround(origin, radiusM){
-  const j = await amapFetch('/place/around', {
-    location: origin.lng + ',' + origin.lat, radius: radiusM, types:'050000',
-    offset:25, page:1, extensions:'all', sortrule:'distance'
-  });
-  return (j.pois || []).map(p => amapPoiToShop(p, origin)).slice(0, 25);
+  const seen = new Set(), out = [];
+  for(let p = 1; p <= 2; p++){
+    const params = {
+      location: origin.lng + ',' + origin.lat, radius: Math.round(radiusM), types:'050000',
+      offset:25, page:p, extensions:'all', sortrule:'distance'
+    };
+    // 同样：第 1 页失败要抛出去，第 2 页失败就用第 1 页的结果
+    let j;
+    if(p === 1) j = await amapFetch('/place/around', params);
+    else { try{ j = await amapFetch('/place/around', params); }catch(e){ break; } }
+    const pois = j.pois || [];
+    pois.forEach(poi => { if(poi && poi.id && !seen.has(poi.id)){ seen.add(poi.id); out.push(amapPoiToShop(poi, origin)); } });
+    if(pois.length < 25) break;
+  }
+  return out.slice(0, 50);
 }
 
 // OpenStreetMap 兜底（免 key）。国内实测：maps.mail.ru 镜像可用，其余多超时，所以按顺序试。
@@ -1866,10 +1920,14 @@ function scoreRestaurant(restaurant, dish, ctx){
   const priceScore = clamp(18 - gap * 0.5, 0, 18);
   parts['人均匹配'] = { raw:+priceScore.toFixed(1), max:18 };
 
-  // 是不是招牌菜
+  // 招牌菜 / 菜系对不对口。
+  // 这里权重给得高一点：搜"火锅"时高德会捎回一堆名字带"锅"的馆子（土家菜馆之类），
+  // 距离分占比太大就会把它们排到真正的火锅店前面，所以"菜系对得上"值 12 分。
   const isSignature = restaurant.sig.includes(dish.id);
-  parts['招牌加成'] = { raw: isSignature ? 12 : (restaurant.cui.includes(dish.cui) ? 7 : 2), max:12 };
+  const cuiMatch = restaurant.cui.includes(dish.cui);
+  parts['菜系对口'] = { raw: isSignature ? 16 : (cuiMatch ? 12 : 0), max:16 };
   if(isSignature) reasons.push('这道是店里的招牌菜');
+  else if(cuiMatch) reasons.push('这家店主打' + dish.cui + '菜');
 
   // 用餐方式
   const modeOk = state.mode === 'delivery' ? restaurant.delivery : true;
@@ -1896,7 +1954,19 @@ function restaurantServes(restaurant, dish){
 
 /* ------------------------------ 6. 智能体主流程 ------------------------------ */
 
+/* 「不喜欢」的硬屏蔽：点过不喜欢的菜 / 店，24 小时内不再出现。
+ * 光靠"口味标签扣 8 分"压不住原来那道菜，用户就会觉得"点了不喜欢还是它"。 */
+const BAN_TTL = 24 * 3600 * 1000;
+function bannedIds(kind){
+  const b = (state.profile.banned && state.profile.banned[kind]) || {};
+  const now = Date.now();
+  return Object.keys(b).filter(k => now - Number(b[k] || 0) < BAN_TTL);
+}
+function bannedDishIds(){ return bannedIds('dishes'); }
+function bannedShopIds(){ return bannedIds('shops'); }
+
 function hardFilter(dish){
+  if(bannedDishIds().indexOf(dish.id) !== -1) return { ok:false, why:'你刚说了不喜欢这道菜' };
   const bad = allergyTags();
   const allergyHit = dish.alg.filter(a => bad.has(a));
   if(allergyHit.length) return { ok:false, why:'忌口：' + allergyHit.map(a=>ingredientName(a)).join('、') };
@@ -1988,10 +2058,14 @@ async function onlineSearch(topDishes){
     try{
       out.around = await amapAround(out.origin, 2500);
       out.source = 'amap';
+      // 同一轮里几道菜可能共用同一个关键词（一堆火锅菜都是"火锅"），缓存一下省额度
+      const radius = state.mode === 'delivery' ? 3200 : 4200;   // 堂食愿意多走两步，搜远一点
+      const cache = new Map();
       for(const dish of topDishes){
         let shops = [];
         for(const term of dishSearchTerms(dish)){
-          shops = await amapSearchByKeyword(term, out.origin, 3000);
+          if(cache.has(term)) shops = cache.get(term);
+          else { shops = await amapSearchByKeyword(term, out.origin, radius); cache.set(term, shops); }
           if(shops.length) break;
         }
         out.byDish[dish.id] = shops;
@@ -2202,6 +2276,11 @@ function pickAnchors(rec){
   const matched = allAnchors.filter(s => hitCount(s) > 0);
   if(matched.length){
     anchors = matched.slice(0, 6);
+    // 「换一批」时优先挑上一批没用过的主菜
+    if(state.reroll > 0){
+      const fresh = anchors.filter(x => state.shownDishIds.indexOf(x.dish.id) === -1);
+      if(fresh.length) anchors = fresh.concat(anchors.filter(x => fresh.indexOf(x) === -1));
+    }
   }else{
     // 正餐没命中时，看看是不是"想喝奶茶"这种甜点需求，让甜品/饮品当主角
     const sweet = (rec.extras || []).filter(s => hitCount(s) > 0);
@@ -2210,14 +2289,54 @@ function pickAnchors(rec){
   return anchors;
 }
 
+// 记录这一批展示了哪些店/主菜（主推＋备选），供「换一批」避开
+function rememberShown(meal){
+  if(!meal) return;
+  if(meal.best && meal.best.restaurant) state.lastShopId = meal.best.restaurant.id;
+  const all = [meal.best].concat(meal.list || []).filter(Boolean).slice(0, 4);
+  const shops = all.map(c => c.restaurant && c.restaurant.id).filter(Boolean);
+  const dishes = all.map(c => c.anchorDish && c.anchorDish.id).filter(Boolean);
+  state.shownShopIds = [...new Set(shops.concat(state.shownShopIds))].slice(0, 12);
+  state.shownDishIds = [...new Set(dishes.concat(state.shownDishIds))].slice(0, 10);
+}
+
+// 用户换了类型 / 口味 / 地址 / 用餐方式 = 换了一个新问题，轮换状态要清零
+function resetShownIfNewQuestion(){
+  const sig = [state.tier, state.cat, state.mode, state.address, state.craveTags.join(','), state.craveText].join('|');
+  if(state.questionSig !== sig){
+    state.questionSig = sig;
+    state.reroll = 0; state.shownShopIds = []; state.shownDishIds = []; state.lastSig = '';
+  }
+}
+
 // 在"菜 + 店"的候选里，选出整桌最合适的一单
 function planMeal(rec, online){
   const anchors = pickAnchors(rec);
   const combos = [];
+  const banned = bannedShopIds();
   for(const a of anchors){
     const shops = recommendRestaurantsSmart(a.dish, online);
-    let pool = shops.list.slice(0, 2);
-    // 离线兜底店库已清空：联网没搜到店就是没结果，不再拿示例店顶上
+    /* 「换一批 / 不喜欢」要真的生效，三步：
+     *   ① 被"不喜欢"拉黑的店直接排除（除非一家不剩）
+     *   ② 上一批展示过的店排到后面
+     *   ③ 再按 reroll 次数旋转着取前 2 家，所以点一次真的会换一家 */
+    let list = shops.list.slice();
+    if(list.length > 1){
+      const notBanned = list.filter(x => banned.indexOf(x.restaurant.id) === -1);
+      if(notBanned.length) list = notBanned;
+      // 换一批时：只要还有"没出现过"的店，就只从这些店里挑（比单纯降权更硬）
+      if(state.reroll > 0){
+        let fresh = list.filter(x => state.shownShopIds.indexOf(x.restaurant.id) === -1);
+        // 整座城市的店都轮过一遍了：开新一轮，先避开最近出现的 6 家；
+        // 还不够就只避开"刚才那一家"，保证至少不会连着两次给同一家
+        if(!fresh.length) fresh = list.filter(x => state.shownShopIds.slice(0, 6).indexOf(x.restaurant.id) === -1);
+        if(!fresh.length) fresh = list.filter(x => x.restaurant.id !== state.lastShopId);
+        if(fresh.length) list = fresh;
+      }
+    }
+    // 取 4 家进候选：主推 1 家 + 最多 3 个备选（以前只取 2 家，所以"备选"经常只显示 1 个）
+    const start = list.length ? (state.reroll % list.length) : 0;
+    let pool = list.slice(start).concat(list.slice(0, start)).slice(0, 4);
     for(const s of pool){
       const combo = buildCombo(s.restaurant, a.dish);
       if(!combo.items.length) continue;
@@ -2230,6 +2349,8 @@ function planMeal(rec, online){
       // 「你说的想吃什么」是硬需求，命中度直接计入组合分，避免被"店更近、菜更全"盖过去
       combo.craveFit = craveHits(a.dish).crave;
       combo.score = +(combo.score + combo.craveFit * 1.8).toFixed(1);
+      // 上一批出现过的店整体降权，保证"换一批"真的换
+      if(state.reroll > 0 && state.shownShopIds.indexOf(s.restaurant.id) !== -1) combo.score = +(combo.score - 35).toFixed(1);
       combos.push(combo);
     }
   }
@@ -2431,6 +2552,13 @@ function renderProfile(){
   const dislikes = Object.entries(state.profile.dislikes).sort((a,b)=>b[1]-a[1]).slice(0,8);
   $('#pLikes').innerHTML = likes.length ? likes.map(([k,v])=>'<span class="mini">'+k+' ×'+v+'</span>').join('') : '<span class="mini grey">还没有</span>';
   $('#pDislikes').innerHTML = dislikes.length ? dislikes.map(([k,v])=>'<span class="mini red">'+k+' ×'+v+'</span>').join('') : '<span class="mini grey">还没有</span>';
+  const bd = bannedDishIds(), bs = bannedShopIds();
+  const bdNames = bd.map(id => (dishById(id) || {}).name || id).slice(0, 6);
+  const pBanned = $('#pBanned');
+  if(pBanned) pBanned.innerHTML = (bd.length || bs.length)
+    ? bdNames.map(n => '<span class="mini red">' + n + '</span>').join('') +
+      (bs.length ? '<span class="mini grey">＋ ' + bs.length + ' 家店</span>' : '')
+    : '<span class="mini grey">还没有</span>';
   const hist = state.profile.history.slice(-8).reverse();
   $('#pHistory').innerHTML = hist.length
     ? hist.map(h => {
@@ -2684,7 +2812,7 @@ function renderResult(combo, meal, extra, online){
     { k:'主菜契合', raw: Math.round((combo.anchorDish ? scoreDish(combo.anchorDish,{ignoreBudget:true}).total : 50) / 90 * 100) },
     { k:'预算契合', raw: Math.round((combo.budgetScore || 0) / 20 * 100) },
     { k:'搭配完整', raw: Math.round((combo.balance || 0) / 23 * 100) },
-    { k:'店铺靠谱', raw: Math.round((combo.shopScore || 0) / 96 * 100) }
+    { k:'店铺靠谱', raw: Math.round((combo.shopScore || 0) / 100 * 100) }
   ];
 
   box.innerHTML =
@@ -2745,8 +2873,8 @@ function renderResult(combo, meal, extra, online){
   box.classList.add('show');
 
   $('#acceptBtn').onclick = () => acceptCombo(combo);
-  $('#rerollBtn').onclick = () => { state.seed++; run(); };
-  $('#dislikeBtn').onclick = () => dislikeDish(combo.anchorDish || combo.items[0].dish);
+  $('#rerollBtn').onclick = () => { state.reroll++; state.seed++; run(); };
+  $('#dislikeBtn').onclick = () => dislikeDish(combo.anchorDish || combo.items[0].dish, combo.restaurant);
 
   // 记下这一单，供大模型点评用
   state.lastCombo = combo;
@@ -2805,11 +2933,15 @@ function acceptCombo(combo){
   toast('已记住这一桌：' + combo.items.map(i => i.dish.name).join('、'));
 }
 
-function dislikeDish(dish){
-  dish.tags.forEach(t => bump(state.profile.dislikes, t, 1));
+function dislikeDish(dish, restaurant){
+  dish.tags.forEach(t => bump(state.profile.dislikes, t, 1));   // 长期口味画像（慢慢学）
+  if(!state.profile.banned) state.profile.banned = { dishes:{}, shops:{} };
+  state.profile.banned.dishes[dish.id] = Date.now();            // 硬屏蔽：这道菜 24 小时内不再出现
+  if(restaurant && restaurant.id) state.profile.banned.shops[restaurant.id] = Date.now();
   saveProfile(); renderProfile();
-  toast('好的，已把「' + dish.tags.slice(0,2).join('、') + '」记为不喜欢，重新挑');
-  setTimeout(()=>{ state.seed++; run(); }, 420);
+  toast('已记下：不再推荐「' + dish.name + '」' + (restaurant ? '和「' + restaurant.name + '」' : '') + '，重新挑一桌');
+  state.reroll++; state.seed++;
+  setTimeout(()=>run(), 420);
 }
 
 /* ------------------------------ 9. 可选：调用真实大模型 ------------------------------ */
@@ -3000,6 +3132,7 @@ async function run(){
     }, 260);
     return;
   }
+  resetShownIfNewQuestion();
   state.running = true;
   $('#goBtn').disabled = true;
   $('#result').classList.remove('show');
@@ -3089,6 +3222,11 @@ async function run(){
     return;
   }
   const combo = meal.best;
+  // 记下这一批展示了哪些店/主菜，供「换一批」避开；如果换了还是老样子，就如实告诉用户
+  const sig = combo.restaurant.id + '|' + (combo.anchorDish ? combo.anchorDish.id : '');
+  if(state.reroll > 0 && state.lastSig && sig === state.lastSig) toast('附近能配这一桌的店就这几家，已经尽量换过了');
+  state.lastSig = sig;
+  rememberShown(meal);
   const comboDesc = combo.items.map(i => i.dish.name).join(' ＋ ');
   li = traceAdd('⑦ 组合搭配（一桌菜）', comboDesc, 'active');
   await sleep(420);
@@ -3257,6 +3395,14 @@ function init(){
   $('#tabHome').addEventListener('click', () => switchTab('home'));
   $('#tabMe').addEventListener('click', () => switchTab('me'));
   $('#goMeCard').addEventListener('click', () => switchTab('me'));
+  // 「我的」里清空屏蔽记录：被"不喜欢"屏蔽的菜和店重新参与推荐
+  const clearBan = $('#clearBanned');
+  if(clearBan) clearBan.addEventListener('click', () => {
+    state.profile.banned = { dishes:{}, shops:{} };
+    state.shownShopIds = []; state.shownDishIds = []; state.reroll = 0;
+    saveProfile(); renderProfile();
+    toast('已清空屏蔽记录，之前屏蔽的菜和店都会重新参与推荐');
+  });
 
   // 城市切换
   $('#citySelect').addEventListener('change', e => changeCity(e.target.value));
