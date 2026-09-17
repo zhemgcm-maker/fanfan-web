@@ -2436,9 +2436,10 @@ function scoreRestaurant(restaurant, dish, ctx){
   const parts = {};
 
   // 距离：越近越好（联网结果 = 真实直线距离）
-  const distScore = 26 * clamp(1 - d.km / 4.5, 0, 1);
-  parts['距离'] = { raw:+distScore.toFixed(1), max:26 };
-  if(d.areaMatched){ parts['距离'].raw = Math.min(26, parts['距离'].raw + 5); reasons.push(`就在你说的「${restaurant.area}」这一片`); }
+  // 权重重排（2026-09-17）：距离 26→20、人均匹配 12→18，其余不变，合计仍是 100
+  const distScore = 20 * clamp(1 - d.km / 4.5, 0, 1);
+  parts['距离'] = { raw:+distScore.toFixed(1), max:20 };
+  if(d.areaMatched){ parts['距离'].raw = Math.min(20, parts['距离'].raw + 5); reasons.push(`就在你说的「${restaurant.area}」这一片`); }
 
   // 评分（联网数据可能没有评分，用中性值兜底但不给额外加分）
   const rating = restaurant.rating || 4.2;
@@ -2448,8 +2449,8 @@ function scoreRestaurant(restaurant, dish, ctx){
 
   // 人均是否匹配预算
   const gap = Math.abs(restaurant.avg - dish.price);
-  const priceScore = clamp(12 - gap * 0.35, 0, 12);
-  parts['人均匹配'] = { raw:+priceScore.toFixed(1), max:12 };
+  const priceScore = clamp(18 - gap * 0.5, 0, 18);
+  parts['人均匹配'] = { raw:+priceScore.toFixed(1), max:18 };
 
   // 招牌菜 / 菜系对不对口。
   // 这里权重给得高一点：搜"火锅"时高德会捎回一堆名字带"锅"的馆子（土家菜馆之类），
