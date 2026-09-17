@@ -240,6 +240,12 @@
   .actions .btn{flex:1 1 auto}
 
   .alt-list{margin-top:12px}
+  .shop-card{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
+    border-radius:15px;padding:11px 12px;margin-top:9px;cursor:pointer;box-shadow:0 4px 14px rgba(255,106,61,.06)}
+  .shop-card:active{background:var(--brand-soft)}
+  .shop-card .a-main{flex:1;min-width:0}
+  .shop-card .a-name{font-size:14px;font-weight:600;display:block}
+  .shop-card .a-sub{font-size:11.5px;color:var(--muted);display:block;margin-top:2px}
   .alt{
     display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
     border-radius:15px;padding:11px 12px;margin-top:9px;box-shadow:0 4px 14px rgba(255,106,61,.06)
@@ -2103,15 +2109,74 @@ async function osmAround(origin, radiusM){
 }
 
 // 菜品 → 联网搜索关键词
+/* 菜系 → 高德搜店关键词。以前只按"菜名"搜店，等于把"爱吃肉"窄化成"卤肉饭"，
+ * 现在优先按菜系/品类去搜，店搜回来之后再判断它能不能做我们想吃的那些菜。 */
+const CUI_SHOP_WORDS = {
+  '家常':['家常菜'], '川':['川菜'], '粤':['粤菜'], '日':['日本料理'], '韩':['韩国料理'],
+  '西':['西餐'], '披萨':['披萨'], '汉堡':['汉堡'], '烤肉':['烤肉'], '烧烤':['烧烤'],
+  '火锅':['火锅'], '健康':['轻食沙拉'], '西北':['兰州拉面'], '江浙':['江浙菜'],
+  '东南亚':['泰国菜'], '甜品':['甜品店'], '小吃':['小吃'], '保定':['保定菜','驴肉火烧'],
+  '河北':['河北菜'], '东北':['东北菜'], '云贵':['贵州菜'], '湘':['湘菜'], '鲁':['鲁菜'],
+  '闽':['闽菜'], '徽':['徽菜']
+};
 function dishSearchTerms(dish){
-  const byCui = {
-    '保定':[dish.name, '保定菜'],
-    '河北':[dish.name, '河北菜'],
-    '川':['川菜'], '粤':['粤菜'], '日':['日本料理'], '韩':['韩国料理'],
-    '西':['西餐'], '火锅':['火锅'], '烧烤':['烧烤'], '健康':['轻食'],
-    '西北':['兰州拉面'], '江浙':['江浙菜'], '家常':['家常菜'], '小吃':['小吃']
+  const byCui = CUI_SHOP_WORDS[dish.cui];
+  if(byCui) return dish.cui === '保定' || dish.cui === '河北' ? byCui.concat([dish.name]) : byCui.slice();
+  return [dish.name];
+}
+
+/* 口味偏好 → 菜品/店铺标签关键词（菜品打分和店铺打分共用） */
+const TASTE_KEY_MAP = { '清淡':'清淡','重口':'重口','爱喝汤':'汤','爱干拌':'干拌','嗜辣':'辣','偏爱甜口':'甜口',
+  '喜欢酸辣':'酸辣','碳水快乐':'下饭','健康优先':'健康','下饭至上':'下饭','爱吃烧烤':'烧烤','爱生鲜':'生鲜' };
+
+/* 「今日想吃」标签 → 额外要搜的品类关键词（标签比菜系更口语，比如"炸物快乐"就去搜炸鸡汉堡） */
+const CRAVE_SHOP_WORDS = {
+  '炸物快乐':['炸鸡','汉堡'], '汉堡快餐':['汉堡','炸鸡'], '披萨':['披萨'], '火锅':['火锅'],
+  '麻辣烫/串串':['麻辣烫','串串香'], '烧烤':['烧烤'], '烤肉':['烤肉'], '日式料理':['日本料理'],
+  '甜品饮品':['甜品','奶茶'], '特色小吃':['小吃'], '保定本地':['保定菜','驴肉火烧'],
+  '轻食沙拉':['轻食','沙拉'], '川菜':['川菜'], '粤菜':['粤菜'], '湘菜':['湘菜'], '鲁菜':['鲁菜'],
+  '苏浙菜':['江浙菜'], '闽菜':['闽菜'], '徽菜':['徽菜'], '家常菜':['家常菜'], '日式':['日本料理'],
+  '韩式':['韩国料理'], '东南亚':['泰国菜'], '西北':['兰州拉面'], '健康轻食':['轻食沙拉'],
+  '汤面':['面馆'], '干拌面':['面馆'], '炒面':['面馆'], '凉面':['面馆'], '米线/粉':['米粉店'],
+  '馄饨水饺':['馄饨','饺子馆'], '拉面/刀削':['面馆'], '意面':['意面','西餐'],
+  '想吃烧烤':['烧烤','烤肉'], '想吃肉':['烤肉','家常菜','川菜'], '和朋友一起吃':['家常菜','火锅'],
+  '想吃辣':['川菜','湘菜','火锅'], '清淡点':['粤菜','江浙菜','轻食']
+};
+
+/* ===== 关键改动：先算"今天想吃什么"，再反推搜店意图 =====
+ * 以前是「选一道菜 → 拿菜名搜店」，所以"爱吃肉"会退化成只搜"卤肉饭"。
+ * 现在改成「拿今天想吃的整体（菜系 + 品类 + 几道代表性菜）去搜一批店」，
+ * 搜回来之后再反向判断每家店能做哪些候选菜，最后按"能做的菜数"等维度打分。 */
+function shopIntents(rec, anchors){
+  const intents = [];
+  const add = (kw, why, w) => {
+    if(!kw) return;
+    const hit = intents.find(x => x.kw === kw);
+    if(hit){ hit.w = Math.max(hit.w, w); if(hit.why.indexOf(why) === -1) hit.why += '、' + why; }
+    else intents.push({ kw, why, w });
   };
-  return byCui[dish.cui] || [dish.name];
+
+  // ① 候选菜里"最集中的菜系"（按得分加权，主菜权重更高）
+  const cuiWeight = {};
+  (rec.scored || []).slice(0, 15).forEach(s => { cuiWeight[s.dish.cui] = (cuiWeight[s.dish.cui] || 0) + s.total; });
+  (rec.mains || []).slice(0, 10).forEach(s => { cuiWeight[s.dish.cui] = (cuiWeight[s.dish.cui] || 0) + s.total * 1.2; });
+  Object.entries(cuiWeight).sort((a, b) => b[1] - a[1]).slice(0, 4)
+    .forEach(([cui]) => (CUI_SHOP_WORDS[cui] || []).forEach(kw => add(kw, '你今天的口味偏' + cui, 1)));
+
+  // ② 「今天想吃什么」的标签 → 品类关键词（这是最直接的意图）
+  state.craveTags.forEach(tag => (CRAVE_SHOP_WORDS[tag] || []).forEach(kw => add(kw, '你点了「' + tag + '」', 2)));
+
+  // ③ 自由文本里提到的菜系/品类（复用 craveKeys 的口语→菜系映射）
+  String(state.craveText || '').split(/[\s,，、。；;／/]+/).filter(w => w.length >= 2)
+    .forEach(w => craveKeys(w).forEach(k => { const words = CUI_SHOP_WORDS[k] || (k.length >= 2 ? [k] : []); words.forEach(kw => add(kw, '你说了「' + w + '」', 2)); }));
+
+  // ④ 代表性菜品的搜索词（保证"今天就想吃这一道"时一定能搜到）
+  anchors.slice(0, 3).forEach(a => dishSearchTerms(a.dish).forEach(kw => add(kw, '主推「' + a.dish.name + '」', 1.5)));
+
+  // ⑤ 最后一层兜底：按类别给个大众关键词
+  add({ rice:'家常菜', noodle:'面馆', other:'餐厅' }[state.cat], '按你选的类别', 0.3);
+
+  return intents.sort((a, b) => b.w - a.w).slice(0, 6);   // 最多 6 次请求，省配额
 }
 
 /* ------------------------------ 5. 智能体核心：打分 ------------------------------ */
@@ -2371,33 +2436,61 @@ function scoreRestaurant(restaurant, dish, ctx){
   const parts = {};
 
   // 距离：越近越好（联网结果 = 真实直线距离）
-  const distScore = 34 * clamp(1 - d.km / 4.5, 0, 1);
-  parts['距离'] = { raw:+distScore.toFixed(1), max:34 };
-  if(d.areaMatched){ parts['距离'].raw = Math.min(34, parts['距离'].raw + 6); reasons.push(`就在你说的「${restaurant.area}」这一片`); }
+  const distScore = 26 * clamp(1 - d.km / 4.5, 0, 1);
+  parts['距离'] = { raw:+distScore.toFixed(1), max:26 };
+  if(d.areaMatched){ parts['距离'].raw = Math.min(26, parts['距离'].raw + 5); reasons.push(`就在你说的「${restaurant.area}」这一片`); }
 
   // 评分（联网数据可能没有评分，用中性值兜底但不给额外加分）
   const rating = restaurant.rating || 4.2;
-  const ratingScore = clamp((rating - 4.0) * 26, 0, 24);
-  parts['评分'] = { raw:+ratingScore.toFixed(1), max:24 };
+  const ratingScore = clamp((rating - 4.0) * 18, 0, 16);
+  parts['评分'] = { raw:+ratingScore.toFixed(1), max:16 };
   if(restaurant.rating && restaurant.rating >= 4.5) reasons.push(`评分 ${restaurant.rating}，口碑不错`);
 
   // 人均是否匹配预算
   const gap = Math.abs(restaurant.avg - dish.price);
-  const priceScore = clamp(18 - gap * 0.5, 0, 18);
-  parts['人均匹配'] = { raw:+priceScore.toFixed(1), max:18 };
+  const priceScore = clamp(12 - gap * 0.35, 0, 12);
+  parts['人均匹配'] = { raw:+priceScore.toFixed(1), max:12 };
 
   // 招牌菜 / 菜系对不对口。
   // 这里权重给得高一点：搜"火锅"时高德会捎回一堆名字带"锅"的馆子（土家菜馆之类），
   // 距离分占比太大就会把它们排到真正的火锅店前面，所以"菜系对得上"值 12 分。
   const isSignature = restaurant.sig.includes(dish.id);
   const cuiMatch = restaurant.cui.includes(dish.cui);
-  parts['菜系对口'] = { raw: isSignature ? 16 : (cuiMatch ? 12 : 0), max:16 };
+  parts['菜系对口'] = { raw: isSignature ? 14 : (cuiMatch ? 11 : 0), max:14 };
   if(isSignature) reasons.push('这道是店里的招牌菜');
   else if(cuiMatch) reasons.push('这家店主打' + dish.cui + '菜');
 
+  // 菜品覆盖：这家店能做我们今天多少道候选菜（直接回答"你能不能做我想吃的"）
+  let cover = 0;
+  if(CANDIDATE_DISHES.length){
+    cover = CANDIDATE_DISHES.filter(cd => restaurantServes(restaurant, cd) || restaurant.cui.includes(cd.cui)).length;
+  }
+  parts['菜品覆盖'] = { raw:+clamp(cover * 2.4, 0, 16).toFixed(1), max:16 };
+  if(cover >= 5) reasons.push('你想吃的 ' + cover + ' 道菜这家店都能做');
+
+  // 口味契合：店的经营品类 vs 你今天想吃的 + 长期口味画像
+  const wantKeys = new Set();
+  state.craveTags.forEach(t => craveKeys(t).forEach(k => { if(k) wantKeys.add(k); }));
+  state.profile.tastes.forEach(t => { const k = TASTE_KEY_MAP[t]; if(k) wantKeys.add(k); });
+  const shopTags = restaurant.tags || [];
+  let tasteHit = 0;
+  wantKeys.forEach(k => {
+    if(k && shopTags.some(t => t.indexOf(k) !== -1 || (t.length >= 2 && k.indexOf(t) !== -1))) tasteHit++;
+  });
+  // 「想吃肉」这种需求：看这家店能做多少道荤菜（候选菜里带肉/鱼/鸡/牛/羊标签的）
+  const MEAT_TAGS = ['猪','牛','羊','鸡','鸭','鱼','虾','蟹','贝','驴肉'];
+  if(wantKeys.has('肉')){
+    const meatDishes = CANDIDATE_DISHES.filter(cd => (cd.tags || []).some(t => MEAT_TAGS.indexOf(t) !== -1));
+    const canMeat = meatDishes.filter(cd => restaurantServes(restaurant, cd)).length;
+    if(canMeat >= 2) tasteHit++;
+    if(canMeat >= 4) reasons.push('荤菜做得全（能做 ' + canMeat + ' 道你想吃的肉菜）');
+  }
+  parts['口味契合'] = { raw:+clamp(tasteHit * 2.5, 0, 10).toFixed(1), max:10 };
+  if(tasteHit >= 2) reasons.push('店里的品类和你今天想吃的对得上');
+
   // 用餐方式
   const modeOk = state.mode === 'delivery' ? restaurant.delivery : true;
-  parts['方式匹配'] = { raw: modeOk ? 8 : 0, max:8 };
+  parts['方式匹配'] = { raw: modeOk ? 6 : 0, max:6 };
   if(state.mode === 'delivery' && restaurant.delivery) reasons.push('支持外卖配送');
   if(state.mode === 'dinein') reasons.push('适合到店吃，热菜口感更好');
 
@@ -2513,8 +2606,8 @@ function recommendRestaurants(dish){
 /* ------------------------------ 6b. 联网检索 + 选店编排 ------------------------------ */
 
 // 联网搜索：先高德（真实且快），失败退 OpenStreetMap，都失败就标注清楚
-async function onlineSearch(topDishes){
-  const out = { on: state.settings.online !== 'off', origin:null, byDish:{}, around:[], source:null, error:null };
+async function onlineSearch(topDishes, rec){
+  const out = { on: state.settings.online !== 'off', origin:null, byDish:{}, around:[], shops:[], intents:[], source:null, error:null };
   if(!out.on) return out;
 
   out.origin = await resolveLocation(state.address);
@@ -2526,17 +2619,41 @@ async function onlineSearch(topDishes){
       out.source = 'amap';
       // 同一轮里几道菜可能共用同一个关键词（一堆火锅菜都是"火锅"），缓存一下省额度
       const radius = state.mode === 'delivery' ? 3200 : 4200;   // 堂食愿意多走两步，搜远一点
-      const cache = new Map();
-      // 只给排前面的 4 个主菜搜店：后面的基本轮不到，多搜就是白烧配额
-      for(const dish of topDishes.slice(0, 4)){
-        let shops = [];
-        for(const term of dishSearchTerms(dish)){
-          if(cache.has(term)) shops = cache.get(term);
-          else { shops = await amapSearchByKeyword(term, out.origin, radius); cache.set(term, shops); }
-          if(shops.length) break;
-        }
-        out.byDish[dish.id] = shops;
+
+      // 第一步：按"整体意图"（菜系/品类/代表菜）搜一批店，而不是死盯一道菜
+      const intents = shopIntents(rec || { scored:[], mains:[] }, pickAnchors(rec || { scored:[], mains:[] }));
+      const pool = new Map();
+      for(const it of intents){
+        const list = await amapSearchByKeyword(it.kw, out.origin, radius);
+        out.intents.push({ kw:it.kw, why:it.why, n:list.length });
+        list.forEach(sp => { if(!pool.has(sp.id)) pool.set(sp.id, sp); });
       }
+      out.shops = [...pool.values()];
+
+      // 第二步：反过来算"每道候选菜，哪些店能做"（菜系 + 口味标签匹配，不再依赖菜名）
+      topDishes.forEach(dish => {
+        out.byDish[dish.id] = out.shops
+          .filter(sp => restaurantServes(sp, dish) || sp.cui.includes(dish.cui))
+          .sort((a, b) => a.km - b.km)
+          .slice(0, 24);
+      });
+
+      // 第三步：个别菜实在没店能做（比如"驴肉火烧"这种地域性很强的），再用菜名补搜一次
+      let extra = 0;
+      for(const dish of topDishes){
+        if(out.byDish[dish.id].length || extra >= 2) continue;
+        for(const term of dishSearchTerms(dish)){
+          const list = await amapSearchByKeyword(term, out.origin, radius);
+          if(list.length){
+            out.byDish[dish.id] = list;
+            list.forEach(sp => { if(!pool.has(sp.id)) pool.set(sp.id, sp); });
+            out.shops = [...pool.values()];
+            extra++;
+            break;
+          }
+        }
+      }
+      setCandidateDishes(rec);
       return out;
     }catch(e){
       out.error = '高德：' + e.message;
@@ -2547,11 +2664,13 @@ async function onlineSearch(topDishes){
   try{
     out.around = await osmAround(out.origin, 1800);
     out.source = 'osm';
+    out.shops = out.around;
     topDishes.forEach(dish => {
       out.byDish[dish.id] = out.around
         .filter(s => s.cui.includes(dish.cui) || restaurantServes(s, dish))
         .slice(0, 6);
     });
+    setCandidateDishes(rec);
   }catch(e){
     out.error = (out.error ? out.error + '；' : '') + 'OSM：' + e.message;
   }
@@ -2729,7 +2848,7 @@ function buildCombo(restaurant, anchorDish){
 
 // 挑"锚定菜"（这一桌的主角候选）。联网搜索和组合搭配都要用同一份，
 // 否则会出现"组合锚定在没联网查过的菜上、最后一桌都配不出来"的情况。
-function pickAnchors(rec){
+function pickAnchors(rec, preferShop){
   // single = 盖饭/面这类一份就够的；main = 水煮鱼这类整份硬菜（要配主食）
   let anchors = rec.scored.slice(0, 3)
     .concat(rec.mains || [])
@@ -2752,6 +2871,19 @@ function pickAnchors(rec){
     // 正餐没命中时，看看是不是"想喝奶茶"这种甜点需求，让甜品/饮品当主角
     const sweet = (rec.extras || []).filter(s => hitCount(s) > 0);
     if(sweet.length) anchors = sweet.slice(0, 3);
+  }
+  // 用户手动指定了一家店：把锚定菜换掉——用"这家店能做的候选菜"当主角，
+  // 这样"点一家店"就真的能出结果，而不是因为原来的主菜这家店做不了而失败
+  if(preferShop){
+    const pool = CANDIDATE_DISHES.concat(anchors.map(a => a.dish));
+    const seen = new Set();
+    const fit = pool
+      .filter(d => d && !seen.has(d.id) && seen.add(d.id))
+      .filter(d => restaurantServes(preferShop, d) || (preferShop.cui || []).includes(d.cui))
+      .map(d => { const sc = scoreDish(d, { ignoreBudget:true }); return { dish:d, total:sc.total, parts:sc.parts, reasons:sc.reasons }; })
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 6);
+    if(fit.length) anchors = fit;
   }
   return anchors;
 }
@@ -2776,11 +2908,21 @@ function resetShownIfNewQuestion(){
   }
 }
 
+// 今天进入候选的菜（最多 20 道）：给"这家店能做几道你想要的菜"打分用
+let CANDIDATE_DISHES = [];
+function setCandidateDishes(rec){
+  if(!rec) return;
+  const top = (rec.scored || []).slice(0, 15).concat((rec.mains || []).slice(0, 8)).map(x => x.dish);
+  const seen = new Set();
+  CANDIDATE_DISHES = top.filter(d => d && !seen.has(d.id) && seen.add(d.id)).slice(0, 20);
+}
+
 // 在"菜 + 店"的候选里，选出整桌最合适的一单
-function planMeal(rec, online){
-  const anchors = pickAnchors(rec);
+function planMeal(rec, online, preferShop){
+  const anchors = pickAnchors(rec, preferShop);
   const combos = [];
   const banned = bannedShopIds();
+  const preferShopId = preferShop ? preferShop.id : null;
   for(const a of anchors){
     const shops = recommendRestaurantsSmart(a.dish, online);
     /* 「换一批 / 不喜欢」要真的生效，三步：
@@ -2788,6 +2930,18 @@ function planMeal(rec, online){
      *   ② 上一批展示过的店排到后面
      *   ③ 再按 reroll 次数旋转着取前 2 家，所以点一次真的会换一家 */
     let list = shops.list.slice();
+    // 手动换店时，这道菜可能不在原来的搜店结果里（byDish 只覆盖最初的锚定菜）→
+    // 直接从"搜到的候选店池"里现算谁做得了这道菜
+    if(preferShopId && !list.length && online && online.shops){
+      list = online.shops
+        .filter(sp => restaurantServes(sp, a.dish) || (sp.cui || []).includes(a.dish.cui))
+        .map(sp => scoreRestaurant(sp, a.dish, {}));
+    }
+    // 用户自己点了某家店 → 只留这家（做不了这道菜就跳过这道菜，换这道店能做的菜当主角）
+    if(preferShopId){
+      list = list.filter(x => x.restaurant.id === preferShopId);
+      if(!list.length) continue;
+    }
     if(list.length > 1){
       const notBanned = list.filter(x => banned.indexOf(x.restaurant.id) === -1);
       if(notBanned.length) list = notBanned;
@@ -2822,6 +2976,13 @@ function planMeal(rec, online){
     }
   }
   combos.sort((a,b) => b.score - a.score);
+
+  // 用户手动点了某家店：只要这家店能配出至少一桌，就只从它这里出结果
+  // （"这家店能做哪些你想吃的菜"就按哪些菜来配，而不是硬套原来的主菜）
+  if(preferShopId){
+    const mine = combos.filter(c => c.restaurant.id === preferShopId);
+    if(mine.length) combos.length = 0, combos.push(...mine);
+  }
 
   // 同一家店只保留最优的一单，避免备选全是同一家
   const seen = new Set(), unique = [];
@@ -3435,6 +3596,16 @@ function renderResult(combo, meal, extra, online){
   const etaText = state.mode === 'delivery' ? ('约 ' + combo.eta + ' 分钟送达') : ('步行/骑行约 ' + combo.eta + ' 分钟');
   const srcTag = '<span class="badge" style="background:#e9f7f0;border-color:#c9ecdd;color:#0b7a58">' + sourceLabel(combo.source) + '</span>';
   const others = (meal && meal.list ? meal.list.slice(1,4) : []);   // 备选最多 3 家
+  /* 人在环：把"搜到的、能做你想要的菜"的店列出来，点一下就换成它。
+   * 排序按"能做的候选菜数"降序、再按距离，最多 6 家（排除已推荐的那家）。 */
+  const shopChoices = (online && online.shops ? online.shops : [])
+    .map(sp => ({
+      shop: sp,
+      can: CANDIDATE_DISHES.filter(cd => restaurantServes(sp, cd) || sp.cui.includes(cd.cui)).length
+    }))
+    .filter(x => x.can > 0 && x.shop.id !== r.id)
+    .sort((a, b) => (b.can - a.can) || (a.shop.km - b.shop.km))
+    .slice(0, 6);
   const anchorName = combo.anchorDish ? combo.anchorDish.name : combo.items[0].dish.name;
   const bars = [
     { k:'主菜契合', raw: Math.round((combo.anchorDish ? scoreDish(combo.anchorDish,{ignoreBudget:true}).total : 50) / 90 * 100) },
@@ -3496,6 +3667,16 @@ function renderResult(combo, meal, extra, online){
     (others.length
       ? '<div class="alt-list"><div class="mini-title" style="color:#8b7a6c">换一家也行（点开看菜单和理由）</div>' +
         others.map((c,i) => altCardHtml(c, i)).join('') + '</div>'
+      : '') +
+    (shopChoices.length
+      ? '<div class="alt-list"><div class="mini-title" style="color:#8b7a6c">附近这些店也能做你想吃的（点一下换这家）</div>' +
+        shopChoices.map(x => '<div class="shop-card" data-shop="' + esc(x.shop.id) + '">' +
+          '<span class="a-emoji">🏠</span><span class="a-main">' +
+            '<span class="a-name">' + esc(x.shop.name) + (x.shop.area ? '（' + esc(x.shop.area) + '）' : '') + '</span>' +
+            '<span class="a-sub">' + x.shop.km + 'km ｜ 评分 ' + (x.shop.rating || '暂无') + ' ｜ 人均 ¥' + x.shop.avg +
+              ' ｜ 能做 ' + x.can + ' 道你想吃的</span>' +
+          '</span><span class="r-arrow">›</span></div>').join('') +
+        '<p class="note" style="margin:6px 0 0">换店之后会按这家店重新配一桌菜（同一家店一次点齐）</p></div>'
       : '');
 
   box.classList.add('show');
@@ -3503,6 +3684,11 @@ function renderResult(combo, meal, extra, online){
   $('#acceptBtn').onclick = () => acceptCombo(combo);
   $('#rerollBtn').onclick = () => { state.reroll++; state.seed++; run(); };
   $('#dislikeBtn').onclick = () => dislikeDish(combo.anchorDish || combo.items[0].dish, combo.restaurant);
+
+  // 点"这些店也能做你想吃的" → 就地把主推荐换成那家店
+  box.querySelectorAll('.shop-card').forEach(card => {
+    card.addEventListener('click', () => useShop(card.getAttribute('data-shop')));
+  });
 
   // 记下这一单，供大模型点评用
   state.lastCombo = combo;
@@ -3570,6 +3756,21 @@ function dislikeDish(dish, restaurant){
   toast('已记下：不再推荐「' + dish.name + '」' + (restaurant ? '和「' + restaurant.name + '」' : '') + '，重新挑一桌');
   state.reroll++; state.seed++;
   setTimeout(()=>run(), 420);
+}
+
+/* 用户自己点了一家店 → 就用这家店重新配一桌（不再联网，直接用已有结果） */
+function useShop(shopId){
+  const rec = state.lastRec, online = state.lastOnline;
+  if(!rec || !online){ toast('先点一次「开始推荐」，再换店'); return; }
+  const shop = (online.shops || []).find(s => s.id === shopId);
+  if(!shop){ toast('这家店的信息已经过期，重新推荐一次吧'); return; }
+  const meal = planMeal(rec, online, shop);
+  if(!meal.best){ toast('这家店在做你想吃的这类菜上凑不出一桌，换一家试试'); return; }
+  state.forceShopId = shopId;
+  rememberShown(meal);
+  state.lastResult = { combo: meal.best, meal, addr: state.address, online };
+  renderResult(meal.best, meal, '', online);
+  toast('已换成「' + meal.best.restaurant.name + '」：' + meal.best.items.map(i => i.dish.name).join('＋'));
 }
 
 /* ------------------------------ 9. 可选：调用真实大模型 ------------------------------ */
@@ -3827,7 +4028,7 @@ async function run(){
   // ⑤b 联网检索真实饭店（高德 / OpenStreetMap）
   // 用和组合搭配完全一致的"锚定菜"列表去搜，保证每道可能当主角的菜都有联网结果
   const searchDishes = pickAnchors(rec).map(s => s.dish);
-  const online = await onlineSearch(searchDishes);
+  const online = await onlineSearch(searchDishes, rec);
   if(online.on){
     let onlineDetail;
     if(online.source === 'amap'){
@@ -3881,6 +4082,7 @@ async function run(){
   traceUpdate(li, '⑨ 生成推荐方案', '主推：' + combo.restaurant.name + ' 的 ' + combo.items.length + ' 道菜（合计 ¥' + combo.total + '），另外给 2 个备选组合');
 
   state.lastResult = { combo, meal, addr, online };
+  state.lastRec = rec; state.lastOnline = online;      // 供"点一家店就地换"使用
   state.running = false;
   renderResult(combo, meal, '', online);
   updateSummary();

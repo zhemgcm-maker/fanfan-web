@@ -91,8 +91,11 @@ console.log('\n=== 四、标签兜底：本类别真的没有才跨类 ===');
   ok(crossScored.length > 0 && raw.every(x => x > 0), '跨类的菜被打了 0.9 折（分数已下调）');
   // 注意：测试环境塞了一家"万能店"，配菜可能不是炸的（一桌菜本来就可以有素菜/饮料），
   // 所以这里只断言"主菜"是炸物
-  const anchorName = meal.best ? meal.best.anchorDish.name : '（没有配出组合）';
-  ok(/薯条|炸鸡|汉堡|鸡翅|里脊|鸡米花|鸡块|天妇罗|鸡腿堡/.test(anchorName), '主菜确实是炸物：' + anchorName);
+  const anchor = meal.best ? meal.best.anchorDish : null;
+  const anchorName = anchor ? anchor.name : '（没有配出组合）';
+  // 更稳的判断：看菜本身有没有"炸"这个口味标签（比列菜名白名单可靠）
+  const isFried = anchor && ((anchor.tags || []).indexOf('炸') !== -1 || /薯条|炸鸡|汉堡|鸡翅|里脊|鸡米花|鸡块|天妇罗|鸡腿堡|排骨/.test(anchorName));
+  ok(isFried, '主菜确实是炸物：' + anchorName + '（标签 ' + (anchor ? (anchor.tags || []).join('/') : '-') + '）');
 }
 {
   const { rec } = run('rice', ['想吃泰餐']);
