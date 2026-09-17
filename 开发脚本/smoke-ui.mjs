@@ -112,7 +112,7 @@ async function mockFetch(url, opts) {
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__s={state,run,renderTiers,renderCats,renderChips,renderProfile,updateSummary,acceptDish,dislikeDish,renderResult,recommend,recommendRestaurants,renderEmpty,scoreBars,PROVIDERS,DEFAULT_KEY,switchTab,renderTierSeg,renderAddrList,renderMeHeader,renderSpiceSeg,saveProfile,TIERS,CITIES,applyCity,changeCity,renderCitySelect,hasOfflineData,get CITY(){return CITY},onlineSearch,recommendRestaurantsSmart,DISHES};')
+  code + '\nglobalThis.__s={state,run,renderTiers,renderCats,renderChips,renderProfile,updateSummary,acceptDish,dislikeDish,renderResult,recommend,recommendRestaurants,renderEmpty,scoreBars,PROVIDERS,DEFAULT_KEY,switchTab,renderTierSeg,renderAddrList,renderMeHeader,renderSpiceSeg,saveProfile,TIERS,CITIES,applyCity,changeCity,renderCitySelect,hasOfflineData,clearAmapCache,get CITY(){return CITY},onlineSearch,recommendRestaurantsSmart,DISHES};')
   (document, localStorage, (f) => setTimeout(f, 0), mockFetch);
 
 const api = globalThis.__s;
@@ -266,6 +266,7 @@ api.state.settings.enabled = 'off';          // 这轮只测联网，不测大�
 api.state.settings.online = 'on';
 api.state.settings.amapKey = 'fake-amap-key';
 mock.mode = 'ok'; mock.calls = 0; mock.amapCalls = 0; mock.osmCalls = 0;
+api.clearAmapCache();          // 联网结果有缓存，这里要观察真实请求次数，先清空
 try {
   Object.assign(api.state, { tier:'mid', cat:'other', spiceMax:3, mode:'delivery', address:'保定市裕华路步行街', craveTags:['想吃肉'], seed:1, budget:60 });
   api.state.profile.allergies = [];
@@ -282,6 +283,7 @@ try {
 
 // 高德 Key 无效 → 自动降级到 OSM，不崩
 mock.mode = 'amap-badkey'; mock.calls = 0; mock.amapCalls = 0; mock.osmCalls = 0;
+api.state.amapDownUntil = 0; api.clearAmapCache();   // 清掉冷却与缓存，才能真正走到降级逻辑
 try {
   await api.run();
   await new Promise(r => setTimeout(r, 3500));

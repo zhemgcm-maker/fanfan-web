@@ -57,11 +57,12 @@ async function mockFetch(url){
 // ---- 假定位：第一次直接给坐标，第二次（可选）报权限拒绝 ----
 let geoMode = 'ok';
 let geoAsked = 0;
+let geoCoords = { longitude:115.4800, latitude:38.8830 };   // 每个场景换一组坐标（真实定位也不会一直在同一个点）
 const navigator = {
   geolocation: {
     getCurrentPosition(ok, err){
       geoAsked++;
-      if(geoMode === 'ok') setTimeout(() => ok({ coords:{ longitude:115.4800, latitude:38.8830 } }), 0);
+      if(geoMode === 'ok') setTimeout(() => ok({ coords: geoCoords }), 0);
       else setTimeout(() => err({ code:1, message:'User denied Geolocation' }), 0);
     }
   }
@@ -97,12 +98,14 @@ ok(origin.precise === true && origin.source === 'gps' && Math.abs(origin.lng - 1
 
 console.log('\n=== 二、定位到别的城市会自动切城市 ===');
 regeo = { addr:'北京市朝阳区建国路87号', adcode:'110100', city:'北京市', province:'北京市' };
+geoCoords = { longitude:116.4074, latitude:39.9042 };        // 换到北京
 api.geolocateMe();
 await tick(200);
 ok(api.CITY().adcode === '110100', '定位到北京后城市自动切到：' + api.CITY().name + '（' + api.CITY().adcode + '）');
 
 console.log('\n=== 三、定位到城市表里没有的城市 ===');
 regeo = { addr:'江苏省南京市玄武区中山路1号', adcode:'320100', city:'南京市', province:'江苏省' };
+geoCoords = { longitude:118.7969, latitude:32.0603 };        // 换到南京
 api.geolocateMe();
 await tick(200);
 ok(api.CITY().adcode === '320100', '临时切到：' + api.CITY().name);

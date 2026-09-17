@@ -598,6 +598,7 @@
       <div class="actions">
         <button class="btn ghost small" id="testAmap">测试联网搜索</button>
         <button class="btn ghost small" id="clearAmap">清除高德 Key</button>
+        <button class="btn ghost small" id="clearCache">清空联网缓存</button>
       </div>
       <p class="note" id="amapStatus">—</p>
       <p class="note">如果这个文件的作者已经内置了高德 Key，上面的输入框会自动填好，你什么都不用做。</p>
@@ -1634,6 +1635,8 @@ const state = {
   craveText:'',
   address:'',
   origin:null,        // 用户"定位我 / 选地点"得到的精确坐标；有它就不再走地理编码
+  amapDownUntil:0,    // 高德配额用完/Key 失效后的冷却时间戳（这段时间直接走 OSM）
+  amapDownReason:'',  // 冷却原因，显示在界面上
   mode:'delivery',
   spiceMax:3,
   profile:{ allergies:[], tastes:[], likes:{}, dislikes:{}, history:[],
@@ -1848,19 +1851,80 @@ async function fetchWithTimeout(url, opts, ms){
   finally { clearTimeout(timer); }
 }
 
+/* ===== 高德结果缓存 & 配额计数 =====
+ * 为什么要缓存：一次推荐原本要打 11 个高德请求，点一次「换一批」又打 11 个（内容完全一样）。
+ * 免费 Key 的日配额就是这么被刷完的，尤其是公开链接上所有使用者共用同一个 Key 的时候。
+ * 现在：搜过的关键词 / 周边 / 地理编码都缓存起来（搜索 10 分钟、地理编码 24 小时），
+ * 换一批、不喜欢、重复点推荐都不会再打请求；同时记录今天用了多少次，在「我的」里能看见。 */
+const AMAP_CACHE_NS = 'ff_amap_cache_v1';
+const AMAP_TTL = { search: 10*60*1000, around: 10*60*1000, geo: 24*3600*1000 };
+let amapCache = null, amapCounter = null;
+
+function loadAmapCache(){
+  if(amapCache) return amapCache;
+  amapCache = {};
+  try{ amapCache = JSON.parse(localStorage.getItem(AMAP_CACHE_NS) || '{}') || {}; }catch(e){ amapCache = {}; }
+  try{ amapCounter = JSON.parse(localStorage.getItem(AMAP_CACHE_NS + '_n') || 'null'); }catch(e){ amapCounter = null; }
+  return amapCache;
+}
+function saveAmapCache(){
+  try{
+    const keys = Object.keys(amapCache);
+    if(keys.length > 240) keys.slice(0, keys.length - 240).forEach(k => { delete amapCache[k]; });
+    localStorage.setItem(AMAP_CACHE_NS, JSON.stringify(amapCache));
+    localStorage.setItem(AMAP_CACHE_NS + '_n', JSON.stringify(amapCounter));
+  }catch(e){ /* 存储满了就算了，不影响使用 */ }
+}
+function amapCacheGet(key, ttl){
+  const hit = loadAmapCache()[key];
+  if(!hit || (Date.now() - hit.t) > ttl) return null;
+  return hit.v;
+}
+function amapCacheSet(key, value){
+  loadAmapCache()[key] = { t:Date.now(), v:value };
+  saveAmapCache();
+}
+function todayStamp(){ const d = new Date(); return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); }
+function amapCallTick(){
+  const t = todayStamp();
+  if(!amapCounter || amapCounter.day !== t) amapCounter = { day:t, n:0 };
+  amapCounter.n++;
+  saveAmapCache();
+}
+function amapCallsToday(){
+  const t = todayStamp();
+  return (amapCounter && amapCounter.day === t) ? amapCounter.n : 0;
+}
+// 清空联网缓存（换了 Key、或者想强制拿最新店铺数据时用；今天的用量计数保留）
+function clearAmapCache(){
+  const n = Object.keys(loadAmapCache()).length;
+  amapCache = {};
+  try{ localStorage.removeItem(AMAP_CACHE_NS); }catch(e){}
+  return n;
+}
+// 缓存键里的坐标只保留到 3 位小数（约 100 米），避免每次定位都算成新键
+function geoKey(o){ return (+o.lng).toFixed(3) + ',' + (+o.lat).toFixed(3); }
+
 async function amapFetch(path, params, timeoutMs){
   const key = (state.settings.amapKey || '').trim();
   if(!key) throw new Error('没填写高德 Key');
+  amapCallTick();
   const qs = new URLSearchParams({ key, ...params }).toString();
   const res = await fetchWithTimeout(AMAP_BASE + path + '?' + qs, {}, timeoutMs || 8000);
   if(!res.ok) throw new Error('高德 HTTP ' + res.status);
   const j = await res.json();
   if(String(j.status) !== '1'){
-    const hint = j.infocode === '10001' ? '（Key 无效或没开通"Web服务"）' :
-                 j.infocode === '10003' ? '（Key 已过期）' :
-                 j.infocode === '10009' ? '（Key 与平台类型不匹配，要选"Web服务"）' :
-                 j.infocode === '10044' || j.infocode === '10045' ? '（今日配额用完）' : '';
-    throw new Error((j.info || '高德调用失败') + hint + (j.infocode ? ' [' + j.infocode + ']' : ''));
+    const code = String(j.infocode || '');
+    const quota = (code === '10003' || code === '10044' || code === '10045');
+    const hint = code === '10001' ? '（Key 无效或没开通"Web服务"）' :
+                 quota ? '（免费额度用完了，明天自动恢复；也可以在「我的」里换一个自己的 Key）' :
+                 code === '10009' ? '（Key 与平台类型不匹配，必须选"Web服务"类型）' : '';
+    if(quota){
+      // 配额/过期这类错误会持续一段时间，先停 10 分钟别再打高德，省得一直失败
+      state.amapDownUntil = Date.now() + 10 * 60 * 1000;
+      state.amapDownReason = (j.info || '高德调用失败') + hint;
+    }
+    throw new Error((j.info || '高德调用失败') + hint + (code ? ' [' + code + ']' : ''));
   }
   return j;
 }
@@ -1881,12 +1945,17 @@ async function resolveLocation(address){
     }
   }
   if(state.settings.amapKey && addr){
+    const ck = 'geo:' + CITY.adcode + ':' + addr;
+    const cached = amapCacheGet(ck, AMAP_TTL.geo);
+    if(cached) return cached;
     try{
       const j = await amapFetch('/geocode', { address: addr, city: CITY.adcode }, 8000);
       const g = (j.geocodes || [])[0];
       if(g && g.location){
         const [lng, lat] = g.location.split(',').map(Number);
-        return { lng, lat, label: g.formatted_address || addr, precise:true, source:'amap' };
+        const out = { lng, lat, label: g.formatted_address || addr, precise:true, source:'amap' };
+        amapCacheSet(ck, out);
+        return out;
       }
     }catch(e){ /* 失败就用中心点兜底 */ }
   }
@@ -1926,8 +1995,13 @@ function amapPoiToShop(poi, origin){
  * 以前用的是 /place/text 只取第 1 页 25 条、再截断成 8 家——实测保定 3km 内有 75 家火锅店，
  * 但第 1 页里只有 7 家在 3km 内，所以用户翻来覆去就是那三四家（"搜火锅太单调"的根因）。 */
 async function amapSearchByKeyword(keyword, origin, radiusM){
+  const ck = 'kw:' + keyword + '@' + geoKey(origin) + '#' + Math.round(radiusM / 500) * 500;
+  const cached = amapCacheGet(ck, AMAP_TTL.search);
+  if(cached) return cached;
   const seen = new Set(), all = [];
-  const pages = radiusM > 3500 ? 3 : 2;          // 每页 25 条：2 页=50 家，3 页=75 家
+  // 默认只查第 1 页（25 条）；只有"第 1 页满了、而且在半径内还没凑够 12 家"才翻第 2 页。
+  // 实测保定 3km 内光火锅就有 75 家，但一次只要 12 家够挑了，多翻页纯烧配额。
+  const pages = 2;
   for(let p = 1; p <= pages; p++){
     const params = {
       location: origin.lng + ',' + origin.lat, keywords: keyword, types:'050000',
@@ -1946,6 +2020,7 @@ async function amapSearchByKeyword(keyword, origin, radiusM){
       if(shop.km !== null) all.push(shop);
     });
     if(pois.length < 25) break;                   // 没有下一页了
+    if(all.filter(x => x.km * 1000 <= radiusM).length >= 12) break;   // 够挑了，不再翻页
   }
   // 兜底：周边搜不到（比如地址解析偏了）就退回老的关键词搜索
   if(!all.length){
@@ -1956,13 +2031,18 @@ async function amapSearchByKeyword(keyword, origin, radiusM){
     (j.pois || []).forEach(poi => { const shop = amapPoiToShop(poi, origin); if(shop.km !== null) all.push(shop); });
   }
   const near = all.filter(x => x.km * 1000 <= radiusM);
-  return (near.length ? near : all).sort((a, b) => a.km - b.km).slice(0, 24);
+  const result = (near.length ? near : all).sort((a, b) => a.km - b.km).slice(0, 24);
+  if(result.length) amapCacheSet(ck, result);
+  return result;
 }
 
 // 高德：直接搜"我附近有哪些餐饮"（POI 类型 050000 = 餐饮服务）
 async function amapAround(origin, radiusM){
+  const ck = 'around@' + geoKey(origin) + '#' + Math.round(radiusM / 500) * 500;
+  const cached = amapCacheGet(ck, AMAP_TTL.around);
+  if(cached) return cached;
   const seen = new Set(), out = [];
-  for(let p = 1; p <= 2; p++){
+  for(let p = 1; p <= 1; p++){
     const params = {
       location: origin.lng + ',' + origin.lat, radius: Math.round(radiusM), types:'050000',
       offset:25, page:p, extensions:'all', sortrule:'distance'
@@ -1975,7 +2055,9 @@ async function amapAround(origin, radiusM){
     pois.forEach(poi => { if(poi && poi.id && !seen.has(poi.id)){ seen.add(poi.id); out.push(amapPoiToShop(poi, origin)); } });
     if(pois.length < 25) break;
   }
-  return out.slice(0, 50);
+  const result = out.slice(0, 25);
+  if(result.length) amapCacheSet(ck, result);
+  return result;
 }
 
 // OpenStreetMap 兜底（免 key）。国内实测：maps.mail.ru 镜像可用，其余多超时，所以按顺序试。
@@ -2437,15 +2519,16 @@ async function onlineSearch(topDishes){
 
   out.origin = await resolveLocation(state.address);
 
-  // ① 高德
-  if((state.settings.amapKey || '').trim()){
+  // ① 高德（如果刚遇到配额用完/Key 失效，10 分钟内直接跳过，别反复失败）
+  if((state.settings.amapKey || '').trim() && Date.now() >= (state.amapDownUntil || 0)){
     try{
       out.around = await amapAround(out.origin, 2500);
       out.source = 'amap';
       // 同一轮里几道菜可能共用同一个关键词（一堆火锅菜都是"火锅"），缓存一下省额度
       const radius = state.mode === 'delivery' ? 3200 : 4200;   // 堂食愿意多走两步，搜远一点
       const cache = new Map();
-      for(const dish of topDishes){
+      // 只给排前面的 4 个主菜搜店：后面的基本轮不到，多搜就是白烧配额
+      for(const dish of topDishes.slice(0, 4)){
         let shops = [];
         for(const term of dishSearchTerms(dish)){
           if(cache.has(term)) shops = cache.get(term);
@@ -2917,9 +3000,12 @@ function geolocateMe(){
       const lng = +Number(pos.coords.longitude).toFixed(6);
       const lat = +Number(pos.coords.latitude).toFixed(6);
       let label = '当前位置', adcode = '', cityName = '', province = '';
-      if((state.settings.amapKey || '').trim()){
+      if((state.settings.amapKey || '').trim() && Date.now() >= (state.amapDownUntil || 0)){
+        const rcKey = 'regeo:' + lng.toFixed(4) + ',' + lat.toFixed(4);
+        const rcHit = amapCacheGet(rcKey, AMAP_TTL.geo);
         try{
-          const j = await amapFetch('/geocode/regeo', { location: lng + ',' + lat, extensions:'base' }, 8000);
+          const j = rcHit || await amapFetch('/geocode/regeo', { location: lng + ',' + lat, extensions:'base' }, 8000);
+          if(!rcHit) amapCacheSet(rcKey, j);
           const rc = j.regeocode || {}, ac = rc.addressComponent || {};
           label = String(rc.formatted_address || '').trim() || label;
           adcode = ac.adcode || '';
@@ -3592,10 +3678,15 @@ function renderSettingsUI(){
   $('#amapKey').value = s.amapKey || '';
   const amapKey = (s.amapKey || '').trim();
   const amapBuiltIn = !!DEFAULT_AMAP_KEY && amapKey === DEFAULT_AMAP_KEY;
-  $('#amapStatus').textContent = amapKey
+  const usedToday = amapCallsToday();
+  const downTxt = (Date.now() < (state.amapDownUntil || 0))
+    ? '｜⚠️ 高德暂时不可用：' + (state.amapDownReason || '调用失败') + '，已自动改用 OpenStreetMap'
+    : '';
+  $('#amapStatus').textContent = (amapKey
     ? '联网搜索：高德已配置' + (amapBuiltIn ? '（内置 Key，无需填写）' : '（自己填的）') +
       '（' + amapKey.slice(0,6) + '…' + amapKey.slice(-4) + '），会搜到' + CITY.name + '的真实店铺'
-    : '联网搜索：还没填高德 Key，只能用 OpenStreetMap（国内节点常超时，建议填一个）';
+    : '联网搜索：还没填高德 Key，只能用 OpenStreetMap（国内节点常超时，建议填一个）') +
+    '｜今天这台设备已用 ' + usedToday + ' 次高德请求（结果有缓存，重复点不会重复请求）' + downTxt;
 }
 
 // 从表单控件读回 state.settings（点保存/测试时调用）
@@ -3744,7 +3835,10 @@ async function run(){
       onlineDetail = '高德地图：以「' + online.origin.label + '」为中心，搜到周边餐饮 ' + online.around.length +
                      ' 家，其中能对上今天这几道菜的 ' + dishHits + ' 家';
     }else if(online.source === 'osm'){
-      onlineDetail = '高德未配置或不可用，改用 OpenStreetMap：周边 ' + online.around.length + ' 家餐饮';
+      onlineDetail = '改用 OpenStreetMap：周边 ' + online.around.length + ' 家餐饮' +
+        (state.amapDownReason
+          ? '（高德暂不可用：' + state.amapDownReason + '）'
+          : '（高德未配置或暂时不可用）');
     }else{
       onlineDetail = '联网搜索没成功（' + (online.error || '原因未知') + '），所以这次没有店铺可用';
     }
@@ -4051,6 +4145,12 @@ function init(){
     toast(e.target.value === 'on' ? '联网搜索已开启' : '联网搜索已关闭：关掉之后搜不到饭店，只会推荐菜品');
   });
   $('#amapKey').addEventListener('input', e => { state.settings.amapKey = e.target.value.trim(); });
+  const clearCacheBtn = $('#clearCache');
+  if(clearCacheBtn) clearCacheBtn.addEventListener('click', () => {
+    const n = clearAmapCache();
+    renderSettingsUI();
+    toast('已清空联网缓存（' + n + ' 条），下次搜店会重新请求高德');
+  });
   $('#clearAmap').addEventListener('click', () => {
     // 如果文件里内置了 Key，清空 = 恢复成内置的那个（避免误删后自己反而用不了）
     state.settings.amapKey = DEFAULT_AMAP_KEY || '';
