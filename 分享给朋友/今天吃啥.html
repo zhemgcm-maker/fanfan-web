@@ -2747,7 +2747,18 @@ function buildCombo(restaurant, anchorDish){
   const pool = DISHES
     .filter(d => restaurantServes(restaurant, d) && hardFilter(d).ok)
     .map(d => { const s = scoreDish(d, { ignoreBudget:true }); return { dish:d, role:d.role || 'single', score:s.total, reasons:s.reasons }; });
-  const byRole = role => pool.filter(x => x.role === role).sort((a,b) => b.score - a.score);
+  /* 口径统一：所有位置共用同一条挑选规则——先在本类别（吃饭／吃面／其他）里挑，
+   * 本类别里确实没有（或者都超预算）才放开到这家店的全量菜单。
+   * 以前只有"主食"位做了类别过滤，主菜位／一人食位／配菜位都从全量菜单按分挑，
+   * 于是「小饭」档（¥25 上限、库里几乎没有 ≤25 的整份荤菜）主菜位填不上时，
+   * 兜底会挑到成都担担面这种面，主食位又按"吃饭"配了米饭 → 出现"面＋米饭"。 */
+  const byRole = role => {
+    const all = pool.filter(x => x.role === role).sort((a,b) => b.score - a.score);
+    if(!state.cat || !CATS.some(c => c.id === state.cat)) return all;
+    // 本类别内的排前面，跨类兜底的排后面，调用方 find 取第一个即可
+    return all.filter(x => inCat(x.dish, state.cat))
+              .concat(all.filter(x => !inCat(x.dish, state.cat)));
+  };
 
   const items = [];
   const used = new Set();
@@ -2770,22 +2781,18 @@ function buildCombo(restaurant, anchorDish){
     tryAdd({ dish:anchorDish, role:anchorDish.role || 'single', score:s.total, reasons:s.reasons, anchor:true });
   }
 
-  // ② 按结构补齐主位：在预算内挑分最高的一道
+  // ② 按结构补齐主位：在预算内挑分最高的一道（类别优先由 byRole 统一负责）
+  let singleSubstituted = false;   // 主菜位被"一人食"顶掉了
   for(const role of plan.slots){
     if(items.some(i => i.role === role)) continue;
-    let candidates = byRole(role);
-    // 主食跟着第 2 步的类型走：点「吃饭」配米饭，点「吃面」配面食，
-    // 免得出现"粤菜一桌配手工水饺"这种别扭搭配（没有合适的再放开）
-    if(role === 'staple' && state.cat){
-      const fit = candidates.filter(x => inCat(x.dish, state.cat));
-      if(fit.length) candidates = fit;
-    }
-    const pick = candidates.find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
+    // 已经用"一人食"顶掉主菜位：它自己就带主食，不用再配一份米饭
+    if(role === 'staple' && singleSubstituted) continue;
+    const pick = byRole(role).find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
     if(!tryAdd(pick)){
       // 该角色没有合适菜：外卖场景用"一人食"顶上，堂食场景尝试用"一人食"当主菜
       if(role === 'main'){
         const alt = byRole('single').find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
-        tryAdd(alt);
+        if(tryAdd(alt)) singleSubstituted = true;
       }
     }
   }
