@@ -240,9 +240,10 @@
   .actions .btn{flex:1 1 auto}
 
   .alt-list{margin-top:12px}
-  .shop-card{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
+  .shop-card,.pick-card{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);
     border-radius:15px;padding:11px 12px;margin-top:9px;cursor:pointer;box-shadow:0 4px 14px rgba(255,106,61,.06)}
-  .shop-card:active{background:var(--brand-soft)}
+  .shop-card:active,.pick-card:active{background:var(--brand-soft)}
+  .pick-card{border-color:#ffd9c4;background:#fffdfb}
   .shop-card .a-main{flex:1;min-width:0}
   .shop-card .a-name{font-size:14px;font-weight:600;display:block}
   .shop-card .a-sub{font-size:11.5px;color:var(--muted);display:block;margin-top:2px}
@@ -2847,6 +2848,21 @@ function buildCombo(restaurant, anchorDish){
   };
 }
 
+/* 多样化挑选：优先保证"菜系 + 主料"不重复，凑不够再放宽 */
+function diversify(list, cap){
+  const out = [], seen = new Set();
+  const MAIN = ['猪','牛','羊','鸡','鸭','鱼','虾','蟹','贝','驴肉','蛋','豆','蔬菜','菌菇'];
+  const keyOf = s => s.dish.cui + '|' + ((s.dish.tags || []).find(t => MAIN.indexOf(t) !== -1) || s.dish.role || '');
+  for(const s of list){
+    const k = keyOf(s);
+    if(seen.has(k)) continue;
+    seen.add(k); out.push(s);
+    if(out.length >= cap) return out;
+  }
+  for(const s of list){ if(out.indexOf(s) === -1){ out.push(s); if(out.length >= cap) break; } }
+  return out;
+}
+
 // 挑"锚定菜"（这一桌的主角候选）。联网搜索和组合搭配都要用同一份，
 // 否则会出现"组合锚定在没联网查过的菜上、最后一桌都配不出来"的情况。
 function pickAnchors(rec, preferShop){
@@ -2862,7 +2878,9 @@ function pickAnchors(rec, preferShop){
   const allAnchors = rec.scored.concat(rec.mains || []).sort((a,b) => b.total - a.total);
   const matched = allAnchors.filter(s => hitCount(s) > 0);
   if(matched.length){
-    anchors = matched.slice(0, 6);
+    // 先做"多样化"挑选：同一菜系 + 同一主料的菜只留一道，
+    // 这样点「汤面」拿到的是牛肉汤面/板面/清汤面/米线…，而不是 6 道同类
+    anchors = diversify(matched, 6);
     // 「换一批」时优先挑上一批没用过的主菜
     if(state.reroll > 0){
       const fresh = anchors.filter(x => state.shownDishIds.indexOf(x.dish.id) === -1);
@@ -2909,6 +2927,37 @@ function resetShownIfNewQuestion(){
   }
 }
 
+/* 一道菜 → 能做它的店（按店分排序）。用搜回来的店池现算，不再额外请求高德 */
+function shopsForDish(dish, online){
+  const pool = (online && online.shops) ? online.shops : [];
+  return pool
+    .filter(sp => restaurantServes(sp, dish) || (sp.cui || []).includes(dish.cui))
+    .map(sp => scoreRestaurant(sp, dish, {}))
+    .sort((a, b) => b.total - a.total);
+}
+
+/* 「这一档还有这些选择」：把命中你今天想吃的菜挑几道（多样化），
+ * 每道菜各自配一家能做它的店 —— 就是"标签 → 一批菜 → 各自的店"。 */
+function dishShopOptions(rec, online, limit){
+  limit = limit || 5;
+  const pool = (rec.scored || []).concat(rec.mains || []);
+  const hit = pool.filter(x => ((x.hitTags || []).length + (x.textHits || []).length) > 0);
+  const use = diversify(hit.length ? hit : pool, Math.max(limit * 2, 8));
+  const out = [];
+  const usedShop = new Set();
+  // 第一轮：每道菜配"最好的那家店"，尽量不重复店
+  for(const x of use){
+    const list = shopsForDish(x.dish, online);
+    const best = list.find(sp => !usedShop.has(sp.restaurant.id)) || list[0];
+    if(!best) continue;
+    usedShop.add(best.restaurant.id);
+    out.push({ dish:x.dish, score:x.total, shop:best.restaurant, km:best.km, rating:best.restaurant.rating,
+               avg:best.restaurant.avg, why:(best.reasons || [])[0] || '' });
+    if(out.length >= limit) break;
+  }
+  return out;
+}
+
 // 今天进入候选的菜（最多 20 道）：给"这家店能做几道你想要的菜"打分用
 let CANDIDATE_DISHES = [];
 function setCandidateDishes(rec){
@@ -2933,10 +2982,8 @@ function planMeal(rec, online, preferShop){
     let list = shops.list.slice();
     // 手动换店时，这道菜可能不在原来的搜店结果里（byDish 只覆盖最初的锚定菜）→
     // 直接从"搜到的候选店池"里现算谁做得了这道菜
-    if(preferShopId && !list.length && online && online.shops){
-      list = online.shops
-        .filter(sp => restaurantServes(sp, a.dish) || (sp.cui || []).includes(a.dish.cui))
-        .map(sp => scoreRestaurant(sp, a.dish, {}));
+    if(preferShopId && !list.length){
+      list = shopsForDish(a.dish, online);
     }
     // 用户自己点了某家店 → 只留这家（做不了这道菜就跳过这道菜，换这道店能做的菜当主角）
     if(preferShopId){
@@ -3599,6 +3646,11 @@ function renderResult(combo, meal, extra, online){
   const others = (meal && meal.list ? meal.list.slice(1,4) : []);   // 备选最多 3 家
   /* 人在环：把"搜到的、能做你想要的菜"的店列出来，点一下就换成它。
    * 排序按"能做的候选菜数"降序、再按距离，最多 6 家（排除已推荐的那家）。 */
+  /* 「这一档还有这些选择」：命中你今天想吃的几道同类菜，各配一家能做它的店
+   * （标签 → 一批菜 → 各自的店，而不是"标签 → 一道菜 → 那家店"） */
+  const dishOptions = state.lastRec
+    ? dishShopOptions(state.lastRec, online, 6).filter(o => !combo.anchorDish || o.dish.id !== combo.anchorDish.id).slice(0, 5)
+    : [];
   const shopChoices = (online && online.shops ? online.shops : [])
     .map(sp => ({
       shop: sp,
@@ -3665,6 +3717,17 @@ function renderResult(combo, meal, extra, online){
         '</div>' +
       '</div>' +
     '</div>' +
+    (dishOptions.length
+      ? '<div class="alt-list"><div class="mini-title" style="color:#c1602f">这一档还有这些选择（点一条直接换菜＋换店）</div>' +
+        dishOptions.map(o => '<div class="pick-card" data-dish="' + esc(o.dish.id) + '">' +
+          '<span class="a-emoji">' + dishEmoji(o.dish) + '</span><span class="a-main">' +
+            '<span class="a-name">' + esc(o.dish.name) + ' · ¥' + o.dish.price + '</span>' +
+            '<span class="a-sub">' + esc(o.shop.name) + (o.shop.area ? '（' + esc(o.shop.area) + '）' : '') +
+              ' · ' + o.km + 'km ｜ 评分 ' + (o.rating || '暂无') + ' ｜ 人均 ¥' + o.avg +
+              (o.why ? ' ｜ ' + esc(o.why) : '') + '</span>' +
+          '</span><span class="r-arrow">›</span></div>').join('') +
+        '<p class="note" style="margin:6px 0 0">这些都是你今天想吃的同类菜，每一条都配了能做它的店，点一条就是那一桌</p></div>'
+      : '') +
     (others.length
       ? '<div class="alt-list"><div class="mini-title" style="color:#8b7a6c">换一家也行（点开看菜单和理由）</div>' +
         others.map((c,i) => altCardHtml(c, i)).join('') + '</div>'
@@ -3685,6 +3748,11 @@ function renderResult(combo, meal, extra, online){
   $('#acceptBtn').onclick = () => acceptCombo(combo);
   $('#rerollBtn').onclick = () => { state.reroll++; state.seed++; run(); };
   $('#dislikeBtn').onclick = () => dislikeDish(combo.anchorDish || combo.items[0].dish, combo.restaurant);
+
+  // 点"这一档还有这些选择" → 换成那道菜 + 它的店
+  box.querySelectorAll('.pick-card').forEach(card => {
+    card.addEventListener('click', () => useDish(card.getAttribute('data-dish')));
+  });
 
   // 点"这些店也能做你想吃的" → 就地把主推荐换成那家店
   box.querySelectorAll('.shop-card').forEach(card => {
@@ -3757,6 +3825,27 @@ function dislikeDish(dish, restaurant){
   toast('已记下：不再推荐「' + dish.name + '」' + (restaurant ? '和「' + restaurant.name + '」' : '') + '，重新挑一桌');
   state.reroll++; state.seed++;
   setTimeout(()=>run(), 420);
+}
+
+/* 用户点了"这一档里的另一道菜" → 用这道菜和它的店重新配一桌 */
+function useDish(dishId){
+  const rec = state.lastRec, online = state.lastOnline;
+  if(!rec || !online){ toast('先点一次「开始推荐」，再换菜'); return; }
+  const st = (rec.scored || []).concat(rec.mains || []).find(x => x.dish.id === dishId);
+  if(!st){ toast('这道菜已经不在候选里了，重新推荐一次吧'); return; }
+  const shop = shopsForDish(st.dish, online)[0];
+  if(!shop){ toast('这道菜附近暂时没搜到能做的店'); return; }
+  const combo = buildCombo(shop.restaurant, st.dish);
+  if(!combo.items.length){ toast('这家店配不出这一桌，换一条试试'); return; }
+  combo.shopScore = shop.total; combo.km = shop.km; combo.eta = shop.eta;
+  combo.source = shop.restaurant.source || 'amap';
+  combo.anchorDish = st.dish;
+  combo.craveFit = craveHits(st.dish).crave;
+  const synth = { best: combo, list: [combo], source: combo.source };
+  rememberShown(synth);
+  state.lastResult = { combo, meal: synth, addr: state.address, online };
+  renderResult(combo, synth, '', online);
+  toast('换成：' + st.dish.name + ' @ ' + shop.restaurant.name);
 }
 
 /* 用户自己点了一家店 → 就用这家店重新配一桌（不再联网，直接用已有结果） */
