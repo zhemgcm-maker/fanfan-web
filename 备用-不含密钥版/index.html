@@ -130,6 +130,15 @@
     border:1.5px solid var(--line);border-radius:999px;padding:6px 11px;cursor:pointer
   }
   .addr-pill:active{background:var(--brand-soft)}
+  .loc-actions{display:flex;gap:8px;margin:2px 0 8px;flex-wrap:wrap}
+  .loc-panel{background:#fffdfb;border:1.5px solid var(--line);border-radius:15px;padding:10px;margin-top:8px}
+  .loc-search{display:flex;gap:8px;align-items:center}
+  .loc-search input{flex:1;min-width:0}
+  .loc-list{margin-top:9px;max-height:300px;overflow:auto;-webkit-overflow-scrolling:touch}
+  .loc-item{padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:7px;cursor:pointer}
+  .loc-item:active{background:var(--brand-soft)}
+  .loc-name{font-size:14px;font-weight:600;display:block}
+  .loc-sub{font-size:11.5px;color:var(--muted);display:block;margin-top:2px;line-height:1.45}
 
   details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:14px;box-shadow:var(--shadow);overflow:hidden}
   details>summary{
@@ -435,8 +444,21 @@
       </div>
     </div>
     <label class="field" for="addr">你在哪里？（用于选饭店）</label>
+    <div class="loc-actions">
+      <button class="btn ghost small" id="geoBtn" type="button">📍 定位我</button>
+      <button class="btn ghost small" id="pickBtn" type="button">🔍 选地点</button>
+    </div>
     <input type="text" id="addr" placeholder="例：裕华路 / 河北大学" autocomplete="off">
     <div class="quick-addr" id="addrQuick"></div>
+    <p class="note" id="addrStatus">📍 —</p>
+    <div class="loc-panel hidden" id="locPanel">
+      <div class="loc-search">
+        <input type="text" id="locQuery" placeholder="搜小区 / 商场 / 学校，留空就看附近" autocomplete="off">
+        <button class="btn small" id="locSearchBtn" type="button">搜索</button>
+      </div>
+      <div class="loc-list" id="locList"></div>
+      <p class="note" id="locNote">点一个地点，就用它当你的位置</p>
+    </div>
     <p class="note" id="homeCityLine">📍 —</p>
     <label class="field" for="mode">用餐方式</label>
     <select id="mode">
@@ -1257,6 +1279,7 @@ const state = {
   craveTags:[],
   craveText:'',
   address:'',
+  origin:null,        // 用户"定位我 / 选地点"得到的精确坐标；有它就不再走地理编码
   mode:'delivery',
   spiceMax:3,
   profile:{ allergies:[], tastes:[], likes:{}, dislikes:{}, history:[],
@@ -1314,6 +1337,8 @@ function saveSettings(){
 /* ------------------------------ 3. 工具函数 ------------------------------ */
 
 const $ = (sel) => document.querySelector(sel);
+// 高德返回的店名/地址会拼进 HTML，先转义一下（防止奇怪的字符把页面搞乱）
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 
 function toast(msg){
   const el = $('#toast');
@@ -1489,6 +1514,11 @@ async function amapFetch(path, params, timeoutMs){
 // 地址 → 经纬度（高德地理编码；没 key 时用内置粗略坐标）
 async function resolveLocation(address){
   const addr = (address || '').trim();
+  // 用户点过「定位我 / 选地点」：直接用那个精确坐标，不再做地理编码（更准，也快）
+  if(state.origin && typeof state.origin.lng === 'number' && !isNaN(state.origin.lng)){
+    return { lng:state.origin.lng, lat:state.origin.lat,
+             label: state.origin.label || addr || '已选位置', precise:true, source: state.origin.source || 'picked' };
+  }
   // 先看是不是内置地标
   for(const name in LANDMARK_COORDS){
     if(addr.indexOf(name) !== -1 || name.indexOf(addr) !== -1){
@@ -2487,9 +2517,165 @@ function renderLandmarks(){
   (LANDMARKS || []).forEach(a => {
     const b = document.createElement('button');
     b.className = 'addr-pill'; b.type='button'; b.textContent = a;
-    b.onclick = () => { state.address = a; $('#addr').value = a; updateSummary(); };
+    b.onclick = () => { state.address = a; state.origin = null; $('#addr').value = a; renderAddrStatus(); updateSummary(); };
     quick.appendChild(b);
   });
+}
+
+/* ===== 定位 / 选点：让用户自己挑位置 =====
+ * 两种方式，都用现有的高德"Web服务"Key，不需要再申请 JS API Key：
+ *   ① 定位我：浏览器 GPS → 高德逆地理编码 → 变成"XX省XX市XX路"，城市不一样会自动切
+ *   ② 选地点：搜关键词（小区/商场/学校）或直接看附近地点 → 点一个就当你的位置
+ * 选完之后 state.origin 存着精确坐标，算距离不再走地理编码，也就不会跑偏。 */
+let locResults = [];
+
+function renderAddrStatus(){
+  const el = $('#addrStatus');
+  if(!el) return;
+  if(state.origin && typeof state.origin.lng === 'number'){
+    const how = state.origin.source === 'gps' ? '已定位' : '已选点';
+    el.textContent = '📍 ' + how + '：' + (state.address || state.origin.label || '') +
+      '（' + Number(state.origin.lng).toFixed(4) + ',' + Number(state.origin.lat).toFixed(4) + '，按真实坐标算距离）';
+    el.style.color = '#0b7a58';
+  }else if(state.address){
+    el.textContent = '📍 ' + state.address + '（按这个地址解析坐标，想更准就点「定位我」或「选地点」）';
+    el.style.color = '';
+  }else{
+    el.textContent = '📍 还没填位置：点「定位我」自动定位，或点「选地点」自己挑一个';
+    el.style.color = '#b0461f';
+  }
+}
+
+// ① 定位我
+function geolocateMe(){
+  const btn = $('#geoBtn');
+  const sayBad = msg => { const el = $('#addrStatus'); if(el){ el.textContent = msg; el.style.color = '#b0461f'; } };
+  if(typeof navigator === 'undefined' || !navigator.geolocation){
+    sayBad('📍 这个浏览器不给网页定位，用「选地点」或手动填地址吧');
+    toast('这个浏览器不支持网页定位，用「选地点」自己挑吧');
+    return;
+  }
+  const restore = () => { if(btn){ btn.textContent = '📍 定位我'; btn.disabled = false; } };
+  if(btn){ btn.textContent = '定位中…'; btn.disabled = true; }
+  sayBad('📍 正在请求定位，浏览器会弹权限提示…');
+  navigator.geolocation.getCurrentPosition(async pos => {
+    try{
+      const lng = +Number(pos.coords.longitude).toFixed(6);
+      const lat = +Number(pos.coords.latitude).toFixed(6);
+      let label = '当前位置', adcode = '', cityName = '', province = '';
+      if((state.settings.amapKey || '').trim()){
+        try{
+          const j = await amapFetch('/geocode/regeo', { location: lng + ',' + lat, extensions:'base' }, 8000);
+          const rc = j.regeocode || {}, ac = rc.addressComponent || {};
+          label = String(rc.formatted_address || '').trim() || label;
+          adcode = ac.adcode || '';
+          province = typeof ac.province === 'string' ? ac.province : '';
+          cityName = (typeof ac.city === 'string' && ac.city) ? ac.city
+                   : (ac.city && ac.city[0]) ? ac.city[0] : province;
+        }catch(e){ /* 逆地理失败就用坐标兜底 */ }
+      }
+      switchCityByAdcode(adcode, cityName, province, lng, lat);
+      state.origin = { lng, lat, label, precise:true, source:'gps' };
+      state.address = label;
+      const el = $('#addr'); if(el) el.value = label;
+      renderAddrStatus(); updateSummary(); renderMeHeader();
+      toast('已定位：' + label);
+    }finally{ restore(); }
+  }, err => {
+    restore();
+    const why = (err && err.code === 1) ? '定位权限被拒绝'
+              : (err && err.code === 2) ? '定位服务不可用'
+              : (err && err.code === 3) ? '定位超时' : '定位失败';
+    sayBad('📍 ' + why + '：可以点「选地点」自己挑一个，或手动填地址');
+    toast(why + '：用「选地点」或手动填地址也行');
+  }, { enableHighAccuracy:false, timeout:9000, maximumAge:60000 });
+}
+
+// 定位到的城市不在城市表里 → 现场加一个，让"定位"在任何城市都能用
+function switchCityByAdcode(adcode, cityName, province, lng, lat){
+  if(adcode){
+    const hit = Object.values(CITIES).find(c => c.adcode && c.adcode === adcode);
+    if(hit){
+      if(hit.key !== CITY.key){ applyCity(hit.key); renderCitySelect(); renderLandmarks(); toast('检测到你在' + hit.name + '，已自动切换城市'); }
+      return;
+    }
+  }
+  if(!cityName) return;
+  const key = 'auto-' + (adcode || cityName);
+  if(!CITIES[key]){
+    CITIES[key] = { key, name:cityName, adcode:adcode || '', full:(province || '') + cityName,
+                    center:[lng, lat], offline:false, landmarks:[], coords:{}, areas:[] };
+    toast('「' + cityName + '」不在城市列表里，已临时加进去');
+  }
+  if(CITY.key !== key){ applyCity(key); renderCitySelect(); renderLandmarks(); }
+}
+
+// ② 选地点：展开面板 + 搜索
+function toggleLocPanel(){
+  const panel = $('#locPanel'); if(!panel) return;
+  const show = panel.classList.contains('hidden');
+  panel.classList.toggle('hidden', !show);
+  if(show){
+    const q = $('#locQuery'); if(q && q.focus){ try{ q.focus(); }catch(e){} }
+    searchPlaces('');
+  }
+}
+
+async function searchPlaces(kw){
+  const box = $('#locList'), noteEl = $('#locNote');
+  const say = m => { if(noteEl) noteEl.textContent = m; };
+  if(!(state.settings.amapKey || '').trim()){ say('选地点需要高德 Key：去「我的 › 联网与模型设置」里填一个'); return; }
+  if(box) box.innerHTML = '<div class="loc-item"><span class="loc-sub">搜索中…</span></div>';
+  const origin = await resolveLocation(state.address);
+  say('以「' + (state.address || CITY.name) + '」为参考');
+  let pois = [];
+  try{
+    if(String(kw || '').trim()){
+      const j = await amapFetch('/place/text', { keywords:String(kw).trim(), city: CITY.adcode, citylimit:'true', offset:25, page:1, extensions:'all' }, 9000);
+      pois = j.pois || [];
+    }else{
+      const j = await amapFetch('/place/around', {
+        location: origin.lng + ',' + origin.lat, radius:3000,
+        types:'190000|120000|140000|060000|080000', offset:25, page:1, extensions:'all', sortrule:'distance'
+      }, 9000);
+      pois = j.pois || [];
+    }
+  }catch(e){
+    if(box) box.innerHTML = '';
+    say('搜索失败：' + e.message);
+    return;
+  }
+  locResults = pois.map(x => {
+    const [lng, lat] = String(x.location || '').split(',').map(Number);
+    const addr = [x.pname, x.cityname, x.adname, x.address].filter(v => typeof v === 'string' && v && v !== x.name).join('');
+    return { name:x.name || '', addr, lng, lat,
+             km: (isNaN(lng) || isNaN(lat)) ? null : +haversine(origin.lng, origin.lat, lng, lat).toFixed(2) };
+  }).filter(x => x.name && !isNaN(x.lng) && !isNaN(x.lat));
+  locResults.sort((a, b) => (a.km === null ? 99 : a.km) - (b.km === null ? 99 : b.km));
+  renderLocList();
+  say(locResults.length
+    ? '点一个地点，就用它当你的位置（候选 ' + locResults.length + ' 个，已按离你远近排序）'
+    : '没找到，换个词试试，比如「万博广场」「河北大学」');
+}
+
+function renderLocList(){
+  const box = $('#locList'); if(!box) return;
+  box.innerHTML = locResults.slice(0, 20).map((x, i) =>
+    '<div class="loc-item" data-i="' + i + '">' +
+      '<span class="loc-name">' + esc(x.name) + '</span>' +
+      '<span class="loc-sub">' + esc(x.addr || '') + (x.km !== null ? ' · ' + x.km + 'km' : '') + '</span>' +
+    '</div>').join('');
+  box.querySelectorAll('.loc-item').forEach(el => { el.onclick = () => pickLoc(parseInt(el.getAttribute('data-i'), 10)); });
+}
+
+function pickLoc(i){
+  const x = locResults[i]; if(!x) return;
+  state.origin = { lng:x.lng, lat:x.lat, label:x.name, precise:true, source:'picked' };
+  state.address = x.name;
+  const el = $('#addr'); if(el) el.value = x.name;
+  const panel = $('#locPanel'); if(panel) panel.classList.add('hidden');
+  renderAddrStatus(); updateSummary();
+  toast('已选：' + x.name + '，搜店按这个位置算距离');
 }
 
 // 城市下拉框
@@ -2542,7 +2728,8 @@ function changeCity(key){
   if(!applyCity(key)) return;
   state.address = '';                    // 旧地址属于旧城市，必须清掉
   const addr = $('#addr'); if(addr) addr.value = '';
-  renderCitySelect(); renderLandmarks(); updateSummary(); renderMeHeader();
+  state.origin = null;                 // 换城市了，之前的定位坐标作废
+  renderCitySelect(); renderLandmarks(); renderAddrStatus(); updateSummary(); renderMeHeader();
   saveProfile();
   toast('已切换到 ' + CITY.name + '（搜店需要联网）');
 }
@@ -2643,8 +2830,9 @@ function renderAddrList(){
       }
       // 点正文 = 一键填到首页地址栏
       state.address = a;
+      state.origin = null;             // 手动选的地址，不用旧坐标
       $('#addr').value = a;
-      updateSummary(); switchTab('home');
+      renderAddrStatus(); updateSummary(); switchTab('home');
       toast('已填入地址：' + a);
     };
     box.appendChild(chip);
@@ -3388,7 +3576,7 @@ function init(){
 
   $('#kbBadge').textContent = '📚 知识库（' + DISHES.length + ' 道菜 · 店铺实时联网搜索）';
   renderTiers(); renderCats(); renderChips(); renderCitySelect(); renderBudgetNote();
-  renderSpiceSeg(); renderTierSeg(); renderAddrList();
+  renderSpiceSeg(); renderTierSeg(); renderAddrList(); renderAddrStatus();
   renderProfile(); updateSummary(); revealNext();
 
   // 底部 Tab
@@ -3445,7 +3633,20 @@ function init(){
     renderBudgetNote(); updateSummary();
   });
   $('#craveText').addEventListener('input', e => { state.craveText = e.target.value.trim(); });
-  $('#addr').addEventListener('input', e => { state.address = e.target.value.trim(); updateSummary(); });
+  $('#addr').addEventListener('input', e => {
+    state.address = e.target.value.trim();
+    state.origin = null;            // 手动改了地址：之前"定位/选点"的坐标就不用了
+    renderAddrStatus(); updateSummary();
+  });
+  // 定位 / 选地点
+  const geoBtn = $('#geoBtn'); if(geoBtn) geoBtn.addEventListener('click', geolocateMe);
+  const pickBtn = $('#pickBtn'); if(pickBtn) pickBtn.addEventListener('click', toggleLocPanel);
+  const locSearchBtn = $('#locSearchBtn');
+  if(locSearchBtn) locSearchBtn.addEventListener('click', () => searchPlaces($('#locQuery') ? $('#locQuery').value : ''));
+  const locQuery = $('#locQuery');
+  if(locQuery) locQuery.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); searchPlaces(locQuery.value); }
+  });
   $('#mode').addEventListener('change', e => { state.mode = e.target.value; });
   $('#spice').addEventListener('change', e => {
     state.spiceMax = +e.target.value;
