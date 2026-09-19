@@ -37,14 +37,17 @@ if (remoteSha === headSha) { console.log('远端已经是最新的，不用推')
 
 // 逐个文件做成 blob
 const blobs = [];
+const deleted = [];
 for (const rel of files) {
   const full = path.join(repoDir, rel);
-  if (!fs.existsSync(full)) { console.log('  （跳过已删除文件 ' + rel + '）'); continue; }
+  // 本地删掉的文件：在远端 tree 里用 sha:null 标记删除，否则远端会一直留着
+  if (!fs.existsSync(full)) { deleted.push(rel.replace(/\\/g, '/')); console.log('  ✗ 删除 ' + rel); continue; }
   const b64 = fs.readFileSync(full).toString('base64');
   const blob = await api('/git/blobs', { method: 'POST', body: JSON.stringify({ content: b64, encoding: 'base64' }) });
   blobs.push({ path: rel.replace(/\\/g, '/'), mode: '100644', type: 'blob', sha: blob.sha });
   console.log('  ✓ blob ' + rel);
 }
+for (const rel of deleted) blobs.push({ path: rel, mode: '100644', type: 'blob', sha: null });
 
 const remoteCommit = await api('/git/commits/' + remoteSha);
 const tree = await api('/git/trees', {

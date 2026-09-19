@@ -438,6 +438,7 @@
     <div class="chips" id="craveList" role="group" aria-label="今日口味"></div>
     <label class="field" for="craveText">用一句话说说（可留空）</label>
     <input type="text" id="craveText" placeholder="例：想吃点辣的、有汤的，别太重口">
+    <p class="step-hint hidden" id="craveParsed" style="margin-top:7px"></p>
 
     <div class="me-card hidden" id="cityReminder" style="margin-top:14px;border-color:#ffd9c4;background:#fff8f3">
       <div class="me-row" id="goCityCard" style="border:none">
@@ -480,7 +481,7 @@
       <div class="num">🤖</div>
       <div>
         <p class="step-title">智能体正在决策</p>
-        <p class="step-hint" id="traceHint">解析需求 → 读取记忆 → 检索菜品 → 过滤忌口 → 多维打分 → 联网搜店 → 按地址选址 → 生成方案</p>
+    <p class="step-hint" id="traceHint">解析需求 → 读取记忆 → 大模型理解你说的话 → 检索菜品 → 过滤忌口 → 多维打分 → 联网搜店 → 按地址选址 → 生成方案</p>
       </div>
     </div>
     <ul class="trace" id="traceList"></ul>
@@ -654,6 +655,7 @@
       <div class="flow">
         <span class="f-step">① 意图解析</span><span class="arrow">→</span>
         <span class="f-step">② 记忆读取</span><span class="arrow">→</span>
+        <span class="f-step">②b 大模型解析口味</span><span class="arrow">→</span>
         <span class="f-step">③ 知识库检索 (RAG)</span><span class="arrow">→</span>
         <span class="f-step">④ 规则过滤</span><span class="arrow">→</span>
         <span class="f-step">⑤ 多维打分</span><span class="arrow">→</span>
@@ -670,6 +672,8 @@
       <pre class="code" id="devScores">先完成一次推荐，这里会显示每道菜的打分构成。</pre>
       <div class="mini-title">大模型返回的思考链（用 deepseek-v4-pro / deepseek-flash 时才有）</div>
       <pre class="code" id="devReasoning">—</pre>
+      <div class="mini-title">大模型口味解析（把"用一句话说说"翻译成标签／关键词）</div>
+      <pre class="code" id="devParse">先在第 3 步写一句话再点推荐，这里会显示大模型收到的内容与它返回的 JSON。</pre>
       <div class="mini-title">大模型实际收到的 JSON（即上面 candidates 的结构）</div>
       <pre class="code" id="devPayload">—</pre>
       <div class="mini-title">联网搜索结果（原始返回，来自高德 / OSM）</div>
@@ -686,6 +690,7 @@
     <div class="me-block">
       <p class="note" style="margin:0">
         🍽 推荐结果不是一道菜，而是<b>一桌菜</b>：按你的人均档位配「荤主菜＋素菜＋主食」，人多或预算宽裕时再加汤和饮品，全部来自同一家店，能一次点齐。<br>
+        🤖 <b>大模型负责"听懂"，算法负责"决定"</b>：第 3 步「用一句话说说」会交给大模型翻译成标签和关键词（词表里没有的说法也能听懂），再交给本地算法打分选菜；大模型关掉或调用失败时，自动退回本地词表，结果照样出。<br>
         🏙 <b>城市</b>：决定搜哪个城市的店铺，在「我的 › 我的习惯」里切换。<br>
         📍 店铺数据只来自实时检索：高德地图优先，没配 Key 时退回 OpenStreetMap。<b>应用不内置任何示例饭店</b>，所以没网或没 Key 时不会给你假店名。<br>
         菜品／口味部分为人工整理的知识库，距离由经纬度实时计算。<br>
@@ -1590,6 +1595,7 @@ function hasOfflineData(){ return !!CITY.offline && RESTAURANTS.length > 0; }
 
 const LS_PROFILE = 'eatAgent.profile.v1';
 const LS_SETTINGS = 'eatAgent.settings.v1';
+const LS_CRAVEPARSE = 'eatAgent.craveparse.v1';   // "用一句话说说"的解析缓存（同一句话不重复调大模型）
 const SETTINGS_VERSION = 4;   // 换默认服务商 / 内置 Key 时递增，避免浏览器里存的旧配置把新默认值顶掉
 
 // 服务商预设（均为 OpenAI 兼容的 /chat/completions 接口）
@@ -1638,6 +1644,12 @@ const state = {
   cat:null,           // rice | noodle | other
   craveTags:[],
   craveText:'',
+  /* "用一句话说说"的两路解析结果：
+   *   craveAuto     = 大模型从这句话里解析出的标签（不写进用户勾选的 chips，单独一路）
+   *   craveAutoInfo = 解析详情 { src:'llm'|'rules', model, text, tags, keywords, note, ms }
+   * 大模型没开、调用失败或返回不合法时，src='rules'，由本地词表兜底，功能不受影响。 */
+  craveAuto:[],
+  craveAutoInfo:null,
   address:'',
   origin:null,        // 用户"定位我 / 选地点"得到的精确坐标；有它就不再走地理编码
   amapDownUntil:0,    // 高德配额用完/Key 失效后的冷却时间戳（这段时间直接走 OSM）
@@ -2164,9 +2176,11 @@ function shopIntents(rec, anchors){
 
   // ② 「今天想吃什么」的标签 → 品类关键词（这是最直接的意图）
   state.craveTags.forEach(tag => (CRAVE_SHOP_WORDS[tag] || []).forEach(kw => add(kw, '你点了「' + tag + '」', 2)));
+  // ②b 大模型从"一句话"里解析出的标签，和大模型给的关键词，同样是搜店的意图
+  (state.craveAuto || []).forEach(tag => (CRAVE_SHOP_WORDS[tag] || []).forEach(kw => add(kw, '大模型读懂了「' + tag + '」', 2)));
 
   // ③ 自由文本里提到的菜系/品类（复用 craveKeys 的口语→菜系映射）
-  String(state.craveText || '').split(/[\s,，、。；;／/]+/).filter(w => w.length >= 2)
+  craveWords()
     .forEach(w => craveKeys(w).forEach(k => { const words = CUI_SHOP_WORDS[k] || (k.length >= 2 ? [k] : []); words.forEach(kw => add(kw, '你说了「' + w + '」', 2)); }));
 
   // ④ 代表性菜品的搜索词（保证"今天就想吃这一道"时一定能搜到）
@@ -2234,10 +2248,26 @@ function craveKeys(tag){
 // 这几个单字关键词只认"口味标签"，不认菜名——否则"炸酱面"会被"炸"误伤（它不是炸的）
 const TAG_ONLY_KEYS = ['炸'];
 
+/* 「今天想吃」的标签有两个来源：用户自己勾的 chips（craveTags）
+ * 和 大模型从"用一句话说说"里解析出来的标签（craveAuto）。
+ * 两路合起来喂给同一套算法，用户勾的永远优先显示，解析出来的单独标注。 */
+function cravingTags(){ return state.craveTags.concat(state.craveAuto || []); }
+
+/* "用一句话说说"解析出的关键词：
+ *   大模型解析成功 → 用它给的关键词（它能听懂词表外的话，比如"奶奶做的味道"）
+ *   没开模型/解析失败 → 退回本地词表切词（原来的行为，保证功能不变） */
+function craveWords(){
+  const info = state.craveAutoInfo;
+  if(info && info.src === 'llm' && Array.isArray(info.keywords) && info.keywords.length){
+    return info.keywords.slice();
+  }
+  return String(state.craveText || '').split(/[\s,，、。；;／/]+/).filter(w => w.length >= 2);
+}
+
 function craveHits(dish){
   const hitTags = [], textHits = [];
   let crave = 0;
-  state.craveTags.forEach(tag => {
+  cravingTags().forEach(tag => {
     const keys = craveKeys(tag);
     let best = 0;
     keys.forEach(key => {
@@ -2258,8 +2288,7 @@ function craveHits(dish){
     if(best){ crave += best; hitTags.push(tag); }
   });
   // 自由输入：同样先归一化，"想吃汉堡""想吃泰餐"都能对上
-  const words = (state.craveText || '').split(/[\s,，、。；;／/]+/).filter(w => w.length >= 2);
-  words.forEach(w => {
+  craveWords().forEach(w => {
     craveKeys(w).forEach(k => {
       if(!k) return;
       // 权重和标签命中保持一致：菜名 > 标签 > 菜系 > 描述
@@ -2276,14 +2305,15 @@ function craveHits(dish){
 
 // 自检用：某个标签在整个菜品库里能命中多少道菜（0 = 这个标签是"死的"）
 function tagHitCount(tag){
-  const saved = state.craveTags;
-  state.craveTags = [tag];
+  // 体检时必须把"一句话解析"那一路也屏蔽掉，否则量出来的命中数会被它污染
+  const saved = state.craveTags, savedAuto = state.craveAuto, savedInfo = state.craveAutoInfo;
+  state.craveTags = [tag]; state.craveAuto = []; state.craveAutoInfo = null;
   let n = 0;
   DISHES.forEach(d => {
     const h = craveHits(d);
     if(h.hitTags.length + h.textHits.length) n++;
   });
-  state.craveTags = saved;
+  state.craveTags = saved; state.craveAuto = savedAuto; state.craveAutoInfo = savedInfo;
   return n;
 }
 
@@ -2300,15 +2330,15 @@ function tagAudit(){
 
 // 这个标签在"它自己所属的那个类型"里能命中多少道菜——0 就说明点了会扑空
 function tagHitCountInCat(tag, cat){
-  const saved = state.craveTags;
-  state.craveTags = [tag];
+  const saved = state.craveTags, savedAuto = state.craveAuto, savedInfo = state.craveAutoInfo;
+  state.craveTags = [tag]; state.craveAuto = []; state.craveAutoInfo = null;
   let n = 0;
   DISHES.forEach(d => {
     if(!inCat(d, cat)) return;
     const h = craveHits(d);
     if(h.hitTags.length + h.textHits.length) n++;
   });
-  state.craveTags = saved;
+  state.craveTags = saved; state.craveAuto = savedAuto; state.craveAutoInfo = savedInfo;
   return n;
 }
 
@@ -3098,6 +3128,9 @@ function renderCats(){
       // （比如"吃饭 + 炸物快乐"），直接清掉，避免"看不见的标签"偷偷影响结果
       const allowed = craveTagsFor(c.id);
       state.craveTags = state.craveTags.filter(t => allowed.indexOf(t) !== -1);
+      // 大模型解析出的标签是按上一个类型选的（词表不同），一起作废，下次推荐再重新解析
+      state.craveAuto = []; state.craveAutoInfo = null;
+      renderCraveParse();
       renderCats(); renderChips(); updateSummary(); revealNext();
     };
     box.appendChild(b);
@@ -3983,8 +4016,10 @@ function readSettingsUI(){
   saveSettings();
 }
 
-async function callLLM(payload){
+/* 底层对话函数：所有大模型调用都走这里，统一处理 401/402/429、超时和"推理型模型只回思考链"的情况 */
+async function llmChat(system, user, opts){
   const s = state.settings;
+  const o = opts || {};
   const url = s.base.replace(/\/+$/,'') + '/chat/completions';
   const t0 = Date.now();
   const res = await fetch(url, {
@@ -3992,11 +4027,11 @@ async function callLLM(payload){
     headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + s.key },
     body: JSON.stringify({
       model: s.model,
-      temperature: 0.7,
-      max_tokens: 4096,   // 推理型模型（deepseek-v4-pro / deepseek-flash）会先用掉一部分额度写思考链
+      temperature: (typeof o.temperature === 'number') ? o.temperature : 0.7,
+      max_tokens: o.maxTokens || 4096,   // 推理型模型（deepseek-v4-pro / deepseek-flash）会先用掉一部分额度写思考链
       messages:[
-        { role:'system', content: SYSTEM_PROMPT },
-        { role:'user', content: JSON.stringify(payload) }
+        { role:'system', content: system },
+        { role:'user', content: user }
       ]
     })
   });
@@ -4025,6 +4060,166 @@ async function callLLM(payload){
     ms: Date.now() - t0,
     usage: j && j.usage ? { prompt:j.usage.prompt_tokens, completion:j.usage.completion_tokens } : null
   };
+}
+
+// 第 ⑨ 步：让大模型把已经算好的结果写成推荐语（它只负责措辞，不参与决策）
+function callLLM(payload){
+  return llmChat(SYSTEM_PROMPT, JSON.stringify(payload));
+}
+
+/* --------------------- 9b. 大模型解析"用一句话说说"（意图解析，参与决策） ---------------------
+ * 用户随手打的一句话经常对不上标签词表（"想吃奶奶做的味道""来点有锅气的"），
+ * 词表匹配自然扑空。所以这一步让大模型把这句话翻译成【结构化意图】：
+ *   tags     = 必须从当前类型的标签词表里选（选不出来就给空数组，不许硬凑）
+ *   keywords = 词表外的具体东西（菜名/菜系/食材/做法）
+ * 然后交给原来的算法去打分选菜 —— 换句话说：大模型负责"听懂"，算法负责"决定"。
+ * 任何异常（没开模型、没 Key、网络失败、返回不是 JSON）都自动退回本地词表，功能不受影响。 */
+
+const PARSE_SYSTEM_PROMPT =
+  '你是一个点餐意图解析器。用户会给你一句话、当前的"食物类型"和一份可用的标签词表。\n' +
+  '你的唯一任务：把这句话翻译成结构化意图。只输出一个 JSON，不要解释、不要 markdown 代码块。\n' +
+  'JSON 格式：{"tags":["标签"],"keywords":["关键词"],"note":"一句话说明你怎么理解的"}\n' +
+  '规则：\n' +
+  '1) tags 只能从给定词表里原样选，最多 3 个，按贴合程度排序。词表里确实没有对得上的，就给空数组，绝对不要硬凑。\n' +
+  '2) keywords 放词表里没有、但用户明确提到的具体东西：菜名、菜系、食材、做法。最多 5 个，每个 2-6 个字，不要整句话。\n' +
+  '3) 用户说的是"不要/别/忌"这类否定要求时，不要放进 keywords，改用词表里最接近的正向标签（比如"别太辣"→「清淡点」），并在 note 里说明。\n' +
+  '4) note 用一句 15 字以内的话概括你的理解。\n' +
+  '5) 什么都没听懂就返回 {"tags":[],"keywords":[],"note":"没听懂"}，不要瞎猜。';
+
+const PARSE_CACHE_TTL = 7 * 24 * 3600 * 1000;   // 同一句话 7 天内不重复调大模型
+let craveParseCache = null;
+let lastParseDebug = null;                       // 给开发者面板看：原始请求与原始返回
+
+function loadCraveParseCache(){
+  if(craveParseCache) return craveParseCache;
+  try{ craveParseCache = JSON.parse(localStorage.getItem(LS_CRAVEPARSE) || '{}') || {}; }
+  catch(e){ craveParseCache = {}; }
+  return craveParseCache;
+}
+function saveCraveParseCache(){
+  try{
+    const keys = Object.keys(craveParseCache || {});
+    if(keys.length > 60) keys.slice(0, keys.length - 60).forEach(k => { delete craveParseCache[k]; });
+    localStorage.setItem(LS_CRAVEPARSE, JSON.stringify(craveParseCache));
+  }catch(e){ /* 存储满了不影响使用 */ }
+}
+function clearCraveParseCache(){
+  craveParseCache = {};
+  try{ localStorage.removeItem(LS_CRAVEPARSE); }catch(e){}
+}
+
+// 从模型回复里抠出第一个完整的 JSON 对象（它偶尔会裹一层 ```json 或加句废话）
+function extractJsonBlock(text){
+  const s = String(text || '');
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if(a === -1 || b <= a) return null;
+  try{ return JSON.parse(s.slice(a, b + 1)); }catch(e){ return null; }
+}
+
+// 校验模型给的结果：标签必须在词表内，关键词限长限量，防止它乱编东西污染算法
+function normalizeParsed(raw, allowed){
+  const out = { tags:[], keywords:[], note:'' };
+  if(!raw || typeof raw !== 'object') return out;
+  (Array.isArray(raw.tags) ? raw.tags : []).forEach(t => {
+    const v = String(t || '').trim();
+    if(allowed.indexOf(v) !== -1 && out.tags.indexOf(v) === -1 && out.tags.length < 3) out.tags.push(v);
+  });
+  (Array.isArray(raw.keywords) ? raw.keywords : []).forEach(k => {
+    const v = String(k || '').trim().replace(/^[「『"'（(]+/, '').replace(/[」』"'）)]+$/, '');
+    if(v.length >= 2 && v.length <= 6 && !/[{}\[\]<>\\\n]/.test(v) &&
+       out.keywords.indexOf(v) === -1 && out.keywords.length < 5) out.keywords.push(v);
+  });
+  out.note = String(raw.note || '').trim().slice(0, 40);
+  return out;
+}
+
+async function parseCraving(text, cat){
+  const allowed = craveTagsFor(cat);
+  const key = cat + '|' + text;
+  const cache = loadCraveParseCache();
+  const hit = cache[key];
+  if(hit && (Date.now() - hit.t) < PARSE_CACHE_TTL){
+    return Object.assign({ cached:true }, hit.v);
+  }
+  const user = '当前食物类型：' + catName(cat) + '（' + cat + '）\n' +
+               '可用标签词表：' + allowed.join('、') + '\n' +
+               '用户说的话：' + text;
+  const r = await llmChat(PARSE_SYSTEM_PROMPT, user, { temperature:0.1, maxTokens:400 });
+  const raw = extractJsonBlock(r.text);
+  lastParseDebug = { request:{ system:PARSE_SYSTEM_PROMPT, user, model:r.model }, response:r.text };
+  if(!raw) throw new Error('模型没有返回合法 JSON');
+  const v = normalizeParsed(raw, allowed);
+  v.model = r.model; v.ms = r.ms;
+  cache[key] = { t: Date.now(), v };
+  saveCraveParseCache();
+  return v;
+}
+
+// 把解析结果显示在"用一句话说说"下面，让用户看得见大模型到底听懂了什么
+function renderCraveParse(){
+  const box = $('#craveParsed');
+  if(!box) return;
+  const text = String(state.craveText || '').trim();
+  const info = state.craveAutoInfo;
+  if(!text){ box.classList.add('hidden'); box.innerHTML = ''; return; }
+  box.classList.remove('hidden');
+  if(info && info.src === 'llm'){
+    const bits = [];
+    if(info.tags.length) bits.push('标签「' + esc(info.tags.join('、')) + '」');
+    if(info.keywords.length) bits.push('关键词「' + esc(info.keywords.join('、')) + '」');
+    box.innerHTML = '🤖 <b>大模型理解</b>：' + (bits.join('　') || '没提取到可用信息') +
+      (info.note ? '　<span class="me-hint">' + esc(info.note) + '</span>' : '') +
+      '<span class="me-hint">（' + esc(info.model || '') + ' ' + ((info.ms || 0) / 1000).toFixed(1) + 's' +
+      (info.cached ? '·缓存' : '') + '）</span>';
+  }else{
+    box.innerHTML = '🧠 <b>本地词表匹配</b>：' + esc((info && info.note) || '没开大模型，按词表切词');
+  }
+}
+
+/* 流水线里的 ②b 步：解析"用一句话说说"。
+ * 解析成功 → 标签进 craveAuto、关键词进 craveAutoInfo，算法随后照常打分；
+ * 任何失败   → src='rules'，走回原来的本地词表，用户完全无感。 */
+async function traceCravingParse(){
+  const text = String(state.craveText || '').trim();
+  state.craveAuto = [];
+  state.craveAutoInfo = null;
+  if(!text){ renderCraveParse(); return; }
+
+  const canLLM = state.settings.enabled === 'on' && !!String(state.settings.key || '').trim();
+  if(!canLLM){
+    state.craveAutoInfo = { src:'rules', text, tags:[], keywords:[], note:'没开大模型，用本地词表', model:'', ms:0 };
+    lastParseDebug = { request:null, response:'（大模型未开启，直接用本地词表）' };
+    renderCraveParse();
+    return;
+  }
+
+  const li = traceAdd('②b 大模型理解你说的话', providerLabel() + ' 正在解析「' + text + '」…', 'active');
+  try{
+    const v = await parseCraving(text, state.cat);
+    if(!v.tags.length && !v.keywords.length){
+      state.craveAutoInfo = { src:'rules', text, tags:[], keywords:[], note:'大模型没解析出可用标签，用本地词表', model:v.model, ms:v.ms, cached:v.cached };
+      traceUpdate(li, '②b 大模型理解你说的话', '「' + text + '」→ 没解析出可用标签，退回本地词表匹配', 'done');
+    }else{
+      state.craveAuto = v.tags.slice();
+      state.craveAutoInfo = { src:'llm', text, tags:v.tags, keywords:v.keywords, note:v.note, model:v.model, ms:v.ms, cached:v.cached };
+      const bits = [];
+      if(v.tags.length) bits.push('标签 ' + v.tags.join('、'));
+      if(v.keywords.length) bits.push('关键词 ' + v.keywords.join('、'));
+      traceUpdate(li, '②b 大模型理解你说的话',
+        '「' + text + '」→ ' + bits.join('　') + '（' + v.model + '，' + ((v.ms || 0) / 1000).toFixed(1) + 's' + (v.cached ? '，缓存' : '') + '）');
+    }
+  }catch(err){
+    state.craveAutoInfo = { src:'rules', text, tags:[], keywords:[], note:'调用失败，退回本地词表', model:'', ms:0 };
+    lastParseDebug = { request:null, response:'（调用失败：' + err.message + '）' };
+    traceUpdate(li, '②b 大模型理解你说的话', '调用失败（' + err.message + '），退回本地词表匹配', 'done');
+  }
+  const dp = $('#devParse');
+  if(dp && lastParseDebug){
+    dp.textContent = (lastParseDebug.request
+      ? '【发给 ' + lastParseDebug.request.model + ' 的用户消息】\n' + lastParseDebug.request.user
+      : '【未调用大模型】') + '\n\n【模型原始返回】\n' + lastParseDebug.response;
+  }
+  renderCraveParse();
 }
 
 /* ------------------------------ 10. 主流程编排 ------------------------------ */
@@ -4064,6 +4259,9 @@ async function run(){
   if(state.profile.history.length) memBits.push('历史用餐 ' + state.profile.history.length + ' 条');
   li = traceAdd('② 读取长期记忆', memBits.length ? memBits.join('；') : '暂无记忆，先按通用口味推荐', 'active');
   await sleep(300); traceUpdate(li, '② 读取长期记忆', memBits.length ? memBits.join('；') : '暂无记忆，先按通用口味推荐');
+
+  // ②b 大模型理解"用一句话说说"（没开模型/调用失败就自动退回本地词表）
+  await traceCravingParse();
 
   const rec = recommend();
 
@@ -4357,7 +4555,14 @@ function init(){
     state.budget = +e.target.value;
     renderBudgetNote(); updateSummary();
   });
-  $('#craveText').addEventListener('input', e => { state.craveText = e.target.value.trim(); });
+  $('#craveText').addEventListener('input', e => {
+    const v = e.target.value.trim();
+    if(v === state.craveText) return;
+    state.craveText = v;
+    // 文字改了，上一次的解析结果就作废（否则下面那行"大模型理解"会显示的是上一句话）
+    state.craveAuto = []; state.craveAutoInfo = null;
+    renderCraveParse();
+  });
   $('#addr').addEventListener('input', e => {
     state.address = e.target.value.trim();
     state.origin = null;            // 手动改了地址：之前"定位/选点"的坐标就不用了
@@ -4425,8 +4630,9 @@ function init(){
   const clearCacheBtn = $('#clearCache');
   if(clearCacheBtn) clearCacheBtn.addEventListener('click', () => {
     const n = clearAmapCache();
+    clearCraveParseCache();   // 顺手把"一句话"的口味解析缓存也清掉，下次会重新问大模型
     renderSettingsUI();
-    toast('已清空联网缓存（' + n + ' 条），下次搜店会重新请求高德');
+    toast('已清空联网缓存（' + n + ' 条）和大模型解析缓存，下次会重新请求');
   });
   $('#clearAmap').addEventListener('click', () => {
     // 如果文件里内置了 Key，清空 = 恢复成内置的那个（避免误删后自己反而用不了）
