@@ -24,10 +24,10 @@ console.log('知识库现有 ' + DISHES.length + ' 道菜');
 
 // 把菜单菜名和知识库菜名归一化后比对（去掉规格、斜杠、括号、常见后缀词）
 const norm = s => String(s || '')
-  .replace(/[（）()]/g, '').replace(/（.*?）|\(.*?\)/g, '')
+  // 注意：括号里的"（小份）/（大份）"要**保留**——那是不同的菜，删了会把它俩并成一条
+  .replace(/[（）()\s]/g, '')
   .replace(/\s|\/|·|／/g, '')
-  .replace(/(小份|大份|中份|一份|大|小)$/, '')
-  .replace(/(盖浇饭|盖浇|盖饭)$/, '饭')
+  .replace(/(盖浇饭|盖浇)$/, '饭')       // 盖浇饭 = 盖饭
   .replace(/米粉|河粉|米线/g, '粉');
 const kbIndex = new Map();
 DISHES.forEach(d => { const k = norm(d.name); if(!kbIndex.has(k)) kbIndex.set(k, []); kbIndex.get(k).push(d); });
@@ -74,6 +74,23 @@ fs.mkdirSync(outDir, { recursive: true });
 const db = { version:1, updatedAt:new Date().toISOString().slice(0,10), shops };
 fs.writeFileSync(path.join(outDir, 'shops.json'), JSON.stringify(db, null, 2), 'utf8');
 fs.writeFileSync(path.join(outDir, '新菜候选.json'), JSON.stringify({ generatedAt:db.updatedAt, dishes:newDishes }, null, 2), 'utf8');
+
+/* 顺手把数据库快照写进页面。
+ * 为什么需要：用 file:// 直接打开本机 html 时，浏览器不允许 fetch 本地 json（CORS），
+ * 没有这份快照就只能在服务器上才生效。页面优先用 fetch 到的 data/shops.json（你改了立刻生效），
+ * fetch 不到才用这份快照。 */
+{
+  const kb = fs.readFileSync(kbFile, 'utf8');
+  const block = '/* SHOP_DB_BUILTIN:BEGIN —— 下面这一块由 开发脚本/build-data.mjs 自动写入，别手工改 */\n' +
+    'const SHOP_DB_BUILTIN = ' + JSON.stringify(db) + ';\n' +
+    '/* SHOP_DB_BUILTIN:END */';
+  const re = /\/\* SHOP_DB_BUILTIN:BEGIN[\s\S]*?SHOP_DB_BUILTIN:END \*\//;
+  if(!re.test(kb)){ console.error('⚠️ 页面里没找到 SHOP_DB_BUILTIN 标记，跳过写快照'); }
+  else {
+    fs.writeFileSync(kbFile, kb.replace(re, block), 'utf8');
+    console.log('已把数据库快照写进 ' + kbFile + '（' + Math.round(block.length / 1024) + ' KB）');
+  }
+}
 
 const total = shops.reduce((n, s) => n + s.menu.length, 0);
 const matched = shops.reduce((n, s) => n + s.menu.filter(i => i.dishId).length, 0);

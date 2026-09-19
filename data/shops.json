@@ -15,61 +15,71 @@
           "name": "千里香馄饨（小份）",
           "price": 7,
           "cat": "馄饨",
-          "isNew": true
+          "dishId": "sx01",
+          "kbName": "千里香馄饨（小份）"
         },
         {
           "name": "千里香馄饨（大份）",
           "price": 10,
           "cat": "馄饨",
-          "isNew": true
+          "dishId": "sx02",
+          "kbName": "千里香馄饨（大份）"
         },
         {
           "name": "一品蒸饺",
           "price": 6,
           "cat": "饺子",
-          "isNew": true
+          "dishId": "sx03",
+          "kbName": "一品蒸饺"
         },
         {
           "name": "飘香拌面/粉",
           "price": 6,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx04",
+          "kbName": "飘香拌面/粉"
         },
         {
           "name": "葱油拌面/粉",
           "price": 6,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx05",
+          "kbName": "葱油拌面/粉"
         },
         {
           "name": "炸饺",
           "price": 10,
           "cat": "饺子",
-          "isNew": true
+          "dishId": "sx06",
+          "kbName": "炸饺"
         },
         {
           "name": "炸馄饨",
           "price": 10,
           "cat": "馄饨",
-          "isNew": true
+          "dishId": "sx07",
+          "kbName": "炸馄饨"
         },
         {
           "name": "花生酱拌馄饨",
           "price": 10,
           "cat": "馄饨",
-          "isNew": true
+          "dishId": "sx08",
+          "kbName": "花生酱拌馄饨"
         },
         {
           "name": "上汤水饺（小份）",
           "price": 10,
           "cat": "饺子",
-          "isNew": true
+          "dishId": "sx09",
+          "kbName": "上汤水饺（小份）"
         },
         {
           "name": "上汤水饺（大份）",
           "price": 15,
           "cat": "饺子",
-          "isNew": true
+          "dishId": "sx10",
+          "kbName": "上汤水饺（大份）"
         },
         {
           "name": "老北京炸酱面",
@@ -82,31 +92,36 @@
           "name": "炸酱面+鸡腿",
           "price": 16,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx11",
+          "kbName": "炸酱面+鸡腿"
         },
         {
           "name": "炸酱面+鸭腿",
           "price": 18,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx12",
+          "kbName": "炸酱面+鸭腿"
         },
         {
           "name": "炸酱面+大排",
           "price": 18,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx13",
+          "kbName": "炸酱面+大排"
         },
         {
           "name": "排骨汤",
           "price": 10,
           "cat": "汤",
-          "isNew": true
+          "dishId": "sx14",
+          "kbName": "排骨汤"
         },
         {
           "name": "乌鸡汤",
           "price": 10,
           "cat": "汤",
-          "isNew": true
+          "dishId": "sx15",
+          "kbName": "乌鸡汤"
         },
         {
           "name": "老鸭汤",
@@ -119,43 +134,50 @@
           "name": "猪心汤",
           "price": 10,
           "cat": "汤",
-          "isNew": true
+          "dishId": "sx16",
+          "kbName": "猪心汤"
         },
         {
           "name": "青菜面/粉",
           "price": 6,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx17",
+          "kbName": "青菜面/粉"
         },
         {
           "name": "馄饨面/粉",
           "price": 10,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx18",
+          "kbName": "馄饨面/粉"
         },
         {
           "name": "雪菜肉丝面/粉",
           "price": 10,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx19",
+          "kbName": "雪菜肉丝面/粉"
         },
         {
           "name": "鸡腿面/粉",
           "price": 12,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx20",
+          "kbName": "鸡腿面/粉"
         },
         {
           "name": "鸭腿面/粉",
           "price": 14,
           "cat": "面",
-          "isNew": true
+          "dishId": "sx21",
+          "kbName": "鸭腿面/粉"
         },
         {
           "name": "西红柿鸡蛋盖浇饭",
           "price": 14,
           "cat": "盖浇饭",
-          "isNew": true
+          "dishId": "sx22",
+          "kbName": "西红柿鸡蛋盖浇饭"
         },
         {
           "name": "青椒肉丝盖浇饭",
@@ -168,37 +190,43 @@
           "name": "土豆肉丝盖浇饭",
           "price": 15,
           "cat": "盖浇饭",
-          "isNew": true
+          "dishId": "sx23",
+          "kbName": "土豆肉丝盖浇饭"
         },
         {
           "name": "香菇肉丝盖浇饭",
           "price": 15,
           "cat": "盖浇饭",
-          "isNew": true
+          "dishId": "sx24",
+          "kbName": "香菇肉丝盖浇饭"
         },
         {
           "name": "回锅肉盖浇饭",
           "price": 16,
           "cat": "盖浇饭",
-          "isNew": true
+          "dishId": "sx25",
+          "kbName": "回锅肉盖浇饭"
         },
         {
           "name": "爆炒牛肉盖浇饭",
           "price": 19,
           "cat": "盖浇饭",
-          "isNew": true
+          "dishId": "sx26",
+          "kbName": "爆炒牛肉盖浇饭"
         },
         {
           "name": "豆干",
           "price": 1,
           "cat": "小吃",
-          "isNew": true
+          "dishId": "sx27",
+          "kbName": "豆干"
         },
         {
           "name": "卤蛋",
           "price": 2,
           "cat": "小吃",
-          "isNew": true
+          "dishId": "sx28",
+          "kbName": "卤蛋"
         },
         {
           "name": "热狗",
@@ -211,127 +239,148 @@
           "name": "狮子头",
           "price": 2,
           "cat": "小吃",
-          "isNew": true
+          "dishId": "sx29",
+          "kbName": "狮子头"
         },
         {
           "name": "煎蛋",
           "price": 3,
           "cat": "小吃",
-          "isNew": true
+          "dishId": "sx30",
+          "kbName": "煎蛋"
         },
         {
           "name": "鸭胗",
           "price": 8,
           "cat": "小吃",
-          "isNew": true
+          "dishId": "sx31",
+          "kbName": "鸭胗"
         },
         {
           "name": "大排",
           "price": 8,
           "cat": "小吃",
-          "isNew": true
+          "dishId": "sx32",
+          "kbName": "大排"
         },
         {
           "name": "狮子头饭",
           "price": 14,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx33",
+          "kbName": "狮子头饭"
         },
         {
           "name": "鸭头饭",
           "price": 14,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx34",
+          "kbName": "鸭头饭"
         },
         {
           "name": "鸡腿饭",
           "price": 14,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx35",
+          "kbName": "鸡腿饭"
         },
         {
           "name": "鸭腿饭",
           "price": 16,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx36",
+          "kbName": "鸭腿饭"
         },
         {
           "name": "大排饭",
           "price": 16,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx37",
+          "kbName": "大排饭"
         },
         {
           "name": "红烧牛肉饭",
           "price": 18,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx38",
+          "kbName": "红烧牛肉饭"
         },
         {
           "name": "猪脚饭",
           "price": 20,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx39",
+          "kbName": "猪脚饭"
         },
         {
           "name": "排骨汤饭",
           "price": 17,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx40",
+          "kbName": "排骨汤饭"
         },
         {
           "name": "乌鸡汤饭",
           "price": 17,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx41",
+          "kbName": "乌鸡汤饭"
         },
         {
           "name": "老鸭汤饭",
           "price": 21,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx42",
+          "kbName": "老鸭汤饭"
         },
         {
           "name": "猪心汤饭",
           "price": 17,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx43",
+          "kbName": "猪心汤饭"
         },
         {
           "name": "鸡蛋炒饭/米粉/河粉",
           "price": 10,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx44",
+          "kbName": "鸡蛋炒饭/米粉/河粉"
         },
         {
           "name": "香肠炒饭/米粉/河粉",
           "price": 12,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx45",
+          "kbName": "香肠炒饭/米粉/河粉"
         },
         {
           "name": "肉丝炒饭/米粉/河粉",
           "price": 13,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx46",
+          "kbName": "肉丝炒饭/米粉/河粉"
         },
         {
           "name": "鸡腿炒饭/面/米粉/河粉",
           "price": 16,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx47",
+          "kbName": "鸡腿炒饭/面/米粉/河粉"
         },
         {
           "name": "鸭腿炒饭/面/米粉/河粉",
           "price": 18,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx48",
+          "kbName": "鸭腿炒饭/面/米粉/河粉"
         },
         {
           "name": "牛肉炒饭/米粉/河粉",
           "price": 19,
           "cat": "饭",
-          "isNew": true
+          "dishId": "sx49",
+          "kbName": "牛肉炒饭/米粉/河粉"
         }
       ],
       "uncertain": []
