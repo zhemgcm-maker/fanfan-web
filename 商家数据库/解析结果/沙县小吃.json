@@ -1,0 +1,444 @@
+{
+  "shop": "沙县小吃",
+  "items": [
+    {
+      "name": "千里香馄饨（小份）",
+      "price": 7,
+      "cat": "馄饨",
+      "nameY": 754,
+      "priceY": 754,
+      "priceVerified": true
+    },
+    {
+      "name": "千里香馄饨（大份）",
+      "price": 10,
+      "cat": "馄饨",
+      "nameY": 808,
+      "priceY": 808,
+      "priceVerified": true
+    },
+    {
+      "name": "一品蒸饺",
+      "price": 6,
+      "cat": "饺子",
+      "nameY": 880,
+      "priceY": 904,
+      "priceVerified": true
+    },
+    {
+      "name": "飘香拌面/粉",
+      "price": 6,
+      "cat": "面",
+      "nameY": 929,
+      "priceY": 929,
+      "priceVerified": true
+    },
+    {
+      "name": "葱油拌面/粉",
+      "price": 6,
+      "cat": "面",
+      "nameY": 970,
+      "priceY": 970,
+      "priceVerified": true
+    },
+    {
+      "name": "炸饺",
+      "price": 10,
+      "cat": "饺子",
+      "nameY": 1025,
+      "priceY": 1061,
+      "priceVerified": true
+    },
+    {
+      "name": "炸馄饨",
+      "price": 10,
+      "cat": "馄饨",
+      "nameY": 1079,
+      "priceY": 1085,
+      "priceVerified": true
+    },
+    {
+      "name": "花生酱拌馄饨",
+      "price": 10,
+      "cat": "馄饨",
+      "nameY": 1190,
+      "priceY": 1190,
+      "priceVerified": true
+    },
+    {
+      "name": "上汤水饺（小份）",
+      "price": 10,
+      "cat": "饺子",
+      "nameY": 1244,
+      "priceY": 1244,
+      "priceVerified": true
+    },
+    {
+      "name": "上汤水饺（大份）",
+      "price": 15,
+      "cat": "饺子",
+      "nameY": 1299,
+      "priceY": 1299,
+      "priceVerified": true
+    },
+    {
+      "name": "老北京炸酱面",
+      "price": 10,
+      "cat": "面",
+      "nameY": 1458,
+      "priceY": 1458,
+      "priceVerified": true
+    },
+    {
+      "name": "炸酱面+鸡腿",
+      "price": 16,
+      "cat": "面",
+      "nameY": 1519,
+      "priceY": 1519,
+      "priceVerified": true
+    },
+    {
+      "name": "炸酱面+鸭腿",
+      "price": 18,
+      "cat": "面",
+      "nameY": 1580,
+      "priceY": 1580,
+      "priceVerified": true
+    },
+    {
+      "name": "炸酱面+大排",
+      "price": 18,
+      "cat": "面",
+      "nameY": 1641,
+      "priceY": 1641,
+      "priceVerified": true
+    },
+    {
+      "name": "排骨汤",
+      "price": 10,
+      "cat": "汤",
+      "nameY": 754,
+      "priceY": 754,
+      "priceVerified": true
+    },
+    {
+      "name": "乌鸡汤",
+      "price": 10,
+      "cat": "汤",
+      "nameY": 809,
+      "priceY": 809,
+      "priceVerified": true
+    },
+    {
+      "name": "老鸭汤",
+      "price": 10,
+      "cat": "汤",
+      "nameY": 864,
+      "priceY": 864,
+      "priceVerified": true
+    },
+    {
+      "name": "猪心汤",
+      "price": 10,
+      "cat": "汤",
+      "nameY": 920,
+      "priceY": 920,
+      "priceVerified": true
+    },
+    {
+      "name": "青菜面/粉",
+      "price": 6,
+      "cat": "面",
+      "nameY": 1186,
+      "priceY": 1184,
+      "priceVerified": true
+    },
+    {
+      "name": "馄饨面/粉",
+      "price": 10,
+      "cat": "面",
+      "nameY": 1242,
+      "priceY": 1263,
+      "priceVerified": true
+    },
+    {
+      "name": "雪菜肉丝面/粉",
+      "price": 10,
+      "cat": "面",
+      "nameY": 1298,
+      "priceY": 1298,
+      "priceVerified": true
+    },
+    {
+      "name": "鸡腿面/粉",
+      "price": 12,
+      "cat": "面",
+      "nameY": 1353,
+      "priceY": 1370,
+      "priceVerified": true
+    },
+    {
+      "name": "鸭腿面/粉",
+      "price": 14,
+      "cat": "面",
+      "nameY": 1408,
+      "priceY": 1395,
+      "priceVerified": true
+    },
+    {
+      "name": "西红柿鸡蛋盖浇饭",
+      "price": 14,
+      "cat": "盖浇饭",
+      "nameY": 818,
+      "priceY": 818,
+      "priceVerified": true
+    },
+    {
+      "name": "青椒肉丝盖浇饭",
+      "price": 15,
+      "cat": "盖浇饭",
+      "nameY": 868,
+      "priceY": 868,
+      "priceVerified": true
+    },
+    {
+      "name": "土豆肉丝盖浇饭",
+      "price": 15,
+      "cat": "盖浇饭",
+      "nameY": 919,
+      "priceY": 919,
+      "priceVerified": true
+    },
+    {
+      "name": "香菇肉丝盖浇饭",
+      "price": 15,
+      "cat": "盖浇饭",
+      "nameY": 972,
+      "priceY": 972,
+      "priceVerified": true
+    },
+    {
+      "name": "回锅肉盖浇饭",
+      "price": 16,
+      "cat": "盖浇饭",
+      "nameY": 1076,
+      "priceY": 1076,
+      "priceVerified": true
+    },
+    {
+      "name": "爆炒牛肉盖浇饭",
+      "price": 19,
+      "cat": "盖浇饭",
+      "nameY": 1128,
+      "priceY": 1128,
+      "priceVerified": true
+    },
+    {
+      "name": "豆干",
+      "price": 1,
+      "cat": "小吃",
+      "nameY": 1273,
+      "priceY": 1273,
+      "priceVerified": true
+    },
+    {
+      "name": "卤蛋",
+      "price": 2,
+      "cat": "小吃",
+      "nameY": 1318,
+      "priceY": 1318,
+      "priceVerified": true
+    },
+    {
+      "name": "热狗",
+      "price": 2,
+      "cat": "小吃",
+      "nameY": 1363,
+      "priceY": 1363,
+      "priceVerified": true
+    },
+    {
+      "name": "狮子头",
+      "price": 2,
+      "cat": "小吃",
+      "nameY": 1409,
+      "priceY": 1409,
+      "priceVerified": true
+    },
+    {
+      "name": "煎蛋",
+      "price": 3,
+      "cat": "小吃",
+      "nameY": 1500,
+      "priceY": 1500,
+      "priceVerified": true
+    },
+    {
+      "name": "鸭胗",
+      "price": 8,
+      "cat": "小吃",
+      "nameY": 1685,
+      "priceY": 1685,
+      "priceVerified": true
+    },
+    {
+      "name": "大排",
+      "price": 8,
+      "cat": "小吃",
+      "nameY": 1731,
+      "priceY": 1731,
+      "priceVerified": true
+    },
+    {
+      "name": "狮子头饭",
+      "price": 14,
+      "cat": "饭",
+      "nameY": 798,
+      "priceY": 830,
+      "priceVerified": true
+    },
+    {
+      "name": "鸭头饭",
+      "price": 14,
+      "cat": "饭",
+      "nameY": 845,
+      "priceY": 876,
+      "priceVerified": true
+    },
+    {
+      "name": "鸡腿饭",
+      "price": 14,
+      "cat": "饭",
+      "nameY": 893,
+      "priceY": 922,
+      "priceVerified": true
+    },
+    {
+      "name": "鸭腿饭",
+      "price": 16,
+      "cat": "饭",
+      "nameY": 941,
+      "priceY": 948,
+      "priceVerified": true
+    },
+    {
+      "name": "大排饭",
+      "price": 16,
+      "cat": "饭",
+      "nameY": 988,
+      "priceY": 1016,
+      "priceVerified": true
+    },
+    {
+      "name": "红烧牛肉饭",
+      "price": 18,
+      "cat": "饭",
+      "nameY": 1083,
+      "priceY": 1083,
+      "priceVerified": true
+    },
+    {
+      "name": "猪脚饭",
+      "price": 20,
+      "cat": "饭",
+      "nameY": 1132,
+      "priceY": 1133,
+      "priceVerified": true
+    },
+    {
+      "name": "排骨汤饭",
+      "price": 17,
+      "cat": "饭",
+      "nameY": 1385,
+      "priceY": 1499,
+      "priceVerified": true
+    },
+    {
+      "name": "乌鸡汤饭",
+      "price": 17,
+      "cat": "饭",
+      "nameY": 1437,
+      "priceY": 1499,
+      "priceVerified": true,
+      "priceNeedsReviewFrom": 17,
+      "priceReviewReason": "这一行的价格被多道菜指到（y=84），需要人工核对"
+    },
+    {
+      "name": "老鸭汤饭",
+      "price": 21,
+      "cat": "饭",
+      "nameY": 1489,
+      "priceY": 1599,
+      "priceVerified": true
+    },
+    {
+      "name": "猪心汤饭",
+      "price": 17,
+      "cat": "饭",
+      "nameY": 1541,
+      "priceY": 1549,
+      "priceVerified": true,
+      "priceNeedsReviewFrom": 17,
+      "priceReviewReason": "这一行的价格被多道菜指到（y=84），需要人工核对"
+    },
+    {
+      "name": "鸡蛋炒饭/米粉/河粉",
+      "price": 10,
+      "cat": "饭",
+      "nameY": 1523,
+      "priceY": 1523,
+      "priceVerified": true
+    },
+    {
+      "name": "香肠炒饭/米粉/河粉",
+      "price": 12,
+      "cat": "饭",
+      "nameY": 1580,
+      "priceY": 1580,
+      "priceVerified": true
+    },
+    {
+      "name": "肉丝炒饭/米粉/河粉",
+      "price": 13,
+      "cat": "饭",
+      "nameY": 1637,
+      "priceY": 1637,
+      "priceVerified": true
+    },
+    {
+      "name": "鸡腿炒饭/面/米粉/河粉",
+      "price": 16,
+      "cat": "饭",
+      "nameY": 1694,
+      "priceY": 1694,
+      "priceVerified": true
+    },
+    {
+      "name": "鸭腿炒饭/面/米粉/河粉",
+      "price": 18,
+      "cat": "饭",
+      "nameY": 1754,
+      "priceY": 1754,
+      "priceVerified": true
+    },
+    {
+      "name": "牛肉炒饭/米粉/河粉",
+      "price": 19,
+      "cat": "饭",
+      "nameY": 1808,
+      "priceY": 1808,
+      "priceVerified": true
+    }
+  ],
+  "uncertain": [],
+  "note": "已修正OCR错别字（如牿→特、甲鸟→鸭、怍→炸、扌非→排、丞→胗、千→干、颀→饭等）；部分菜品因OCR分栏合并导致价格归属不确定，已列入uncertain；促销口号和图片说明未列入items。",
+  "image": "沙县小吃.jpg",
+  "city": "保定",
+  "ocrChars": 2084,
+  "source": "自己拍菜单",
+  "collectedAt": "2026-09-19",
+  "priceCheck": {
+    "verified": 51,
+    "dropped": 2
+  }
+}

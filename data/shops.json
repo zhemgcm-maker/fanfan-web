@@ -1,0 +1,340 @@
+{
+  "version": 1,
+  "updatedAt": "2026-09-19",
+  "shops": [
+    {
+      "id": "local-沙县小吃",
+      "name": "沙县小吃",
+      "city": "保定",
+      "confidence": "confirmed",
+      "source": "自己拍菜单",
+      "collectedAt": "2026-09-19",
+      "image": "沙县小吃.jpg",
+      "menu": [
+        {
+          "name": "千里香馄饨（小份）",
+          "price": 7,
+          "cat": "馄饨",
+          "isNew": true
+        },
+        {
+          "name": "千里香馄饨（大份）",
+          "price": 10,
+          "cat": "馄饨",
+          "isNew": true
+        },
+        {
+          "name": "一品蒸饺",
+          "price": 6,
+          "cat": "饺子",
+          "isNew": true
+        },
+        {
+          "name": "飘香拌面/粉",
+          "price": 6,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "葱油拌面/粉",
+          "price": 6,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "炸饺",
+          "price": 10,
+          "cat": "饺子",
+          "isNew": true
+        },
+        {
+          "name": "炸馄饨",
+          "price": 10,
+          "cat": "馄饨",
+          "isNew": true
+        },
+        {
+          "name": "花生酱拌馄饨",
+          "price": 10,
+          "cat": "馄饨",
+          "isNew": true
+        },
+        {
+          "name": "上汤水饺（小份）",
+          "price": 10,
+          "cat": "饺子",
+          "isNew": true
+        },
+        {
+          "name": "上汤水饺（大份）",
+          "price": 15,
+          "cat": "饺子",
+          "isNew": true
+        },
+        {
+          "name": "老北京炸酱面",
+          "price": 10,
+          "cat": "面",
+          "dishId": "d23",
+          "kbName": "老北京炸酱面"
+        },
+        {
+          "name": "炸酱面+鸡腿",
+          "price": 16,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "炸酱面+鸭腿",
+          "price": 18,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "炸酱面+大排",
+          "price": 18,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "排骨汤",
+          "price": 10,
+          "cat": "汤",
+          "isNew": true
+        },
+        {
+          "name": "乌鸡汤",
+          "price": 10,
+          "cat": "汤",
+          "isNew": true
+        },
+        {
+          "name": "老鸭汤",
+          "price": 10,
+          "cat": "汤",
+          "dishId": "sw03",
+          "kbName": "老鸭汤"
+        },
+        {
+          "name": "猪心汤",
+          "price": 10,
+          "cat": "汤",
+          "isNew": true
+        },
+        {
+          "name": "青菜面/粉",
+          "price": 6,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "馄饨面/粉",
+          "price": 10,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "雪菜肉丝面/粉",
+          "price": 10,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "鸡腿面/粉",
+          "price": 12,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "鸭腿面/粉",
+          "price": 14,
+          "cat": "面",
+          "isNew": true
+        },
+        {
+          "name": "西红柿鸡蛋盖浇饭",
+          "price": 14,
+          "cat": "盖浇饭",
+          "isNew": true
+        },
+        {
+          "name": "青椒肉丝盖浇饭",
+          "price": 15,
+          "cat": "盖浇饭",
+          "dishId": "mg10",
+          "kbName": "青椒肉丝饭"
+        },
+        {
+          "name": "土豆肉丝盖浇饭",
+          "price": 15,
+          "cat": "盖浇饭",
+          "isNew": true
+        },
+        {
+          "name": "香菇肉丝盖浇饭",
+          "price": 15,
+          "cat": "盖浇饭",
+          "isNew": true
+        },
+        {
+          "name": "回锅肉盖浇饭",
+          "price": 16,
+          "cat": "盖浇饭",
+          "isNew": true
+        },
+        {
+          "name": "爆炒牛肉盖浇饭",
+          "price": 19,
+          "cat": "盖浇饭",
+          "isNew": true
+        },
+        {
+          "name": "豆干",
+          "price": 1,
+          "cat": "小吃",
+          "isNew": true
+        },
+        {
+          "name": "卤蛋",
+          "price": 2,
+          "cat": "小吃",
+          "isNew": true
+        },
+        {
+          "name": "热狗",
+          "price": 2,
+          "cat": "小吃",
+          "dishId": "f09",
+          "kbName": "热狗"
+        },
+        {
+          "name": "狮子头",
+          "price": 2,
+          "cat": "小吃",
+          "isNew": true
+        },
+        {
+          "name": "煎蛋",
+          "price": 3,
+          "cat": "小吃",
+          "isNew": true
+        },
+        {
+          "name": "鸭胗",
+          "price": 8,
+          "cat": "小吃",
+          "isNew": true
+        },
+        {
+          "name": "大排",
+          "price": 8,
+          "cat": "小吃",
+          "isNew": true
+        },
+        {
+          "name": "狮子头饭",
+          "price": 14,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "鸭头饭",
+          "price": 14,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "鸡腿饭",
+          "price": 14,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "鸭腿饭",
+          "price": 16,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "大排饭",
+          "price": 16,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "红烧牛肉饭",
+          "price": 18,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "猪脚饭",
+          "price": 20,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "排骨汤饭",
+          "price": 17,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "乌鸡汤饭",
+          "price": 17,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "老鸭汤饭",
+          "price": 21,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "猪心汤饭",
+          "price": 17,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "鸡蛋炒饭/米粉/河粉",
+          "price": 10,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "香肠炒饭/米粉/河粉",
+          "price": 12,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "肉丝炒饭/米粉/河粉",
+          "price": 13,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "鸡腿炒饭/面/米粉/河粉",
+          "price": 16,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "鸭腿炒饭/面/米粉/河粉",
+          "price": 18,
+          "cat": "饭",
+          "isNew": true
+        },
+        {
+          "name": "牛肉炒饭/米粉/河粉",
+          "price": 19,
+          "cat": "饭",
+          "isNew": true
+        }
+      ],
+      "uncertain": []
+    }
+  ]
+}
