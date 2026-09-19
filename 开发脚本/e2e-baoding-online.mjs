@@ -4,14 +4,14 @@ import fs from 'node:fs';
 const html = fs.readFileSync(process.argv[2], 'utf8');
 const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
 
-function fakeEl(){const el={innerHTML:'',value:'',className:'',style:{},children:[],classList:{_s:new Set(),add(c){this._s.add(c)},remove(c){this._s.delete(c)},contains(c){return this._s.has(c)}},setAttribute(){},addEventListener(){},appendChild(c){el.children.push(c);return c},querySelector(){return fakeEl()},scrollIntoView(){}};let t='';Object.defineProperty(el,'textContent',{get(){return t},set(v){t=String(v);el.innerHTML=t}});return el}
+function fakeEl(){const el={innerHTML:'',value:'',className:'',style:{},children:[],dataset:{},classList:{_s:new Set(),add(c){this._s.add(c)},remove(c){this._s.delete(c)},contains(c){return this._s.has(c)},toggle(c,f){const on=f===undefined?!this._s.has(c):!!f;on?this._s.add(c):this._s.delete(c);return on}},setAttribute(){},addEventListener(){},appendChild(c){el.children.push(c);return c},querySelector(){return fakeEl()},querySelectorAll(){return []},scrollIntoView(){}};let t='';Object.defineProperty(el,'textContent',{get(){return t},set(v){t=String(v);el.innerHTML=t}});return el}
 const cache=new Map();
-const document={querySelector(s){if(!cache.has(s))cache.set(s,fakeEl());return cache.get(s)},createElement(){return fakeEl()},addEventListener(){}};
+const document={querySelector(s){if(!cache.has(s))cache.set(s,fakeEl());return cache.get(s)},querySelectorAll(){return []},createElement(){return fakeEl()},addEventListener(){}};
 const store=new Map();
 const localStorage={getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__o={state,onlineSearch,recommend,recommendRestaurantsSmart,recommendRestaurants,sourceLabel,CITY,resolveLocation,osmAround,DISHES};')
+  code + '\nglobalThis.__o={state,onlineSearch,recommend,recommendRestaurantsSmart,recommendRestaurants,sourceLabel,CITY,resolveLocation,osmAround,DISHES,planMeal,buildCombo,DEFAULT_AMAP_KEY};')
   (document, localStorage, (f)=>setTimeout(f,0), globalThis.fetch.bind(globalThis));
 
 const api = globalThis.__o;
@@ -25,7 +25,7 @@ api.state.profile.allergies = [];
 api.state.profile.tastes = [];
 api.state.profile.likes = {};
 api.state.profile.history = [];
-api.state.settings.amapKey = '';
+api.state.settings.amapKey = api.DEFAULT_AMAP_KEY || '';
 api.state.settings.online = 'on';
 
 console.log('城市配置: ' + JSON.stringify(api.CITY));

@@ -112,7 +112,7 @@ async function mockFetch(url, opts) {
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__s={state,run,renderTiers,renderCats,renderChips,renderProfile,updateSummary,acceptDish,dislikeDish,renderResult,recommend,recommendRestaurants,renderEmpty,scoreBars,PROVIDERS,DEFAULT_KEY,switchTab,renderTierSeg,renderAddrList,renderMeHeader,renderSpiceSeg,saveProfile,TIERS,CITIES,applyCity,changeCity,renderCitySelect,hasOfflineData,clearAmapCache,get CITY(){return CITY},onlineSearch,recommendRestaurantsSmart,DISHES};')
+  code + '\nglobalThis.__s={state,run,renderTiers,renderCats,renderChips,renderProfile,updateSummary,acceptCombo,dislikeDish,renderResult,recommend,recommendRestaurants,renderEmpty,PROVIDERS,DEFAULT_KEY,switchTab,renderTierSeg,renderAddrList,renderMeHeader,renderSpiceSeg,saveProfile,TIERS,CITIES,applyCity,changeCity,renderCitySelect,hasOfflineData,clearAmapCache,get CITY(){return CITY},onlineSearch,recommendRestaurantsSmart,DISHES};')
   (document, localStorage, (f) => setTimeout(f, 0), mockFetch);
 
 const api = globalThis.__s;
@@ -169,8 +169,10 @@ for (const s of scenarios) {
     const resultHtml = document.querySelector('#result').innerHTML;
     assert(resultHtml.includes('card-head') && resultHtml.includes('就吃这一桌'), s.key + ' 组合卡片已渲染');
     assert(resultHtml.includes('combo-item'), s.key + ' 卡片里是一桌菜（多道菜条目）');
-    api.acceptDish(api.recommend().scored[0].dish);
-    assert(api.state.profile.history.length > 0, s.key + ' 记忆写入成功');
+    // 走真实交互：点结果卡上的「就吃这一桌」，看有没有记进历史
+    const acceptBtn = document.querySelector('#acceptBtn');
+    if (acceptBtn && acceptBtn.onclick) acceptBtn.onclick();
+    assert(api.state.profile.history.length > 0, s.key + ' 点「就吃这一桌」后记忆写入成功');
   } catch (err) {
     assert(false, s.key + ' 抛异常：' + err.message);
   }

@@ -1,6 +1,16 @@
 // 固定测试用例：点「汤面」应该给出"一档里的多道同类菜 + 各自的店"，而不是一道菜一家店
 import fs from 'node:fs';
 
+/* 把"现在几点"钉死在中午 12:30。
+ * 页面打分里有「时段契合」这一维度，不同钟点会挑出不同的菜，
+ * 进而影响下面"用到了几家不同的店"这个断言 —— 9 点跑能过、15 点跑就挂，
+ * 属于测试本身的不确定性，不是页面问题，所以在测试里固定一个中午时间。 */
+const RealDate = Date;
+globalThis.Date = class extends RealDate {
+  constructor(...a){ if(!a.length) super(2026, 8, 17, 12, 30, 0); else super(...a); }
+  static now(){ return new RealDate(2026, 8, 17, 12, 30, 0).getTime(); }
+};
+
 const html = fs.readFileSync(process.argv[2], 'utf8');
 const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
 
