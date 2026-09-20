@@ -4341,11 +4341,14 @@ const AGENT_TOOLS = [
     type:'function',
     function:{
       name:'get_shop_menu',
-      description:'取某家店采集到的真实菜单（我们实拍录入的，有就是有、没有就是没有）。下单前确认这家店能不能做这几道菜。返回空表示这家店还没采集过菜单。',
+      description:'取店铺采集到的真实菜单（我们实拍录入的，有就是有、没有就是没有）。**支持一次传多家店的 id 批量查**，比一家一家查省步数。下单前用它确认这些店能不能做这几道菜。返回空表示这家店还没采集过菜单。',
       parameters:{
         type:'object',
-        properties:{ shop_id:{ type:'string', description:'店的 shop_id' } },
-        required:['shop_id']
+        properties:{
+          shop_ids:{ type:'array', items:{type:'string'}, description:'要查的 shop_id 列表，一次最多 8 家，例如 ["amap-B0IGACT86Q","amap-B0H06MD6IH"]' },
+          shop_id:{ type:'string', description:'只查一家时可以只给这一个（等价于 shop_ids 里放一个）' }
+        },
+        required:[]
       }
     }
   },
@@ -4752,7 +4755,11 @@ async function traceCravingParse(){
  *   build_combo         → buildCombo（配桌）
  * 关键约束：所有返回值都带 dish_id / shop_id，finalize 只认这些 id。 */
 
-const AGENT_MAX_STEPS = 8;      // 最多几轮工具调用（含最后的 finalize）
+const AGENT_MAX_STEPS = 12;     // 最多几轮工具调用（含最后的 finalize）
+                                /* 原来是 8：实测 10 次真跑失败 6 次，失败全是"步数用完了还没提交方案"
+                                 * —— 跑一次的下限是 6 步（读记忆→搜菜→搜店→查菜单→配桌→定案），
+                                 * 模型习惯再多花 2~5 步复查，8 步正好卡在临界线上。加到 12 后实测 4/4 通过，
+                                 * 实际用了 7~10 步，耗时 9~12 秒。 */
 const AGENT_TIMEOUT_MS = 90000; // 单次 run 的总时长上限
 
 /* 一次 Agent 会话的上下文 */
@@ -4972,20 +4979,36 @@ async function toolGetNearby(a){
   return { radius_m:radius, count: Math.min(list.length, lim), shops: list.slice(0, lim).map(shopBrief) };
 }
 
-// ⑧ 取采集到的真实菜单
+// ⑧ 取采集到的真实菜单（支持批量：一次传多家店，省 Agent 的步数）
 function toolGetShopMenu(a){
-  const id = String((a && a.shop_id) || '');
+  const args = a || {};
   const c = agentCtx();
-  const sp = c.seenShop.get(id);
-  if(!sp) return { error:'shop_id「' + id + '」不在本次检索结果里，先 search_shops 再查菜单' };
-  const db = dbShopForCached(sp);
-  if(!db) return { shop_id:sp.id, name:sp.name, collected:false,
-                   note:'这家店还没采集过真实菜单，只能按菜系推断它做不做什么菜' };
-  const menu = (db.menu || []).map(m => ({ menu_name:m.name, price:m.price,
-                                           dish_id: m.dishId || null, in_kb: !!m.dishId }));
-  return { shop_id:sp.id, name:sp.name, collected:true,
-           scope: (dbScopeOf(db) === 'branch' ? '本店确认（实拍的这一家）' : '品牌参照（同品牌通用菜单）'),
-           collected_at: db.collectedAt || '', count: menu.length, menu: menu.slice(0, 80) };
+  let ids = Array.isArray(args.shop_ids) ? args.shop_ids.slice() : [];
+  if(args.shop_id) ids.push(args.shop_id);       // 兼容只传一个的旧写法
+  ids = [...new Set(ids.map(x => String(x || '').trim()).filter(Boolean))];
+  if(!ids.length) return { error:'要传 shop_ids（数组）或 shop_id（单个）' };
+  if(ids.length > 8) ids = ids.slice(0, 8);
+  const menus = [];
+  const unknown = [];
+  for(const id of ids){
+    const sp = c.seenShop.get(id);
+    if(!sp){ unknown.push({ shop_id:id, error:'不在本次检索结果里，先 search_shops 再查菜单' }); continue; }
+    const db = dbShopForCached(sp);
+    if(!db){
+      menus.push({ shop_id:sp.id, name:sp.name, collected:false,
+                   note:'这家店还没采集过真实菜单，只能按菜系推断它做不做什么菜' });
+      continue;
+    }
+    const menu = (db.menu || []).map(m => ({ menu_name:m.name, price:m.price,
+                                             dish_id: m.dishId || null, in_kb: !!m.dishId }));
+    menus.push({ shop_id:sp.id, name:sp.name, collected:true,
+                 scope: (dbScopeOf(db) === 'branch' ? '本店确认（实拍的这一家）' : '品牌参照（同品牌通用菜单）'),
+                 collected_at: db.collectedAt || '', count: menu.length, menu: menu.slice(0, 80) });
+  }
+  const out = { count: menus.length, with_menu: menus.filter(m => m.collected).length, menus };
+  if(unknown.length) out.unknown = unknown;
+  if(!out.with_menu) out.note = '这批店（' + menus.map(m => m.name).join('、') + '）都没有采集过真实菜单，别再逐家查了，直接按菜系/人均判断。';
+  return out;
 }
 
 // ⑨ 这道菜能去哪几家店
@@ -5117,12 +5140,15 @@ const AGENT_SYSTEM_PROMPT =
   '2) 用 search_dishes 找菜。用户说得口语化（比如"奶奶做的味道"）就先自己翻译成菜系/食材/做法再查；' +
   '查不到不要放弃，换个关键词再查一次；\n' +
   '3) 用 search_shops 搜真实店铺，一个关键词一次。搜出来的店菜系不搭或者太远，就换词、或放半径再搜；' +
-  '用 get_shop_menu 查这家店采集到的真实菜单，确认它到底做不做得了这几道菜；\n' +
+  '用 get_shop_menu 查真实菜单，确认这些店到底做不做得了这几道菜——' +
+  '它支持批量：一次传 shop_ids 数组（最多 8 家），比你一家一家查省好几轮；\n' +
   '4) 只能使用工具真实返回过的 dish_id 和 shop_id。自己编的 id 会被拒绝，浪费一轮；\n' +
   '5) 一桌菜要像真去店里点单：主菜 +（素菜／汤／主食／饮品按档位取舍），合计别越过用户的档位上限；\n' +
-  '6) 省着用工具：search_shops 最多 2 次、list_shops_for_dish 最多 2 次、get_shop_menu 只查你打算去的店；' +
+  '6) 省着用工具：search_shops 最多 2 次、list_shops_for_dish 最多 2 次；' +
+  'get_shop_menu 一次把候选店打包查（shop_ids 数组），别一家一家查；' +
+  '如果返回里 with_menu=0（都没采集过菜单），就不要再查菜单了，按菜系和人均直接定；' +
   'build_combo 返回的一桌菜已经是真实 id，可以直接拿去 finalize，不用再回头查一遍；\n' +
-  '7) 查得差不多了就调 finalize 提交，不要无限查下去（整个流程最多 8 轮，用完就交不出方案了）。\n' +
+  '7) 查得差不多了就调 finalize 提交，不要无限查下去（整个流程最多 12 轮，用完就交不出方案了）。\n' +
   '关于 food kind：rice=配米饭吃（配饭的菜都算），noodle=配面或粉吃，other=整份菜/小吃/火锅烧烤。\n' +
   '回答用中文。中间思考可以简短，但最终必须通过工具（finalize）交付结果。';
 
@@ -5282,7 +5308,7 @@ async function agentProbe(){
 const AGENT_TOOL_LABEL = {
   get_profile:'读你的长期记忆', search_dishes:'搜菜品知识库', get_dish:'查菜品详情',
   filter_dishes:'忌口／辣度／预算体检', rank_dishes:'本地多维打分', remember:'记一条偏好',
-  search_shops:'联网搜真实店铺', get_nearby:'看看周边有什么店', get_shop_menu:'查这家店的真实菜单',
+  search_shops:'联网搜真实店铺', get_nearby:'看看周边有什么店', get_shop_menu:'查真实菜单（可一次查多家）',
   list_shops_for_dish:'找能做这道菜的店', build_combo:'按档位配一桌菜', finalize:'提交这一桌方案'
 };
 function agentStepDetail(rec){
@@ -5294,12 +5320,15 @@ function agentStepDetail(rec){
   if(a.radius_m) bits.push('半径 ' + a.radius_m + 'm');
   if(a.price_max) bits.push('≤¥' + a.price_max);
   if(Array.isArray(a.dish_ids)) bits.push(a.dish_ids.length + ' 道菜');
-  if(a.shop_id && !a.anchor_dish_id) bits.push('看店');
+  if(Array.isArray(a.shop_ids) && a.shop_ids.length) bits.push('查 ' + a.shop_ids.length + ' 家菜单');
+  if(a.shop_id && !a.anchor_dish_id && !Array.isArray(a.shop_ids)) bits.push('看店');
   const n = (typeof o.count === 'number') ? o.count
           : (Array.isArray(o.shops) ? o.shops.length
           : (Array.isArray(o.dishes) ? o.dishes.length
-          : (Array.isArray(o.menu) ? o.menu.length : null)));
+          : (Array.isArray(o.menu) ? o.menu.length
+          : (Array.isArray(o.menus) ? o.menus.length : null))));
   if(n != null) bits.push('→ ' + n + ' 条结果');
+  if(typeof o.with_menu === 'number') bits.push(o.with_menu ? ('有菜单的 ' + o.with_menu + ' 家') : '都没采集过菜单');
   if(o.error) bits.push('⚠️ ' + o.error);
   if(o.ok === false && o.errors) bits.push('⛔ ' + o.errors[0]);
   if(o.ok === true) bits.push('✅ 闸门通过');
@@ -5898,7 +5927,7 @@ function init(){
     readSettingsUI();
     testAgentBtn.disabled = true;
     const old = testAgentBtn.textContent;
-    testAgentBtn.textContent = '跑着呢…（最多 8 步，可能要一两分钟）';
+    testAgentBtn.textContent = '跑着呢…（最多 12 步，可能要一两分钟）';
     try{ await agentProbe(); }
     finally{ testAgentBtn.disabled = false; testAgentBtn.textContent = old; }
   });
