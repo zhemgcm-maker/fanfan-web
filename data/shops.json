@@ -3,6 +3,672 @@
   "updatedAt": "2026-09-20",
   "shops": [
     {
+      "id": "local-女掌柜土家菜馆",
+      "name": "女掌柜土家菜馆",
+      "city": "保定",
+      "scope": "branch",
+      "amapId": "B0FFGWFUGT",
+      "branchName": "女掌柜土家菜馆",
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-09-20",
+      "image": "",
+      "menu": [
+        {
+          "name": "侧耳根",
+          "price": 22,
+          "cat": "开胃凉菜",
+          "dishId": "cq01",
+          "kbName": "侧耳根"
+        },
+        {
+          "name": "伤心凉粉",
+          "price": 18,
+          "cat": "开胃凉菜",
+          "dishId": "cq02",
+          "kbName": "伤心凉粉"
+        },
+        {
+          "name": "爽口黑木耳",
+          "price": 18,
+          "cat": "开胃凉菜",
+          "dishId": "cq03",
+          "kbName": "爽口黑木耳"
+        },
+        {
+          "name": "口水鸡",
+          "price": 28,
+          "cat": "开胃凉菜",
+          "dishId": "c08",
+          "kbName": "口水鸡"
+        },
+        {
+          "name": "蒜茸苦瓜",
+          "price": 18,
+          "cat": "开胃凉菜",
+          "dishId": "cq04",
+          "kbName": "蒜茸苦瓜"
+        },
+        {
+          "name": "鸡蛋酥",
+          "price": 16,
+          "cat": "开胃凉菜",
+          "dishId": "cq05",
+          "kbName": "鸡蛋酥"
+        },
+        {
+          "name": "豆拼",
+          "price": 16,
+          "cat": "开胃凉菜",
+          "dishId": "cq06",
+          "kbName": "豆拼"
+        },
+        {
+          "name": "红油牛肚丝",
+          "price": 34,
+          "cat": "开胃凉菜",
+          "dishId": "cq07",
+          "kbName": "红油牛肚丝"
+        },
+        {
+          "name": "夫妻肺片",
+          "price": 34,
+          "cat": "开胃凉菜",
+          "dishId": "cn08",
+          "kbName": "夫妻肺片"
+        },
+        {
+          "name": "川腊肠",
+          "price": 34,
+          "cat": "开胃凉菜",
+          "dishId": "cq08",
+          "kbName": "川腊肠"
+        },
+        {
+          "name": "麻辣牛蹄筋",
+          "price": 34,
+          "cat": "开胃凉菜",
+          "dishId": "cq09",
+          "kbName": "麻辣牛蹄筋"
+        },
+        {
+          "name": "凉拌贡菜",
+          "price": 22,
+          "cat": "开胃凉菜",
+          "dishId": "cq10",
+          "kbName": "凉拌贡菜"
+        },
+        {
+          "name": "香菜牛肉",
+          "price": 34,
+          "cat": "开胃凉菜",
+          "dishId": "lz38",
+          "kbName": "香菜牛肉"
+        },
+        {
+          "name": "桃仁菠菜",
+          "price": 18,
+          "cat": "开胃凉菜",
+          "dishId": "cq11",
+          "kbName": "桃仁菠菜"
+        },
+        {
+          "name": "红油顺风耳",
+          "price": 28,
+          "cat": "开胃凉菜",
+          "dishId": "cq12",
+          "kbName": "红油顺风耳"
+        },
+        {
+          "name": "老陕菜",
+          "price": 18,
+          "cat": "开胃凉菜",
+          "dishId": "cq13",
+          "kbName": "老陕菜"
+        },
+        {
+          "name": "大丰收",
+          "price": 22,
+          "cat": "开胃凉菜",
+          "dishId": "cq14",
+          "kbName": "大丰收"
+        },
+        {
+          "name": "烧椒小皮蛋",
+          "price": 25,
+          "cat": "开胃凉菜",
+          "dishId": "cq15",
+          "kbName": "烧椒小皮蛋"
+        },
+        {
+          "name": "黄瓜大拉皮/花生米拌黄瓜",
+          "price": 18,
+          "cat": "开胃凉菜",
+          "dishId": "cq16",
+          "kbName": "黄瓜大拉皮/花生米拌黄瓜"
+        },
+        {
+          "name": "党参天麻炖土鸡",
+          "price": 138,
+          "cat": "本店特色菜",
+          "dishId": "cq17",
+          "kbName": "党参天麻炖土鸡"
+        },
+        {
+          "name": "丈母娘待客菜",
+          "price": 58,
+          "cat": "本店特色菜",
+          "dishId": "cq18",
+          "kbName": "丈母娘待客菜"
+        },
+        {
+          "name": "霸王跳跳兔",
+          "price": 68,
+          "cat": "本店特色菜",
+          "dishId": "cq19",
+          "kbName": "霸王跳跳兔"
+        },
+        {
+          "name": "霸王跳跳鸡/跳跳蛙",
+          "price": 58,
+          "cat": "本店特色菜",
+          "dishId": "cq20",
+          "kbName": "霸王跳跳鸡/跳跳蛙"
+        },
+        {
+          "name": "金牌巫山烤鱼",
+          "price": 98,
+          "cat": "河鲜鱼类",
+          "dishId": "cq21",
+          "kbName": "金牌巫山烤鱼"
+        },
+        {
+          "name": "烧椒豆花过水鱼",
+          "price": 98,
+          "cat": "河鲜鱼类",
+          "dishId": "cq22",
+          "kbName": "烧椒豆花过水鱼"
+        },
+        {
+          "name": "蒜香干烧鱼",
+          "price": 98,
+          "cat": "河鲜鱼类",
+          "dishId": "cq23",
+          "kbName": "蒜香干烧鱼"
+        },
+        {
+          "name": "麻辣水煮鱼",
+          "price": 98,
+          "cat": "河鲜鱼类",
+          "dishId": "m01",
+          "kbName": "水煮鱼"
+        },
+        {
+          "name": "歌乐山辣子鸡",
+          "price": 48,
+          "cat": "川味经典热菜",
+          "dishId": "cn04",
+          "kbName": "辣子鸡"
+        },
+        {
+          "name": "鱼香肉丝",
+          "price": 28,
+          "cat": "川味经典热菜",
+          "dishId": "m04",
+          "kbName": "鱼香肉丝"
+        },
+        {
+          "name": "川味肉丝",
+          "price": 28,
+          "cat": "川味经典热菜",
+          "dishId": "cq24",
+          "kbName": "川味肉丝"
+        },
+        {
+          "name": "泡椒腰花",
+          "price": 58,
+          "cat": "川味经典热菜",
+          "dishId": "cq25",
+          "kbName": "泡椒腰花"
+        },
+        {
+          "name": "干豆角红烧肉/杂菌红烧肉",
+          "price": 46,
+          "cat": "川味经典热菜",
+          "dishId": "cq26",
+          "kbName": "干豆角红烧肉/杂菌红烧肉"
+        },
+        {
+          "name": "泡椒美蛙/水煮美蛙",
+          "price": 58,
+          "cat": "川味经典热菜",
+          "dishId": "cq27",
+          "kbName": "泡椒美蛙/水煮美蛙"
+        },
+        {
+          "name": "酸豆角炒鸡胗",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cq28",
+          "kbName": "酸豆角炒鸡胗"
+        },
+        {
+          "name": "肝腰合炒",
+          "price": 58,
+          "cat": "川味经典热菜",
+          "dishId": "cq29",
+          "kbName": "肝腰合炒"
+        },
+        {
+          "name": "火辣辣的吻",
+          "price": 42,
+          "cat": "川味经典热菜",
+          "dishId": "cq30",
+          "kbName": "火辣辣的吻"
+        },
+        {
+          "name": "铁板水晶粉",
+          "price": 26,
+          "cat": "川味经典热菜",
+          "dishId": "cq31",
+          "kbName": "铁板水晶粉"
+        },
+        {
+          "name": "农家小炒肉",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "c07",
+          "kbName": "辣椒炒肉"
+        },
+        {
+          "name": "酸辣魔芋",
+          "price": 26,
+          "cat": "川味经典热菜",
+          "dishId": "cq32",
+          "kbName": "酸辣魔芋"
+        },
+        {
+          "name": "宫保鸡丁",
+          "price": 28,
+          "cat": "川味经典热菜",
+          "dishId": "m03",
+          "kbName": "宫保鸡丁"
+        },
+        {
+          "name": "农家一碗香",
+          "price": 32,
+          "cat": "川味经典热菜",
+          "dishId": "cq33",
+          "kbName": "农家一碗香"
+        },
+        {
+          "name": "飘香大排",
+          "price": 68,
+          "cat": "川味经典热菜",
+          "dishId": "cq34",
+          "kbName": "飘香大排"
+        },
+        {
+          "name": "小炒黄牛肉",
+          "price": 48,
+          "cat": "川味经典热菜",
+          "dishId": "c06",
+          "kbName": "小炒黄牛肉"
+        },
+        {
+          "name": "泡椒牛双脆",
+          "price": 56,
+          "cat": "川味经典热菜",
+          "dishId": "cq35",
+          "kbName": "泡椒牛双脆"
+        },
+        {
+          "name": "泡椒牛肉",
+          "price": 58,
+          "cat": "川味经典热菜",
+          "dishId": "cq36",
+          "kbName": "泡椒牛肉"
+        },
+        {
+          "name": "锅仔牛三样",
+          "price": 88,
+          "cat": "川味经典热菜",
+          "dishId": "cq37",
+          "kbName": "锅仔牛三样"
+        },
+        {
+          "name": "葱香牛肉",
+          "price": 48,
+          "cat": "川味经典热菜",
+          "dishId": "cq38",
+          "kbName": "葱香牛肉"
+        },
+        {
+          "name": "水煮肉片",
+          "price": 42,
+          "cat": "川味经典热菜",
+          "dishId": "m02",
+          "kbName": "水煮肉片"
+        },
+        {
+          "name": "水煮牛肉",
+          "price": 58,
+          "cat": "川味经典热菜",
+          "dishId": "cn03",
+          "kbName": "水煮牛肉"
+        },
+        {
+          "name": "烧椒豆花牛肉",
+          "price": 58,
+          "cat": "川味经典热菜",
+          "dishId": "cq39",
+          "kbName": "烧椒豆花牛肉"
+        },
+        {
+          "name": "外婆粗粮王",
+          "price": 22,
+          "cat": "川味经典热菜",
+          "dishId": "cq40",
+          "kbName": "外婆粗粮王"
+        },
+        {
+          "name": "杭椒油渣",
+          "price": 28,
+          "cat": "川味经典热菜",
+          "dishId": "cq41",
+          "kbName": "杭椒油渣"
+        },
+        {
+          "name": "铁板抗日豆腐",
+          "price": 28,
+          "cat": "川味经典热菜",
+          "dishId": "cq42",
+          "kbName": "铁板抗日豆腐"
+        },
+        {
+          "name": "重庆毛血旺",
+          "price": 48,
+          "cat": "川味经典热菜",
+          "dishId": "m05",
+          "kbName": "毛血旺"
+        },
+        {
+          "name": "粉蒸格格肉",
+          "price": 32,
+          "cat": "川味经典热菜",
+          "dishId": "cq43",
+          "kbName": "粉蒸格格肉"
+        },
+        {
+          "name": "农家烧白",
+          "price": 32,
+          "cat": "川味经典热菜",
+          "dishId": "cq44",
+          "kbName": "农家烧白"
+        },
+        {
+          "name": "干锅肥肠",
+          "price": 58,
+          "cat": "川味经典热菜",
+          "dishId": "cq45",
+          "kbName": "干锅肥肠"
+        },
+        {
+          "name": "干锅鱿鱼大虾/香辣虾",
+          "price": 68,
+          "cat": "川味经典热菜",
+          "dishId": "cq46",
+          "kbName": "干锅鱿鱼大虾/香辣虾"
+        },
+        {
+          "name": "干锅土豆片",
+          "price": 26,
+          "cat": "川味经典热菜",
+          "dishId": "lz30",
+          "kbName": "干锅土豆片"
+        },
+        {
+          "name": "干锅菜花",
+          "price": 26,
+          "cat": "川味经典热菜",
+          "dishId": "cn11",
+          "kbName": "干锅花菜"
+        },
+        {
+          "name": "干锅牛蛙",
+          "price": 58,
+          "cat": "川味经典热菜",
+          "dishId": "c15",
+          "kbName": "干锅牛蛙"
+        },
+        {
+          "name": "莴笋炒腊肉",
+          "price": 48,
+          "cat": "川味经典热菜",
+          "dishId": "cq47",
+          "kbName": "莴笋炒腊肉"
+        },
+        {
+          "name": "小笋炒腊肉",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cq48",
+          "kbName": "小笋炒腊肉"
+        },
+        {
+          "name": "方竹笋炒腊肉",
+          "price": 48,
+          "cat": "川味经典热菜",
+          "dishId": "cq49",
+          "kbName": "方竹笋炒腊肉"
+        },
+        {
+          "name": "蒜苗炒腊肉",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cq50",
+          "kbName": "蒜苗炒腊肉"
+        },
+        {
+          "name": "豆棒炒腊肉",
+          "price": 48,
+          "cat": "川味经典热菜",
+          "dishId": "cq51",
+          "kbName": "豆棒炒腊肉"
+        },
+        {
+          "name": "回锅香肠",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cq52",
+          "kbName": "回锅香肠"
+        },
+        {
+          "name": "回锅肉",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cn02",
+          "kbName": "回锅肉"
+        },
+        {
+          "name": "蒜苗回锅肉",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cn02",
+          "kbName": "回锅肉"
+        },
+        {
+          "name": "手工苕皮回锅肉",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cq53",
+          "kbName": "手工苕皮回锅肉"
+        },
+        {
+          "name": "土匪猪肝",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cq54",
+          "kbName": "土匪猪肝"
+        },
+        {
+          "name": "小炒猪肝",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cq55",
+          "kbName": "小炒猪肝"
+        },
+        {
+          "name": "泡菜炒猪肝",
+          "price": 38,
+          "cat": "川味经典热菜",
+          "dishId": "cq56",
+          "kbName": "泡菜炒猪肝"
+        },
+        {
+          "name": "大蒜烧木耳",
+          "price": 26,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "cq57",
+          "kbName": "大蒜烧木耳"
+        },
+        {
+          "name": "干煸四季豆",
+          "price": 26,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "s03",
+          "kbName": "干煸四季豆"
+        },
+        {
+          "name": "素烧腐竹",
+          "price": 22,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "cq58",
+          "kbName": "素烧腐竹"
+        },
+        {
+          "name": "砂煲四季豆",
+          "price": 24,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "cq59",
+          "kbName": "砂煲四季豆"
+        },
+        {
+          "name": "豆角烧茄子",
+          "price": 26,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "cq60",
+          "kbName": "豆角烧茄子"
+        },
+        {
+          "name": "麻婆豆腐",
+          "price": 22,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "c17",
+          "kbName": "麻婆豆腐"
+        },
+        {
+          "name": "油渣包菜",
+          "price": 22,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "cq61",
+          "kbName": "油渣包菜"
+        },
+        {
+          "name": "快菜",
+          "price": 18,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "cq62",
+          "kbName": "快菜"
+        },
+        {
+          "name": "豌豆尖",
+          "price": 26,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "cq63",
+          "kbName": "豌豆尖"
+        },
+        {
+          "name": "空心菜",
+          "price": 26,
+          "cat": "新鲜时蔬素菜",
+          "dishId": "cq64",
+          "kbName": "空心菜"
+        },
+        {
+          "name": "拔丝红薯",
+          "price": 25,
+          "cat": "甜品小吃",
+          "dishId": "cq65",
+          "kbName": "拔丝红薯"
+        },
+        {
+          "name": "松仁玉米",
+          "price": 22,
+          "cat": "甜品小吃",
+          "dishId": "cq66",
+          "kbName": "松仁玉米"
+        },
+        {
+          "name": "黄金沙滩",
+          "price": 22,
+          "cat": "甜品小吃",
+          "dishId": "cq67",
+          "kbName": "黄金沙滩"
+        },
+        {
+          "name": "红糖糍粑",
+          "price": 20,
+          "cat": "甜品小吃",
+          "dishId": "cq68",
+          "kbName": "红糖糍粑"
+        },
+        {
+          "name": "炸酱面",
+          "price": 12,
+          "cat": "面食",
+          "dishId": "d23",
+          "kbName": "老北京炸酱面"
+        },
+        {
+          "name": "肥肠面",
+          "price": 16,
+          "cat": "面食",
+          "dishId": "nd43",
+          "kbName": "川味肥肠面"
+        },
+        {
+          "name": "牛肉面",
+          "price": 16,
+          "cat": "面食",
+          "dishId": "nd04",
+          "kbName": "内江牛肉面"
+        },
+        {
+          "name": "豌杂面",
+          "price": 15,
+          "cat": "面食",
+          "dishId": "nd42",
+          "kbName": "重庆豌杂面"
+        },
+        {
+          "name": "重庆小面",
+          "price": 8,
+          "cat": "面食",
+          "dishId": "d19",
+          "kbName": "重庆小面"
+        },
+        {
+          "name": "龙抄手",
+          "price": 12,
+          "cat": "面食",
+          "dishId": "cq69",
+          "kbName": "龙抄手"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-沙县小吃",
       "name": "沙县小吃",
       "city": "保定",

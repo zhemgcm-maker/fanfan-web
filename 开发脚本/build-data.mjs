@@ -40,11 +40,20 @@ for(const f of files){
   const menu = [];
   for(const it of p.items || []){
     const k = norm(it.name);
-    let hit = (kbIndex.get(k) || [])[0] || null;
+    /* 采集来的菜单经常跟知识库叫法不一样（菜单写"麻辣水煮鱼"，库里那道菜叫"水煮鱼"）。
+     * 这种就在解析结果里写 sameAs:'水煮鱼' 显式指过去——比放宽模糊匹配安全，
+     * 因为模糊匹配会出"回锅肉盖浇饭 ↦ 回锅肉"这种错配。 */
+    let hit = it.sameAs ? ((kbIndex.get(norm(it.sameAs)) || [])[0] || null) : null;
+    if(!hit && !it.sameAs) hit = (kbIndex.get(k) || [])[0] || null;
+    if(!hit && it.sameAs){
+      const byName = DISHES.find(d => d.name === it.sameAs);
+      if(byName){ hit = byName; }
+      else console.log('  ⚠️ sameAs 指向的菜不存在：' + it.name + ' → ' + it.sameAs);
+    }
     /* 允许"只差规格后缀"的前缀匹配，其余一律算新菜。
      * 之前放得太松，出现过"回锅肉盖浇饭"配到"回锅肉"、"卤蛋"配到"卤蛋卤肉饭"这种错配——
      * 菜单上的菜配错库里的菜，比配不上还糟。 */
-    if(!hit){
+    if(!hit && !it.sameAs){
       const specOnly = /^(小份|大份|中份|一份|套餐|加饭|加蛋|加肉|大|小)$/;
       for(const [kk, arr] of kbIndex){
         if(kk.length < 3) continue;

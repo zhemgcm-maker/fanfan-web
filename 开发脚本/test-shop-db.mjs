@@ -50,7 +50,9 @@ if(D.clearAmapCache) D.clearAmapCache();
 
 console.log('=== 一、数据库加载与店名匹配 ===');
 ok(D.SHOP_DB.loaded && D.SHOP_DB.shops.length >= 1, '数据库加载成功：' + D.SHOP_DB.shops.length + ' 家店（来源 ' + D.SHOP_DB.from + '）');
-const dbShop = D.SHOP_DB.shops[0];
+/* 按名字取，不用 shops[0]：库里现在不止一家店（沙县小吃 + 女掌柜土家菜馆），
+ * 顺序跟着文件夹读取顺序走，写死下标会让测试无缘无故变红。 */
+const dbShop = D.SHOP_DB.shops.find(s => s.name.indexOf('沙县') !== -1) || D.SHOP_DB.shops[0];
 ok(D.dbShopFor({ name:'沙县小吃(裕华路店)' }) === dbShop, '高德叫「沙县小吃(裕华路店)」能对上库里的「沙县小吃」（括号分店名不影响）');
 ok(D.dbShopFor({ name:'蜀香川菜馆' }) === null, '不相干的店不会被误配');
 
@@ -100,7 +102,10 @@ const canNoodle = anchors2.map(a => D.shopCanMake(fakeShop, a.dish));
 ok(canNoodle.every(v => v === true) || canNoodle.every(v => v === false),
    '它的能做/不能做完全取决于菜单（本轮 ' + canNoodle.filter(Boolean).length + '/' + canNoodle.length + ' 能做）');
 const menuDishes = D.dbMenuDishes(dbShop);
-ok(menuDishes.length === (dbShop.menu || []).length, '菜单 ' + (dbShop.menu || []).length + ' 道全部能在知识库里找到对应菜品（' + menuDishes.length + ' 道）');
+/* 菜单条目数 ≥ 对应到的知识库菜数才对：一份菜单里可能有两行指向同一道菜
+ * （女掌柜菜单上「回锅肉」和「蒜苗回锅肉」都是知识库的 cn02），去重后自然少一条。 */
+ok(menuDishes.length <= (dbShop.menu || []).length && menuDishes.length > 0,
+   '菜单 ' + (dbShop.menu || []).length + ' 条 → 对应知识库 ' + menuDishes.length + ' 道菜（去重后，不会凭空多出菜）');
 
 console.log('\n=== 八、本店确认 / 品牌参照 / 跨城市 的匹配优先级 ===');
 {
@@ -133,7 +138,15 @@ console.log('\n=== 八、本店确认 / 品牌参照 / 跨城市 的匹配优先
 
   // 恢复真实数据库，别影响后面的断言
   await D.loadShopDb();
-  ok(D.dbScopeOf(D.SHOP_DB.shops[0]) === 'brand', '⑥ 现有那份沙县菜单是"品牌参照"（还没绑定到具体分店）');
+  const realSha = D.SHOP_DB.shops.find(s => s.name.indexOf('沙县') !== -1);
+  ok(realSha && D.dbScopeOf(realSha) === 'brand', '⑥ 现有那份沙县菜单是"品牌参照"（还没绑定到具体分店）');
+  /* 女掌柜是真绑定了高德 ID 的"本店确认"：只认那一家分店，
+   * 同城另一家名字像的（高阳县「女掌柜火烧」）不该被塞上这份菜单。 */
+  const realNz = D.SHOP_DB.shops.find(s => s.name.indexOf('女掌柜') !== -1);
+  ok(realNz && D.dbScopeOf(realNz) === 'branch' && realNz.amapId === 'B0FFGWFUGT',
+     '⑦ 女掌柜土家菜馆是本店确认（高德ID ' + (realNz ? realNz.amapId : '—') + '，菜单 ' + (realNz ? realNz.menu.length : 0) + ' 条）');
+  ok(D.dbShopFor({ id:'amap-B0FFGWFUGT', name:'女掌柜土家菜馆' }) === realNz, '⑧ 高德ID 精确命中这家店');
+  ok(D.dbShopFor({ id:'amap-NOPE', name:'女掌柜火烧' }) === null, '⑨ 名字像的别家店不会被误配（那家是火烧铺）');
 }
 
 console.log('\n' + (fail ? '❌ 失败 ' + fail + ' 项' : '✅ 商家数据库（补菜单不改偏好）全部通过'));
