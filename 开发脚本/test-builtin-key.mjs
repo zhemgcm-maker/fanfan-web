@@ -3,7 +3,8 @@ import fs from 'node:fs';
 
 const src = process.argv[2];
 const html = fs.readFileSync(src, 'utf8');
-const patched = html.replace("const DEFAULT_AMAP_KEY = '';", "const DEFAULT_AMAP_KEY = 'test-amap-key-abc123';");
+// 不管文件里现在是空 Key 还是已经填了真 Key，都换成测试值（原来只匹配空字符串，填了 Key 之后就失效了）
+const patched = html.replace(/const DEFAULT_AMAP_KEY = '[^']*';/, "const DEFAULT_AMAP_KEY = 'test-amap-key-abc123';");
 if (patched === html) { console.error('❌ 没找到 DEFAULT_AMAP_KEY 那一行'); process.exit(1); }
 
 const code = [...patched.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');

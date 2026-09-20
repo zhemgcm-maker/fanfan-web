@@ -629,6 +629,13 @@
         </div>
       </div>
 
+      <label class="field" for="agentMode">决策模式</label>
+      <select id="agentMode">
+        <option value="off">算法引擎（本地规则全程决策）</option>
+        <option value="agent">Agent 模式（大模型自己调工具决策）</option>
+      </select>
+      <p class="note" id="agentModeNote">—</p>
+
       <label class="field" for="llmModelSelect">模型</label>
       <select id="llmModelSelect"></select>
       <input type="text" id="llmModelCustom" class="hidden" placeholder="填模型名，例如 deepseek-chat" style="margin-top:8px">
@@ -668,6 +675,9 @@
       <pre class="code" id="devPrompt">—</pre>
       <div class="mini-title">工具定义（Tool Schema）</div>
       <pre class="code" id="devTools">—</pre>
+      <div class="mini-title">Agent 工具调用自检（真发一次带 tools 的请求，看模型会不会自己调工具）</div>
+      <div class="actions"><button class="btn ghost small" id="testAgent">跑一次 Agent 自检</button></div>
+      <pre class="code" id="devAgent">点上面的按钮。会真发一次带工具定义的请求，模型如果自己发起工具调用，本地就真的执行，再把结果回灌给它 —— 这就是 Agent 循环的最小闭环。</pre>
       <div class="mini-title">实际打分明细</div>
       <pre class="code" id="devScores">先完成一次推荐，这里会显示每道菜的打分构成。</pre>
       <div class="mini-title">大模型返回的思考链（用 deepseek-v4-pro / deepseek-flash 时才有）</div>
@@ -1711,7 +1721,7 @@ function hasOfflineData(){ return !!CITY.offline && RESTAURANTS.length > 0; }
 const LS_PROFILE = 'eatAgent.profile.v1';
 const LS_SETTINGS = 'eatAgent.settings.v1';
 const LS_CRAVEPARSE = 'eatAgent.craveparse.v1';   // "用一句话说说"的解析缓存（同一句话不重复调大模型）
-const SETTINGS_VERSION = 4;   // 换默认服务商 / 内置 Key 时递增，避免浏览器里存的旧配置把新默认值顶掉
+const SETTINGS_VERSION = 5;   // 换默认服务商 / 内置 Key / 新增设置项时递增，避免浏览器里存的旧配置把新默认值顶掉
 
 // 服务商预设（均为 OpenAI 兼容的 /chat/completions 接口）
 const PROVIDERS = {
@@ -1773,9 +1783,16 @@ const state = {
   spiceMax:3,
   profile:{ allergies:[], tastes:[], likes:{}, dislikes:{}, history:[],
             banned:{ dishes:{}, shops:{} },     // 「不喜欢」点过的菜/店，24 小时内不再出现
+            /* 记忆条目（Agent 模式用）：大模型可以主动往里写一条，下次开局会读给它。
+             * { id, kind:'preference'|'allergy'|'habit'|'event', text, evidence, ts, hits, pinned } */
+            memory:[],
             spiceMax:3, defaultTier:null, savedAddresses:[] },
   settings:{ v:SETTINGS_VERSION, enabled:'on', provider:'deepseek', model:'deepseek-chat', base:PROVIDERS.deepseek.base, key:DEFAULT_KEY,
-             online:'on', amapKey: DEFAULT_AMAP_KEY },
+             online:'on', amapKey: DEFAULT_AMAP_KEY,
+             /* 决策模式：
+                'off'   = 算法引擎（现有行为：本地规则全程决策，大模型只在②b解析和⑨润色出现）
+                'agent' = Agent 模式（大模型自己调工具：搜菜、读记忆、反复搜店，最后 finalize）*/
+             agent:'off' },
   lastResult:null,
   seed:1,
   reroll:0,            // 「换一批」点了多少次：用来轮换饭店，保证点一次真的换一家
@@ -4209,47 +4226,188 @@ const SYSTEM_PROMPT =
   '6) 控制在 100 字以内；\n' +
   '7) 直接输出推荐语本身，不要复述题目、不要展开推理过程，一次给出结论。';
 
-// 智能体实际调用的工具（前两个在页面内真实执行）
-const TOOL_SCHEMA = {
-  tools:[
-    {
-      name:'search_restaurants',
-      description:'在用户所在城市联网检索真实饭店。高德地图通道返回店名、地址、电话、评分、人均与到用户的真实距离。',
+/* ===================== 9c. Agent 工具层 =====================
+ * 这是给大模型看的工具清单（OpenAI / DeepSeek function calling 格式，真实随请求发出）。
+ * 每个工具都在本地真实执行，返回值一律带稳定 id（dish_id / shop_id）——
+ * 大模型只能说"我要 d123 这道菜、B0H06MD6IH 这家店"，不允许它自己编名字。
+ * 执行器在下面 9c-2 的 runTool() 里，全部是现有函数的薄包装。 */
+
+const CAT_DESC = '食物类型：rice=配米饭吃，noodle=配面或粉吃，other=整份菜/小吃/火锅烧烤';
+
+const AGENT_TOOLS = [
+  {
+    type:'function',
+    function:{
+      name:'search_dishes',
+      description:'在本地菜品知识库（590 道）里检索菜品，返回带 dish_id 的候选。口语化的说法请先自己翻译成菜系/食材/做法关键词再调用，例如"奶奶做的味道"→ 查"家常""炖菜""家常菜"。同一句需求可以换关键词多查几次。',
       parameters:{
         type:'object',
         properties:{
-          keyword:{ type:'string', description:'搜索关键词，例如"驴肉火烧""川菜""火锅"' },
-          city:{ type:'string', description:'城市 adcode，例如保定 130600、北京 110100' },
-          center:{ type:'string', description:'检索中心点，格式 经度,纬度' },
-          radius_m:{ type:'integer', description:'搜索半径（米）', default:3000 },
-          types:{ type:'string', description:'POI 类型，050000 表示餐饮服务' }
+          query:{ type:'string', description:'关键词：菜名、菜系、食材或做法，例如"水煮鱼""川菜""牛肉""汤面"' },
+          tags:{ type:'array', items:{type:'string'}, description:'今日口味标签，例如 ["家常","川菜"]' },
+          cat:{ type:'string', enum:['rice','noodle','other'], description:CAT_DESC },
+          price_min:{ type:'number', description:'单道菜价格下限（元）' },
+          price_max:{ type:'number', description:'单道菜价格上限（元）' },
+          exclude_ids:{ type:'array', items:{type:'string'}, description:'要排除的 dish_id：已经看过/用户不喜欢的' },
+          limit:{ type:'integer', description:'返回条数，默认 12，最多 40' }
+        },
+        required:['query']
+      }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'get_dish',
+      description:'查一道菜的完整信息：食材、辣度、角色、价格、描述。选菜前想确认细节时用。',
+      parameters:{
+        type:'object',
+        properties:{ dish_id:{ type:'string', description:'菜品的 dish_id' } },
+        required:['dish_id']
+      }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'filter_dishes',
+      description:'用硬性规则体检一批菜：忌口、辣度上限、24 小时内被拉黑的。返回每道菜能不能选、不能选的具体原因。',
+      parameters:{
+        type:'object',
+        properties:{ dish_ids:{ type:'array', items:{type:'string'} } },
+        required:['dish_ids']
+      }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'rank_dishes',
+      description:'用本地多维打分给一批菜排序（预算匹配/今日想吃/口味画像/辣度/时段/新鲜感/口碑/探索）。想参考算法意见时调用，也可以不调、自己判断。',
+      parameters:{
+        type:'object',
+        properties:{ dish_ids:{ type:'array', items:{type:'string'} } },
+        required:['dish_ids']
+      }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'get_profile',
+      description:'读取这位用户的长期记忆：忌口、口味偏好、辣度上限、点赞点踩过的菜/店、最近 7 天吃过什么、记忆条目。开局就该调一次。',
+      parameters:{ type:'object', properties:{}, required:[] }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'remember',
+      description:'往长期记忆里写一条（用户主动说的偏好、刚表达的不满、新习惯）。下顿饭开局会读到它。',
+      parameters:{
+        type:'object',
+        properties:{
+          kind:{ type:'string', enum:['preference','allergy','habit','event'], description:'preference=口味偏好，allergy=忌口，habit=习惯，event=某次具体事件' },
+          text:{ type:'string', description:'一句话，第一人称视角，例如"爱吃肉，尤其是牛肉"' },
+          evidence:{ type:'string', description:'依据：用户说了什么、点了什么' }
+        },
+        required:['kind','text']
+      }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'search_shops',
+      description:'联网检索真实饭店（高德地图，返回店名/地址/电话/评分/人均/到用户的真实距离）。一个关键词一次调用，搜不到就换个词再搜。',
+      parameters:{
+        type:'object',
+        properties:{
+          keyword:{ type:'string', description:'搜索关键词，例如"水煮鱼""川菜""家常菜""面馆"' },
+          radius_m:{ type:'integer', description:'搜索半径（米），默认 3000，外卖可小一点、堂食可大一点' },
+          limit:{ type:'integer', description:'返回条数，默认 12，最多 20' }
         },
         required:['keyword']
-      },
-      executor:'amapSearchByKeyword / amapAround'
-    },
-    {
-      name:'geocode_address',
-      description:'把用户输入的中文地址解析成经纬度，用于计算到各饭店的真实距离。',
-      parameters:{
-        type:'object',
-        properties:{ address:{ type:'string' }, city:{ type:'string' } },
-        required:['address']
-      },
-      executor:'amapGeocode → resolveLocation()'
-    },
-    {
-      name:'rank_restaurants',
-      description:'按距离、评分、人均匹配、是否招牌菜、外卖/堂食方式给候选店铺打分排序（本地执行）。',
-      parameters:{
-        type:'object',
-        properties:{ dish:{type:'string'}, shops:{type:'array', items:{type:'object'}} },
-        required:['dish','shops']
-      },
-      executor:'scoreRestaurant()'
+      }
     }
-  ]
-};
+  },
+  {
+    type:'function',
+    function:{
+      name:'get_nearby',
+      description:'看看用户周边有什么店（不按关键词，纯地理周边）。想知道"附近到底有啥"时用。',
+      parameters:{
+        type:'object',
+        properties:{ radius_m:{ type:'integer', description:'半径（米），默认 2000' }, limit:{ type:'integer', description:'默认 15' } },
+        required:[]
+      }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'get_shop_menu',
+      description:'取某家店采集到的真实菜单（我们实拍录入的，有就是有、没有就是没有）。下单前确认这家店能不能做这几道菜。返回空表示这家店还没采集过菜单。',
+      parameters:{
+        type:'object',
+        properties:{ shop_id:{ type:'string', description:'店的 shop_id' } },
+        required:['shop_id']
+      }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'list_shops_for_dish',
+      description:'给定一道菜，列出能做它的真实店铺（本地匹配 + 联网结果），带评分、距离、人均。',
+      parameters:{
+        type:'object',
+        properties:{
+          dish_id:{ type:'string' },
+          radius_m:{ type:'integer', description:'半径（米），默认 3500' },
+          limit:{ type:'integer', description:'默认 8' }
+        },
+        required:['dish_id']
+      }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'build_combo',
+      description:'给定一家店和一道锚定菜，让本地引擎按档位补齐一桌（荤主菜＋素菜＋主食＋汤/饮），返回每道菜的 dish_id 和合计。你自己配不齐时用它收尾。',
+      parameters:{
+        type:'object',
+        properties:{ shop_id:{ type:'string' }, anchor_dish_id:{ type:'string' } },
+        required:['shop_id','anchor_dish_id']
+      }
+    }
+  },
+  {
+    type:'function',
+    function:{
+      name:'finalize',
+      description:'提交最终方案，结束本次决策。shop_id 和每个 dish_id 都必须是前面工具真实返回过的 id，否则会被拒绝。',
+      parameters:{
+        type:'object',
+        properties:{
+          shop_id:{ type:'string' },
+          anchor_dish_id:{ type:'string', description:'主菜（这道菜是用户当下最想吃的）' },
+          dishes:{ type:'array', description:'整桌菜，按角色给出', items:{
+            type:'object',
+            properties:{
+              dish_id:{ type:'string' },
+              role:{ type:'string', enum:['main','single','side','staple','soup','drink'] }
+            },
+            required:['dish_id','role']
+          }},
+          reason:{ type:'string', description:'一两句话说明这桌菜为什么合适（会显示给用户）' }
+        },
+        required:['shop_id','dishes']
+      }
+    }
+  }
+];
 
 function providerLabel(){
   const p = PROVIDERS[state.settings.provider];
@@ -4303,6 +4461,16 @@ function renderSettingsUI(){
       '（' + amapKey.slice(0,6) + '…' + amapKey.slice(-4) + '），会搜到' + CITY.name + '的真实店铺'
     : '联网搜索：还没填高德 Key，只能用 OpenStreetMap（国内节点常超时，建议填一个）') +
     '｜今天这台设备已用 ' + usedToday + ' 次高德请求（结果有缓存，重复点不会重复请求）' + downTxt;
+
+  // 决策模式
+  const agentSel = $('#agentMode');
+  if(agentSel) agentSel.value = (s.agent === 'agent') ? 'agent' : 'off';
+  const agentNote = $('#agentModeNote');
+  if(agentNote){
+    agentNote.textContent = (s.agent === 'agent')
+      ? '🤖 Agent 模式：大模型自己决定搜什么、选哪几道菜、去哪家店（它会反复调工具检索），算法退为工具和校验。断网或调用失败时自动回退到算法引擎。'
+      : '⚙️ 算法引擎：本地规则全程决策，大模型只在「用一句话说说」的解析和最后的推荐语出现。结果稳定、可复现、离线可用。';
+  }
 }
 
 // 从表单控件读回 state.settings（点保存/测试时调用）
@@ -4310,6 +4478,8 @@ function readSettingsUI(){
   const s = state.settings;
   s.enabled = $('#llmEnabled').value;
   s.provider = $('#llmProvider').value;
+  const agentEl = $('#agentMode');
+  s.agent = (agentEl && agentEl.value === 'agent') ? 'agent' : 'off';
   const selVal = $('#llmModelSelect').value;
   s.model = (selVal === '__custom__' || !selVal)
     ? ($('#llmModelCustom').value.trim() || 'deepseek-chat')
@@ -4323,35 +4493,56 @@ function readSettingsUI(){
   saveSettings();
 }
 
-/* 底层对话函数：所有大模型调用都走这里，统一处理 401/402/429、超时和"推理型模型只回思考链"的情况 */
+/* 底层对话函数：所有大模型调用都走这里，统一处理 401/402/429、超时和"推理型模型只回思考链"的情况。
+ * 三种用法（后两种是 Agent 用的）：
+ *   ① llmChat(system, user)                    —— 两段式：推荐语、口味解析
+ *   ② llmChat(system, user, {tools:AGENT_TOOLS}) —— 带工具定义，模型可以自己返回 tool_calls
+ *   ③ llmChat(null, null, {messages:[…]})      —— 完整多轮消息（Agent 循环里回灌工具结果用） */
 async function llmChat(system, user, opts){
   const s = state.settings;
   const o = opts || {};
   const url = s.base.replace(/\/+$/,'') + '/chat/completions';
   const t0 = Date.now();
-  const res = await fetch(url, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + s.key },
-    body: JSON.stringify({
-      model: s.model,
-      temperature: (typeof o.temperature === 'number') ? o.temperature : 0.7,
-      max_tokens: o.maxTokens || 4096,   // 推理型模型（deepseek-v4-pro / deepseek-flash）会先用掉一部分额度写思考链
-      messages:[
-        { role:'system', content: system },
-        { role:'user', content: user }
-      ]
-    })
-  });
+  const messages = (Array.isArray(o.messages) && o.messages.length)
+    ? o.messages
+    : [ { role:'system', content: system }, { role:'user', content: user } ];
+  const body = {
+    model: s.model,
+    temperature: (typeof o.temperature === 'number') ? o.temperature : 0.7,
+    max_tokens: o.maxTokens || 4096,   // 推理型模型（deepseek-v4-pro / deepseek-flash）会先用掉一部分额度写思考链
+    messages
+  };
+  // 带工具：模型可以"不回答、先调工具"，这是 Agent 模式的基础
+  if(Array.isArray(o.tools) && o.tools.length){
+    body.tools = o.tools;
+    body.tool_choice = o.toolChoice || 'auto';
+  }
+  let res;
+  try{
+    res = await fetchWithTimeout(url, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + s.key },
+      body: JSON.stringify(body)
+    }, o.timeoutMs || 90000);
+  }catch(err){
+    if(err && (err.name === 'AbortError' || /abort/i.test(String(err.message||'')))){
+      throw new Error('请求超时（' + Math.round((o.timeoutMs || 90000)/1000) + ' 秒未返回）');
+    }
+    throw err;
+  }
   if(!res.ok){
     const t = await res.text().catch(()=> '');
     const hint = res.status === 401 ? '（密钥无效或已过期）' : (res.status === 402 ? '（余额不足）' : (res.status === 429 ? '（请求太频繁）' : ''));
     throw new Error('HTTP ' + res.status + hint + ' ' + t.slice(0,160));
   }
   const j = await res.json();
-  const msg = (j && j.choices && j.choices[0] && j.choices[0].message) || {};
+  const choice = (j && j.choices && j.choices[0]) || {};
+  const msg = choice.message || {};
   const text = String(msg.content || '').trim();
   const reasoning = String(msg.reasoning_content || '').trim();
-  if(!text){
+  const toolCalls = Array.isArray(msg.tool_calls) ? msg.tool_calls : [];
+  // 有工具调用时 content 可能是空的——这不算错误，Agent 循环要继续跑
+  if(!text && !toolCalls.length){
     if(reasoning){
       const e = new Error('模型只输出了思考过程没给结论');
       e.code = 'REASONING_ONLY';
@@ -4363,6 +4554,9 @@ async function llmChat(system, user, opts){
   return {
     text,
     reasoning,
+    toolCalls,
+    assistant: msg,          // 原样保留，回灌给下一轮当 role:'assistant' 用
+    finish: choice.finish_reason || '',
     model: (j && j.model) || s.model,
     ms: Date.now() - t0,
     usage: j && j.usage ? { prompt:j.usage.prompt_tokens, completion:j.usage.completion_tokens } : null
@@ -4529,6 +4723,536 @@ async function traceCravingParse(){
   renderCraveParse();
 }
 
+/* ===================== 9c-2. Agent 工具执行器 =====================
+ * 每个执行器都是现有函数的薄包装，不新造逻辑：
+ *   search_dishes       → DISHES + craveKeys（口语→菜系）本地检索
+ *   filter_dishes       → hardFilter（忌口/辣度/拉黑）
+ *   rank_dishes         → scoreDish（原来那套 8 维打分，降级成"建议"）
+ *   list_shops_for_dish → amapSearchByKeyword + shopCanMake + scoreRestaurant
+ *   build_combo         → buildCombo（配桌）
+ * 关键约束：所有返回值都带 dish_id / shop_id，finalize 只认这些 id。 */
+
+const AGENT_MAX_STEPS = 8;      // 最多几轮工具调用（含最后的 finalize）
+const AGENT_TIMEOUT_MS = 90000; // 单次 run 的总时长上限
+
+/* 一次 Agent 会话的上下文 */
+let AGENT_CTX = null;
+function agentCtx(){
+  if(!AGENT_CTX){
+    AGENT_CTX = {
+      origin: state.origin || null,   // 用户位置，第一次要搜索时才解析
+      seenDish: new Map(),            // 本次会话真实返回过的菜：dish_id → dish
+      seenShop: new Map(),            // 本次会话真实返回过的店：shop_id → shop
+      usage: { prompt:0, completion:0 },
+      steps: 0,
+      finalized: null,
+      startedAt: Date.now()
+    };
+  }
+  return AGENT_CTX;
+}
+function agentResetCtx(){ AGENT_CTX = null; return agentCtx(); }
+
+// 压成给大模型看的精简结构（只给事实，不给函数）
+function dishBrief(d){
+  return { dish_id:d.id, name:d.name, cui:d.cui, price:d.price, cat:d.cat || '',
+           role:d.role || 'single', spicy:d.spicy, tags:(d.tags || []).slice(0,8) };
+}
+function shopBrief(sp){
+  const db = dbShopForCached(sp);
+  const o = { shop_id: sp.id, name: sp.name, area: sp.area || '',
+              km: (sp.km != null ? +Number(sp.km).toFixed(2) : null),
+              rating: (sp.rating || null), avg: (sp.avg != null ? sp.avg : null),
+              cui: (sp.cui || []).slice(0,4), tel: sp.tel || '' };
+  if(sp.address) o.address = sp.address;
+  if(db) o.menu = { collected:true, size: dbMenuSize(db), scope: (dbScopeOf(db) === 'branch' ? '本店确认' : '品牌参照') };
+  return o;
+}
+function agentRememberDishes(list){ const c = agentCtx(); (list||[]).forEach(d => { if(d && d.id && !c.seenDish.has(d.id)) c.seenDish.set(d.id, d); }); }
+function agentRememberShops(list){ const c = agentCtx(); (list||[]).forEach(sp => { if(sp && sp.id && !c.seenShop.has(sp.id)) c.seenShop.set(sp.id, sp); }); }
+
+async function agentOrigin(){
+  const c = agentCtx();
+  if(c.origin) return c.origin;
+  if(state.origin){ c.origin = state.origin; return c.origin; }
+  c.origin = await resolveLocation(state.address || CITY.name);
+  return c.origin;
+}
+
+/* 单个关键词对一道菜的命中分。语义和 craveHits 一致，抽出来给工具用：
+ * 菜名 12 分 > 标签 9 分 > 菜系 8 分 > 描述 5 分 */
+function dishMatchScore(d, term){
+  const t = String(term || '').trim();
+  if(!t) return { score:0, why:'' };
+  if(d.name.indexOf(t) !== -1) return { score:14, why:'菜名含「' + t + '」' };
+  let best = 0, why = '';
+  craveKeys(t).forEach(k => {
+    if(!k) return;
+    if(TAG_ONLY_KEYS.indexOf(k) !== -1){
+      if(best < 9 && (d.tags||[]).some(x => x.indexOf(k) !== -1)){ best = 9; why = '口味标签命中「' + k + '」'; }
+      return;
+    }
+    if(d.name.indexOf(k) !== -1){ if(best < 12){ best = 12; why = '菜名含「' + k + '」'; } }
+    else if((d.tags||[]).some(x => x.indexOf(k) !== -1 || (x.length >= 2 && k.indexOf(x) !== -1))){ if(best < 9){ best = 9; why = '标签命中「' + k + '」'; } }
+    else if(k === d.cui){ if(best < 8){ best = 8; why = '属于「' + k + '」菜系'; } }
+    else if((d.desc||'').indexOf(k) !== -1){ if(best < 5){ best = 5; why = '描述提到「' + k + '」'; } }
+  });
+  return { score:best, why };
+}
+
+// ① 本地检索菜品
+function toolSearchDishes(a){
+  const args = a || {};
+  const q = String(args.query || '').trim();
+  const tags = (Array.isArray(args.tags) ? args.tags : []).map(t => String(t || '').trim()).filter(Boolean);
+  const cat = (args.cat && CATS.some(c => c.id === args.cat)) ? args.cat : (state.cat || null);
+  const lim = clamp(Number(args.limit) || 12, 1, 40);
+  const ex = new Set((Array.isArray(args.exclude_ids) ? args.exclude_ids : []).map(String));
+  const pmin = Number(args.price_min) || 0;
+  const pmax = Number(args.price_max) || 0;
+  const terms = (q ? [q] : []).concat(tags);
+  const hits = [];
+  for(const d of DISHES){
+    if(ex.has(d.id)) continue;
+    if(cat && !inCat(d, cat)) continue;
+    if(pmin && d.price < pmin) continue;
+    if(pmax && d.price > pmax) continue;
+    let sc = 0; const why = [];
+    terms.forEach(t => {
+      const m = dishMatchScore(d, t);
+      if(m.score){ sc += m.score; if(why.indexOf(m.why) === -1) why.push(m.why); }
+    });
+    if(sc <= 0) continue;   // 没有任何命中就不返回，避免"什么都推"
+    hits.push({ d, sc, why });
+  }
+  hits.sort((x, y) => (y.sc - x.sc) || (x.d.price - y.d.price));
+  const out = hits.slice(0, lim);
+  agentRememberDishes(out.map(x => x.d));
+  return {
+    query:q, tags, cat, price_range: (pmin || pmax) ? { min:pmin, max:pmax } : null,
+    count: out.length,
+    dishes: out.map(x => Object.assign(dishBrief(x.d), { match: x.sc, why: x.why.slice(0,2) })),
+    note: out.length ? '' : '没有命中，换个关键词或标签再试（比如把"奶奶做的味道"换成"家常""炖菜"）'
+  };
+}
+
+// ② 硬性规则体检
+function toolFilterDishes(a){
+  const ids = (a && Array.isArray(a.dish_ids)) ? a.dish_ids : [];
+  const tier = pickTier();
+  const cap = tier ? Math.min(tier.max, state.budget) : state.budget;
+  const ok = [], bad = [];
+  ids.forEach(id => {
+    const d = dishById(id);
+    if(!d){ bad.push({ dish_id:id, why:'知识库里没有这个 id' }); return; }
+    const f = hardFilter(d);
+    if(!f.ok){ bad.push({ dish_id:d.id, name:d.name, why:f.why }); return; }
+    if(d.price > cap && d.role !== 'staple' && d.role !== 'drink' && d.role !== 'side'){
+      bad.push({ dish_id:d.id, name:d.name, why:'单价 ¥' + d.price + ' 超过这档的上限 ¥' + cap });
+      return;
+    }
+    ok.push(dishBrief(d));
+  });
+  return { pass: ok, blocked: bad, note: 'blocked 里的菜不要选；pass 里的才是能选的' };
+}
+
+// ③ 本地多维打分（给模型当参考，不是命令）
+function toolRankDishes(a){
+  const ids = (a && Array.isArray(a.dish_ids)) ? a.dish_ids : [];
+  const out = [];
+  ids.forEach(id => {
+    const d = dishById(id);
+    if(!d) return;
+    const s = scoreDish(d, {});
+    out.push({ dish_id:d.id, name:d.name, price:d.price, total:s.total, parts:s.parts, reasons:(s.reasons||[]).slice(0,3) });
+  });
+  out.sort((x, y) => y.total - x.total);
+  return { ranked: out, note:'这是本地算法的建议排序，你可以采纳也可以按自己的判断来' };
+}
+
+// ④ 读长期记忆
+function toolGetProfile(){
+  const p = state.profile;
+  const now = Date.now();
+  const recent = (p.history || []).filter(h => now - h.ts < 7*24*3600*1000)
+    .slice(-10).map(h => ({ dish_id:h.id, name:(dishById(h.id) || {}).name || h.id, days_ago: Math.floor((now - h.ts)/(24*3600*1000)), liked: h.liked }));
+  const top = (obj, n) => Object.entries(obj || {}).sort((a,b) => b[1] - a[1]).slice(0, n).map(([k,v]) => k + '×' + v);
+  return {
+    allergies: p.allergies || [],
+    tastes: p.tastes || [],
+    spice_max: state.spiceMax,
+    spice_text: (SPICE_NAMES[state.spiceMax] || ''),
+    default_tier: p.defaultTier || null,
+    city: CITY.name,
+    saved_addresses: (p.savedAddresses || []).slice(0, 5),
+    liked: top(p.likes, 8),
+    disliked: top(p.dislikes, 8),
+    ate_last_7_days: recent,
+    banned_today: bannedDishIds().map(id => (dishById(id) || {}).name || id),
+    memory: (p.memory || []).slice(-20).map(m => ({ kind:m.kind, text:m.text, ts:m.ts }))
+  };
+}
+
+// ⑤ 写一条记忆
+function toolRemember(a){
+  const args = a || {};
+  const text = String(args.text || '').trim();
+  if(!text) return { error:'text 不能为空' };
+  const p = state.profile;
+  if(!Array.isArray(p.memory)) p.memory = [];
+  if(p.memory.some(m => m.text === text)) return { ok:true, saved:false, note:'这条记忆已经有了，没有重复写' };
+  const item = { id:'m' + Date.now() + Math.floor(Math.random()*1000), kind: args.kind || 'preference',
+                 text, evidence: String(args.evidence || ''), ts: Date.now(), hits: 1, pinned:false };
+  p.memory.push(item);
+  if(p.memory.length > 100) p.memory = p.memory.slice(-100);
+  saveProfile();
+  const el = $('#devMemory'); if(el) el.textContent = JSON.stringify(state.profile, null, 2);
+  return { ok:true, saved:true, memory_id:item.id, total: p.memory.length };
+}
+
+// ⑥ 联网搜店
+async function toolSearchShops(a){
+  const args = a || {};
+  const kw = String(args.keyword || '').trim();
+  if(!kw) return { error:'keyword 不能为空' };
+  if(state.settings.online === 'off') return { error:'这台设备把联网检索关掉了（设置 › 联网搜索）' };
+  const radius = clamp(Number(args.radius_m) || 3000, 300, 10000);
+  const lim = clamp(Number(args.limit) || 12, 1, 20);
+  const origin = await agentOrigin();
+  let list = [], src = '';
+  if((state.settings.amapKey || '').trim() && Date.now() >= (state.amapDownUntil || 0)){
+    try{ list = await amapSearchByKeyword(kw, origin, radius); src = 'amap'; }
+    catch(e){ /* 落到 OSM */ }
+  }
+  if(!list.length){
+    try{
+      const near = await osmAround(origin, radius);
+      const hit = near.filter(sp => sp.name.indexOf(kw) !== -1 || (sp.cui || []).some(c => kw.indexOf(c) !== -1));
+      list = hit.length ? hit : near;
+      src = 'osm';
+    }catch(e){ /* 两个源都挂了 */ }
+  }
+  agentRememberShops(list);
+  const out = list.slice(0, lim).map(shopBrief);
+  return { keyword:kw, radius_m:radius, source: src || 'none', count: out.length, shops: out,
+           note: out.length ? '' : '这个关键词没搜到店，换个说法再搜一次（比如"水煮鱼"→"川菜"）' };
+}
+
+// ⑦ 周边有什么
+async function toolGetNearby(a){
+  const args = a || {};
+  if(state.settings.online === 'off') return { error:'这台设备把联网检索关掉了' };
+  const radius = clamp(Number(args.radius_m) || 2000, 300, 10000);
+  const lim = clamp(Number(args.limit) || 15, 1, 25);
+  const origin = await agentOrigin();
+  let list = [];
+  try{ list = await amapAround(origin, radius); }catch(e){}
+  if(!list.length){ try{ list = await osmAround(origin, radius); }catch(e){} }
+  agentRememberShops(list);
+  return { radius_m:radius, count: Math.min(list.length, lim), shops: list.slice(0, lim).map(shopBrief) };
+}
+
+// ⑧ 取采集到的真实菜单
+function toolGetShopMenu(a){
+  const id = String((a && a.shop_id) || '');
+  const c = agentCtx();
+  const sp = c.seenShop.get(id);
+  if(!sp) return { error:'shop_id「' + id + '」不在本次检索结果里，先 search_shops 再查菜单' };
+  const db = dbShopForCached(sp);
+  if(!db) return { shop_id:sp.id, name:sp.name, collected:false,
+                   note:'这家店还没采集过真实菜单，只能按菜系推断它做不做什么菜' };
+  const menu = (db.menu || []).map(m => ({ menu_name:m.name, price:m.price,
+                                           dish_id: m.dishId || null, in_kb: !!m.dishId }));
+  return { shop_id:sp.id, name:sp.name, collected:true,
+           scope: (dbScopeOf(db) === 'branch' ? '本店确认（实拍的这一家）' : '品牌参照（同品牌通用菜单）'),
+           collected_at: db.collectedAt || '', count: menu.length, menu: menu.slice(0, 80) };
+}
+
+// ⑨ 这道菜能去哪几家店
+async function toolListShopsForDish(a){
+  const args = a || {};
+  const dish = dishById(String(args.dish_id || ''));
+  if(!dish) return { error:'知识库里没有这个 dish_id：' + args.dish_id };
+  if(state.settings.online === 'off') return { error:'这台设备把联网检索关掉了' };
+  const radius = clamp(Number(args.radius_m) || 3500, 300, 10000);
+  const lim = clamp(Number(args.limit) || 8, 1, 20);
+  const origin = await agentOrigin();
+  const kws = [];
+  const byCui = CUI_SHOP_WORDS[dish.cui]; if(byCui && byCui.length) kws.push(byCui[0]);
+  kws.push(dish.name);
+  const pool = new Map();
+  for(const kw of kws.slice(0, 2)){
+    try{
+      const list = await amapSearchByKeyword(kw, origin, radius);
+      list.forEach(sp => { if(!pool.has(sp.id)) pool.set(sp.id, sp); });
+    }catch(e){ /* 单个关键词失败不影响另一个 */ }
+  }
+  const shops = [...pool.values()];
+  agentRememberShops(shops);
+  const canMake = shops.filter(sp => shopCanMake(sp, dish));
+  const use = canMake.length ? canMake : shops;
+  const list = use.map(sp => scoreRestaurant(sp, dish, {})).sort((x, y) => y.total - x.total).slice(0, lim)
+    .map(x => Object.assign(shopBrief(x.restaurant), { fit_score:x.total, why:(x.reasons || []).slice(0,3) }));
+  return { dish_id:dish.id, dish_name:dish.name, count:list.length, shops:list,
+           note: canMake.length ? '' : '没找到能确认做这道菜的店，这些是菜系相近的候选' };
+}
+
+// ⑩ 让本地引擎配一桌
+function toolBuildCombo(a){
+  const args = a || {};
+  const c = agentCtx();
+  const sp = c.seenShop.get(String(args.shop_id || ''));
+  if(!sp) return { error:'shop_id「' + args.shop_id + '」不在本次检索结果里' };
+  const dish = dishById(String(args.anchor_dish_id || ''));
+  if(!dish) return { error:'知识库里没有这个 dish_id：' + args.anchor_dish_id };
+  if(!pickTier()) return { error:'还没确定预算档位' };
+  // buildCombo 会参考 CANDIDATE_DISHES，把本次见过的菜（这家店能做的）喂给它
+  const seenOk = [...c.seenDish.values()].filter(d => shopCanMake(sp, d));
+  if(seenOk.length) CANDIDATE_DISHES = seenOk;
+  const combo = buildCombo(sp, dish);
+  /* 配出来的这一桌也是"工具真实返回的菜"，必须进白名单——
+   * 否则模型照着 build_combo 的结果去 finalize，会被闸门拦下（实测踩过这个坑）。 */
+  agentRememberDishes(combo.items.map(i => i.dish));
+  return {
+    shop_id: sp.id, shop_name: sp.name,
+    items: combo.items.map(i => ({ dish_id:i.dish.id, name:i.dish.name, role:i.role, price:i.dish.price, anchor:!!i.anchor })),
+    total: combo.total, per_person: combo.perPerson,
+    reasons: combo.reasons.slice(0, 4),
+    note:'这是本地引擎配的一桌，你可以直接 finalize，也可以按自己的想法增删（记得用真实存在的 dish_id）'
+  };
+}
+
+// ⑪ 提交终局：这里是防幻觉的闸门
+function toolFinalize(a){
+  const args = a || {};
+  const c = agentCtx();
+  const errors = [], warnings = [];
+  const sp = c.seenShop.get(String(args.shop_id || ''));
+  if(!sp) errors.push('shop_id「' + args.shop_id + '」不是前面工具真实返回过的店（不许自己编店名/店 ID）');
+  const items = [];
+  (Array.isArray(args.dishes) ? args.dishes : []).forEach(it => {
+    const id = String((it && it.dish_id) || '');
+    const d = dishById(id);
+    if(!d){ errors.push('dish_id「' + id + '」在知识库里不存在'); return; }
+    if(!c.seenDish.has(d.id)) errors.push('dish_id「' + d.id + ' ' + d.name + '」不是前面工具真实返回过的菜，请先 search_dishes 查它');
+    const f = hardFilter(d);
+    if(!f.ok) errors.push(d.name + '：' + f.why);
+    items.push({ dish:d, role:(it.role || d.role || 'single') });
+  });
+  if(!items.length) errors.push('一桌菜是空的');
+  if(sp){
+    const db = dbShopForCached(sp);
+    items.forEach(x => {
+      if(!shopCanMake(sp, x.dish)) errors.push('「' + sp.name + '」未必做「' + x.dish.name + '」：不在它能做的范围里');
+    });
+    if(db && items.some(x => !menuHasDish(db, x.dish))){
+      errors.push('这家店采集到的真实菜单里没有你点的某些菜（菜单是事实，换菜或换店）');
+    }
+  }
+  const total = items.reduce((n, x) => n + x.dish.price, 0);
+  const tier = pickTier();
+  if(tier){
+    const cap = Math.min(tier.max, state.budget);
+    if(total > cap + 10) errors.push('整桌合计 ¥' + total + ' 超过了「' + tier.name + '」的上限 ¥' + cap + '，去掉一两道再提交');
+    else if(total < tier.min) warnings.push('整桌 ¥' + total + ' 比「' + tier.name + '」的下限还低，可以再加点');
+  }
+  if(errors.length) return { ok:false, errors, warnings, hint:'按 errors 修正后重新 finalize；id 只能从前面工具返回的结果里取' };
+  const plan = { shop_id:sp.id, shop_name:sp.name, items: items.map(x => ({ dish_id:x.dish.id, name:x.dish.name, role:x.role, price:x.dish.price })),
+                 total, per_person: total, reason: String(args.reason || '') };
+  c.finalized = plan;
+  return { ok:true, plan };
+}
+
+/* 工具调度：名字 → 执行器。所有异常都变成 {error} 回给模型，不让它把整个流程带崩 */
+async function runTool(name, args){
+  const t0 = Date.now();
+  let out;
+  try{
+    switch(name){
+      case 'search_dishes':        out = toolSearchDishes(args); break;
+      case 'get_dish':             out = (() => { const d = dishById(String((args||{}).dish_id || '')); return d ? dishBrief(d) : { error:'没有这个 dish_id' }; })(); break;
+      case 'filter_dishes':        out = toolFilterDishes(args); break;
+      case 'rank_dishes':          out = toolRankDishes(args); break;
+      case 'get_profile':          out = toolGetProfile(); break;
+      case 'remember':             out = toolRemember(args); break;
+      case 'search_shops':         out = await toolSearchShops(args); break;
+      case 'get_nearby':           out = await toolGetNearby(args); break;
+      case 'get_shop_menu':        out = toolGetShopMenu(args); break;
+      case 'list_shops_for_dish':  out = await toolListShopsForDish(args); break;
+      case 'build_combo':          out = toolBuildCombo(args); break;
+      case 'finalize':             out = toolFinalize(args); break;
+      default:                     out = { error:'没有这个工具：' + name };
+    }
+  }catch(e){
+    out = { error:'工具执行失败：' + (e && e.message ? e.message : String(e)) };
+  }
+  return { out, ms: Date.now() - t0 };
+}
+
+/* Agent 的系统提示词：和⑨的润色提示词完全两码事——这个是"决策者" */
+const AGENT_SYSTEM_PROMPT =
+  '你是一名帮用户决定"今天吃什么、去哪家店"的美食决策智能体。你要自己动手查，而不是凭空回答。\n' +
+  '工作方式：\n' +
+  '1) 开局先调 get_profile，把忌口、口味偏好、最近吃过的读进来；\n' +
+  '2) 用 search_dishes 找菜。用户说得口语化（比如"奶奶做的味道"）就先自己翻译成菜系/食材/做法再查；' +
+  '查不到不要放弃，换个关键词再查一次；\n' +
+  '3) 用 search_shops 搜真实店铺，一个关键词一次。搜出来的店菜系不搭或者太远，就换词、或放半径再搜；' +
+  '用 get_shop_menu 查这家店采集到的真实菜单，确认它到底做不做得了这几道菜；\n' +
+  '4) 只能使用工具真实返回过的 dish_id 和 shop_id。自己编的 id 会被拒绝，浪费一轮；\n' +
+  '5) 一桌菜要像真去店里点单：主菜 +（素菜／汤／主食／饮品按档位取舍），合计别越过用户的档位上限；\n' +
+  '6) 省着用工具：search_shops 最多 2 次、list_shops_for_dish 最多 2 次、get_shop_menu 只查你打算去的店；' +
+  'build_combo 返回的一桌菜已经是真实 id，可以直接拿去 finalize，不用再回头查一遍；\n' +
+  '7) 查得差不多了就调 finalize 提交，不要无限查下去（整个流程最多 8 轮，用完就交不出方案了）。\n' +
+  '关于 food kind：rice=配米饭吃（配饭的菜都算），noodle=配面或粉吃，other=整份菜/小吃/火锅烧烤。\n' +
+  '回答用中文。中间思考可以简短，但最终必须通过工具（finalize）交付结果。';
+
+// 把当前表单压成给 Agent 的需求说明书
+function agentUserBrief(){
+  const tier = pickTier();
+  return JSON.stringify({
+    city: CITY.name,
+    address: state.address || null,
+    location: state.origin ? { lng:state.origin.lng, lat:state.origin.lat, label:state.origin.label } : null,
+    tier: tier ? { id:tier.id, name:tier.name, range:'¥' + tier.min + '-' + tier.max } : null,
+    budget_cap: state.budget,
+    food_kind: state.cat || null,
+    food_kind_name: state.cat ? catName(state.cat) : null,
+    craving_tags: state.craveTags,
+    craving_text: state.craveText,
+    dining: (state.mode === 'delivery' ? '外卖' : '堂食'),
+    period: currentPeriod().label,
+    ask: '请决定这一顿吃什么、去哪家店，按一桌菜给出来'
+  }, null, 1);
+}
+
+/* ------------------------------ 9d. Agent 循环（harness） ------------------------------
+ * 这就是"大模型主导决策"的那台发动机：
+ *   模型说要调哪个工具 → 本地真实执行 → 结果回灌 → 模型再想 → …… → finalize 收尾
+ * 三道保险：
+ *   ① 步数上限 AGENT_MAX_STEPS；② 单步超时；③ finalize 的 id 白名单（在 toolFinalize 里）
+ * 任何一步失败都返回 ok:false，由调用方决定是弹错还是退回算法引擎。 */
+async function agentRun(opts){
+  const o = opts || {};
+  const emit = o.onStep || function(){};
+  agentResetCtx();
+  const ctx = agentCtx();
+  const messages = [
+    { role:'system', content: AGENT_SYSTEM_PROMPT },
+    { role:'user', content: o.brief || agentUserBrief() }
+  ];
+  const log = [];
+  const usage = { prompt:0, completion:0 };
+  const push = rec => { log.push(rec); try{ emit(rec); }catch(e){} };
+
+  for(let step = 1; step <= AGENT_MAX_STEPS; step++){
+    ctx.steps = step;
+    let r;
+    try{
+      r = await llmChat(null, null, { messages, tools:AGENT_TOOLS, temperature:0.3,
+                                      maxTokens: o.maxTokens || 2048,
+                                      timeoutMs: o.timeoutMs || AGENT_TIMEOUT_MS });
+    }catch(err){
+      push({ type:'error', step, message: err.message });
+      return { ok:false, error: err.message, log, usage, ctx };
+    }
+    usage.prompt += (r.usage && r.usage.prompt) || 0;
+    usage.completion += (r.usage && r.usage.completion) || 0;
+    if(r.text || r.reasoning){
+      push({ type:'think', step, text:r.text, reasoning:r.reasoning, ms:r.ms });
+    }
+
+    // 模型没调工具：要么已经拿到方案，要么在裸聊——逼它走 finalize
+    if(!r.toolCalls.length){
+      if(ctx.finalized) return { ok:true, plan:ctx.finalized, log, usage, ctx };
+      messages.push({ role:'assistant', content: r.text || '' });
+      messages.push({ role:'user', content:'请通过 finalize 工具提交方案（shop_id / dishes 必须是前面工具返回过的 id）。' });
+      push({ type:'nudge', step });
+      continue;
+    }
+
+    messages.push({ role:'assistant', content: r.text || null, tool_calls: r.toolCalls });
+    for(const tc of r.toolCalls){
+      const name = (tc.function && tc.function.name) || '';
+      let args = {};
+      try{ args = JSON.parse((tc.function && tc.function.arguments) || '{}') || {}; }
+      catch(e){ args = {}; }
+      const { out, ms } = await runTool(name, args);
+      push({ type:'tool', step, name, args, out, ms });
+      messages.push({ role:'tool', tool_call_id: tc.id, name, content: JSON.stringify(out) });
+      if(name === 'finalize' && out && out.ok) {
+        return { ok:true, plan: out.plan, log, usage, ctx };
+      }
+    }
+  }
+  if(ctx.finalized) return { ok:true, plan:ctx.finalized, log, usage, ctx };
+  push({ type:'error', step:AGENT_MAX_STEPS, message:'步数用完了还没提交方案' });
+  return { ok:false, error:'步数用完了还没提交方案', log, usage, ctx };
+}
+
+/* 开发者面板里的自检：真发一次带 tools 的请求，把整条轨迹打出来。
+ * 这不是"演示动画"，每一步都是真的网络请求 + 真的本地执行。 */
+async function agentProbe(){
+  const box = $('#devAgent');
+  const lines = [];
+  const say = m => { lines.push(m); if(box) box.textContent = lines.join('\n'); };
+  if(state.settings.enabled !== 'on'){ say('❌ 先在设置里把「启用大模型」打开，并填好 Key。'); return; }
+  if(!String(state.settings.key || '').trim()){ say('❌ 还没填 API Key。'); return; }
+  if(state.running){ say('⏳ 上一次还在跑，等它结束。'); return; }
+  // 表单可能还没选完：给几个默认值，保证自检随时能跑
+  if(!state.tier) state.tier = 'small';
+  if(!state.cat) state.cat = 'rice';
+  if(!state.address) state.address = (CITY.landmarks && CITY.landmarks[0]) || CITY.name;
+
+  state.running = true;
+  const t0 = Date.now();
+  say('=== Agent 自检开始 ===');
+  say('模型：' + providerLabel() + ' · ' + state.settings.model);
+  say('需求：' + agentUserBrief().replace(/\n\s*/g, ' '));
+  say('工具数：' + AGENT_TOOLS.length + ' 个｜步数上限：' + AGENT_MAX_STEPS);
+  say('');
+  try{
+    const r = await agentRun({
+      onStep: rec => {
+        if(rec.type === 'think'){
+          if(rec.reasoning) say('🧠 思考：' + rec.reasoning.replace(/\s+/g, ' ').slice(0, 300));
+          if(rec.text) say('💬 说：' + rec.text.replace(/\s+/g, ' ').slice(0, 200));
+          if(!rec.reasoning && !rec.text) say('（本步没有文字，直接调工具）');
+          say('');
+        }else if(rec.type === 'tool'){
+          say('🔧 第 ' + rec.step + ' 步调工具：' + rec.name);
+          say('   参数：' + JSON.stringify(rec.args).slice(0, 300));
+          const summary = JSON.stringify(rec.out);
+          say('   返回（' + rec.ms + 'ms）：' + summary.slice(0, 400) + (summary.length > 400 ? ' …' : ''));
+          if(rec.out && rec.out.error) say('   ⚠️ ' + rec.out.error);
+          if(rec.out && rec.out.ok === false && rec.out.errors) say('   ⛔ 被闸门拦下：' + rec.out.errors.join('；'));
+          say('');
+        }else if(rec.type === 'nudge'){
+          say('↩️ 模型没提交方案，提醒它调 finalize（第 ' + rec.step + ' 步）');
+          say('');
+        }else if(rec.type === 'error'){
+          say('❌ 第 ' + rec.step + ' 步出错：' + rec.message);
+          say('');
+        }
+      }
+    });
+    const secs = ((Date.now() - t0)/1000).toFixed(1);
+    say('=== 结果 ===');
+    if(r.ok){
+      say('✅ 成功，用时 ' + secs + ' 秒｜token：输入 ' + r.usage.prompt + ' / 输出 ' + r.usage.completion);
+      say('店：' + r.plan.shop_name + '（' + r.plan.shop_id + '）');
+      say('一桌菜：' + r.plan.items.map(i => i.name + ' ¥' + i.price).join(' ＋ '));
+      say('合计 ¥' + r.plan.total);
+      if(r.plan.reason) say('理由：' + r.plan.reason);
+    }else{
+      say('❌ 没跑通：' + r.error + '（用时 ' + secs + ' 秒）');
+    }
+  }catch(err){
+    say('❌ 异常：' + (err && err.message ? err.message : String(err)));
+  }finally{
+    state.running = false;
+  }
+}
+
 /* ------------------------------ 10. 主流程编排 ------------------------------ */
 
 async function run(){
@@ -4673,8 +5397,8 @@ async function run(){
     rec.scored.slice(0,6).map(s=>({ dish:s.dish.name, total:s.total, parts:Object.fromEntries(Object.entries(s.parts).map(([k,v])=>[k,v.raw])) })),
     null, 2
   );
-  $('#devPrompt').textContent = SYSTEM_PROMPT;
-  $('#devTools').textContent = JSON.stringify(TOOL_SCHEMA, null, 2);
+  $('#devPrompt').textContent = '【⑨ 润色用·算法引擎】\n' + SYSTEM_PROMPT + '\n\n【Agent 模式·决策用】\n' + AGENT_SYSTEM_PROMPT;
+  $('#devTools').textContent = JSON.stringify(AGENT_TOOLS, null, 2);
   const audit = tagAudit();
   const dead = audit.filter(x => Object.keys(x.本类别命中).some(c => x.本类别命中[c] === 0));
   $('#devTags').textContent =
@@ -4979,10 +5703,20 @@ function init(){
       toast('❌ 失败：' + err.message.slice(0,60));
     }
   });
+  // Agent 自检：真发一次带工具定义的请求，看模型会不会自己调工具
+  const testAgentBtn = $('#testAgent');
+  if(testAgentBtn) testAgentBtn.addEventListener('click', async () => {
+    readSettingsUI();
+    testAgentBtn.disabled = true;
+    const old = testAgentBtn.textContent;
+    testAgentBtn.textContent = '跑着呢…（最多 8 步，可能要一两分钟）';
+    try{ await agentProbe(); }
+    finally{ testAgentBtn.disabled = false; testAgentBtn.textContent = old; }
+  });
 
   // 初始化开发者面板里的提示
-  $('#devPrompt').textContent = SYSTEM_PROMPT;
-  $('#devTools').textContent = JSON.stringify(TOOL_SCHEMA, null, 2);
+  $('#devPrompt').textContent = '【⑨ 润色用·算法引擎】\n' + SYSTEM_PROMPT + '\n\n【Agent 模式·决策用】\n' + AGENT_SYSTEM_PROMPT;
+  $('#devTools').textContent = JSON.stringify(AGENT_TOOLS, null, 2);
   $('#devMemory').textContent = JSON.stringify(state.profile, null, 2);
 
   // 默认体验：预填地址，降低上手门槛

@@ -20,13 +20,32 @@ const files = git('diff --name-only HEAD~1 HEAD').split('\n').map(s => s.trim())
 console.log('本地提交 ' + headSha.slice(0, 7) + '：' + headMsg.split('\n')[0]);
 console.log('涉及 ' + files.length + ' 个文件');
 
-async function api(url, opts = {}) {
-  const res = await fetch(API + url, { ...opts, headers: { ...H, ...(opts.headers || {}) } });
-  const txt = await res.text();
-  let json = null;
-  try { json = txt ? JSON.parse(txt) : null; } catch (e) { json = { raw: txt }; }
-  if (!res.ok) throw new Error(url + ' → HTTP ' + res.status + ' ' + (json && json.message ? json.message : ''));
-  return json;
+/* 国内到 api.github.com 经常抖（ECONNRESET / 400 malformed），所以每个请求都重试几次。
+ * 400 有时也是瞬时问题，一起重试；4xx 里只有认证类错误不必重试，但重试几次也无害。 */
+async function api(url, opts = {}, tries = 5) {
+  let lastErr = null;
+  for (let i = 1; i <= tries; i++) {
+    try {
+      const res = await fetch(API + url, { ...opts, headers: { ...H, ...(opts.headers || {}) } });
+      const txt = await res.text();
+      let json = null;
+      try { json = txt ? JSON.parse(txt) : null; } catch (e) { json = { raw: txt }; }
+      if (res.ok) return json;
+      const msg = url + ' → HTTP ' + res.status + ' ' + (json && json.message ? json.message : '');
+      // 认证/权限类错误重试没意义，直接抛
+      if (res.status === 401 || res.status === 403 || res.status === 404) throw new Error(msg);
+      lastErr = new Error(msg);
+    } catch (e) {
+      if (e.message && (e.message.includes('HTTP 401') || e.message.includes('HTTP 403') || e.message.includes('HTTP 404'))) throw e;
+      lastErr = e;
+    }
+    if (i < tries) {
+      const wait = 800 * i;
+      console.log('    第 ' + i + ' 次失败（' + (lastErr && lastErr.message ? lastErr.message.slice(0, 80) : lastErr) + '），' + wait + 'ms 后重试…');
+      await new Promise(r => setTimeout(r, wait));
+    }
+  }
+  throw lastErr;
 }
 
 // 远端当前状态
