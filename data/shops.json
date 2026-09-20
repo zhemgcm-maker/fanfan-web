@@ -1,11 +1,14 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-19",
+  "updatedAt": "2026-09-20",
   "shops": [
     {
       "id": "local-沙县小吃",
       "name": "沙县小吃",
       "city": "保定",
+      "scope": "brand",
+      "amapId": "",
+      "branchName": "",
       "confidence": "confirmed",
       "source": "自己拍菜单",
       "collectedAt": "2026-09-19",

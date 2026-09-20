@@ -1517,7 +1517,7 @@ const RESTAURANTS = [];
  * 数据库里的店也必须先和高德搜到的店对上号（按店名匹配）才会生效——
  * 它是给高德的店"补菜单"，不是另立一派店铺。 */
 /* SHOP_DB_BUILTIN:BEGIN —— 下面这一块由 开发脚本/build-data.mjs 自动写入，别手工改 */
-const SHOP_DB_BUILTIN = {"version":1,"updatedAt":"2026-09-19","shops":[{"id":"local-沙县小吃","name":"沙县小吃","city":"保定","confidence":"confirmed","source":"自己拍菜单","collectedAt":"2026-09-19","image":"沙县小吃.jpg","menu":[{"name":"千里香馄饨（小份）","price":7,"cat":"馄饨","dishId":"sx01","kbName":"千里香馄饨（小份）"},{"name":"千里香馄饨（大份）","price":10,"cat":"馄饨","dishId":"sx02","kbName":"千里香馄饨（大份）"},{"name":"一品蒸饺","price":6,"cat":"饺子","dishId":"sx03","kbName":"一品蒸饺"},{"name":"飘香拌面/粉","price":6,"cat":"面","dishId":"sx04","kbName":"飘香拌面/粉"},{"name":"葱油拌面/粉","price":6,"cat":"面","dishId":"sx05","kbName":"葱油拌面/粉"},{"name":"炸饺","price":10,"cat":"饺子","dishId":"sx06","kbName":"炸饺"},{"name":"炸馄饨","price":10,"cat":"馄饨","dishId":"sx07","kbName":"炸馄饨"},{"name":"花生酱拌馄饨","price":10,"cat":"馄饨","dishId":"sx08","kbName":"花生酱拌馄饨"},{"name":"上汤水饺（小份）","price":10,"cat":"饺子","dishId":"sx09","kbName":"上汤水饺（小份）"},{"name":"上汤水饺（大份）","price":15,"cat":"饺子","dishId":"sx10","kbName":"上汤水饺（大份）"},{"name":"老北京炸酱面","price":10,"cat":"面","dishId":"d23","kbName":"老北京炸酱面"},{"name":"炸酱面+鸡腿","price":16,"cat":"面","dishId":"sx11","kbName":"炸酱面+鸡腿"},{"name":"炸酱面+鸭腿","price":18,"cat":"面","dishId":"sx12","kbName":"炸酱面+鸭腿"},{"name":"炸酱面+大排","price":18,"cat":"面","dishId":"sx13","kbName":"炸酱面+大排"},{"name":"排骨汤","price":10,"cat":"汤","dishId":"sx14","kbName":"排骨汤"},{"name":"乌鸡汤","price":10,"cat":"汤","dishId":"sx15","kbName":"乌鸡汤"},{"name":"老鸭汤","price":10,"cat":"汤","dishId":"sw03","kbName":"老鸭汤"},{"name":"猪心汤","price":10,"cat":"汤","dishId":"sx16","kbName":"猪心汤"},{"name":"青菜面/粉","price":6,"cat":"面","dishId":"sx17","kbName":"青菜面/粉"},{"name":"馄饨面/粉","price":10,"cat":"面","dishId":"sx18","kbName":"馄饨面/粉"},{"name":"雪菜肉丝面/粉","price":10,"cat":"面","dishId":"sx19","kbName":"雪菜肉丝面/粉"},{"name":"鸡腿面/粉","price":12,"cat":"面","dishId":"sx20","kbName":"鸡腿面/粉"},{"name":"鸭腿面/粉","price":14,"cat":"面","dishId":"sx21","kbName":"鸭腿面/粉"},{"name":"西红柿鸡蛋盖浇饭","price":14,"cat":"盖浇饭","dishId":"sx22","kbName":"西红柿鸡蛋盖浇饭"},{"name":"青椒肉丝盖浇饭","price":15,"cat":"盖浇饭","dishId":"mg10","kbName":"青椒肉丝饭"},{"name":"土豆肉丝盖浇饭","price":15,"cat":"盖浇饭","dishId":"sx23","kbName":"土豆肉丝盖浇饭"},{"name":"香菇肉丝盖浇饭","price":15,"cat":"盖浇饭","dishId":"sx24","kbName":"香菇肉丝盖浇饭"},{"name":"回锅肉盖浇饭","price":16,"cat":"盖浇饭","dishId":"sx25","kbName":"回锅肉盖浇饭"},{"name":"爆炒牛肉盖浇饭","price":19,"cat":"盖浇饭","dishId":"sx26","kbName":"爆炒牛肉盖浇饭"},{"name":"豆干","price":1,"cat":"小吃","dishId":"sx27","kbName":"豆干"},{"name":"卤蛋","price":2,"cat":"小吃","dishId":"sx28","kbName":"卤蛋"},{"name":"热狗","price":2,"cat":"小吃","dishId":"f09","kbName":"热狗"},{"name":"狮子头","price":2,"cat":"小吃","dishId":"sx29","kbName":"狮子头"},{"name":"煎蛋","price":3,"cat":"小吃","dishId":"sx30","kbName":"煎蛋"},{"name":"鸭胗","price":8,"cat":"小吃","dishId":"sx31","kbName":"鸭胗"},{"name":"大排","price":8,"cat":"小吃","dishId":"sx32","kbName":"大排"},{"name":"狮子头饭","price":14,"cat":"饭","dishId":"sx33","kbName":"狮子头饭"},{"name":"鸭头饭","price":14,"cat":"饭","dishId":"sx34","kbName":"鸭头饭"},{"name":"鸡腿饭","price":14,"cat":"饭","dishId":"sx35","kbName":"鸡腿饭"},{"name":"鸭腿饭","price":16,"cat":"饭","dishId":"sx36","kbName":"鸭腿饭"},{"name":"大排饭","price":16,"cat":"饭","dishId":"sx37","kbName":"大排饭"},{"name":"红烧牛肉饭","price":18,"cat":"饭","dishId":"sx38","kbName":"红烧牛肉饭"},{"name":"猪脚饭","price":20,"cat":"饭","dishId":"sx39","kbName":"猪脚饭"},{"name":"排骨汤饭","price":17,"cat":"饭","dishId":"sx40","kbName":"排骨汤饭"},{"name":"乌鸡汤饭","price":17,"cat":"饭","dishId":"sx41","kbName":"乌鸡汤饭"},{"name":"老鸭汤饭","price":21,"cat":"饭","dishId":"sx42","kbName":"老鸭汤饭"},{"name":"猪心汤饭","price":17,"cat":"饭","dishId":"sx43","kbName":"猪心汤饭"},{"name":"鸡蛋炒饭/米粉/河粉","price":10,"cat":"饭","dishId":"sx44","kbName":"鸡蛋炒饭/米粉/河粉"},{"name":"香肠炒饭/米粉/河粉","price":12,"cat":"饭","dishId":"sx45","kbName":"香肠炒饭/米粉/河粉"},{"name":"肉丝炒饭/米粉/河粉","price":13,"cat":"饭","dishId":"sx46","kbName":"肉丝炒饭/米粉/河粉"},{"name":"鸡腿炒饭/面/米粉/河粉","price":16,"cat":"饭","dishId":"sx47","kbName":"鸡腿炒饭/面/米粉/河粉"},{"name":"鸭腿炒饭/面/米粉/河粉","price":18,"cat":"饭","dishId":"sx48","kbName":"鸭腿炒饭/面/米粉/河粉"},{"name":"牛肉炒饭/米粉/河粉","price":19,"cat":"饭","dishId":"sx49","kbName":"牛肉炒饭/米粉/河粉"}],"uncertain":[]}]};
+const SHOP_DB_BUILTIN = {"version":1,"updatedAt":"2026-09-20","shops":[{"id":"local-沙县小吃","name":"沙县小吃","city":"保定","scope":"brand","amapId":"","branchName":"","confidence":"confirmed","source":"自己拍菜单","collectedAt":"2026-09-19","image":"沙县小吃.jpg","menu":[{"name":"千里香馄饨（小份）","price":7,"cat":"馄饨","dishId":"sx01","kbName":"千里香馄饨（小份）"},{"name":"千里香馄饨（大份）","price":10,"cat":"馄饨","dishId":"sx02","kbName":"千里香馄饨（大份）"},{"name":"一品蒸饺","price":6,"cat":"饺子","dishId":"sx03","kbName":"一品蒸饺"},{"name":"飘香拌面/粉","price":6,"cat":"面","dishId":"sx04","kbName":"飘香拌面/粉"},{"name":"葱油拌面/粉","price":6,"cat":"面","dishId":"sx05","kbName":"葱油拌面/粉"},{"name":"炸饺","price":10,"cat":"饺子","dishId":"sx06","kbName":"炸饺"},{"name":"炸馄饨","price":10,"cat":"馄饨","dishId":"sx07","kbName":"炸馄饨"},{"name":"花生酱拌馄饨","price":10,"cat":"馄饨","dishId":"sx08","kbName":"花生酱拌馄饨"},{"name":"上汤水饺（小份）","price":10,"cat":"饺子","dishId":"sx09","kbName":"上汤水饺（小份）"},{"name":"上汤水饺（大份）","price":15,"cat":"饺子","dishId":"sx10","kbName":"上汤水饺（大份）"},{"name":"老北京炸酱面","price":10,"cat":"面","dishId":"d23","kbName":"老北京炸酱面"},{"name":"炸酱面+鸡腿","price":16,"cat":"面","dishId":"sx11","kbName":"炸酱面+鸡腿"},{"name":"炸酱面+鸭腿","price":18,"cat":"面","dishId":"sx12","kbName":"炸酱面+鸭腿"},{"name":"炸酱面+大排","price":18,"cat":"面","dishId":"sx13","kbName":"炸酱面+大排"},{"name":"排骨汤","price":10,"cat":"汤","dishId":"sx14","kbName":"排骨汤"},{"name":"乌鸡汤","price":10,"cat":"汤","dishId":"sx15","kbName":"乌鸡汤"},{"name":"老鸭汤","price":10,"cat":"汤","dishId":"sw03","kbName":"老鸭汤"},{"name":"猪心汤","price":10,"cat":"汤","dishId":"sx16","kbName":"猪心汤"},{"name":"青菜面/粉","price":6,"cat":"面","dishId":"sx17","kbName":"青菜面/粉"},{"name":"馄饨面/粉","price":10,"cat":"面","dishId":"sx18","kbName":"馄饨面/粉"},{"name":"雪菜肉丝面/粉","price":10,"cat":"面","dishId":"sx19","kbName":"雪菜肉丝面/粉"},{"name":"鸡腿面/粉","price":12,"cat":"面","dishId":"sx20","kbName":"鸡腿面/粉"},{"name":"鸭腿面/粉","price":14,"cat":"面","dishId":"sx21","kbName":"鸭腿面/粉"},{"name":"西红柿鸡蛋盖浇饭","price":14,"cat":"盖浇饭","dishId":"sx22","kbName":"西红柿鸡蛋盖浇饭"},{"name":"青椒肉丝盖浇饭","price":15,"cat":"盖浇饭","dishId":"mg10","kbName":"青椒肉丝饭"},{"name":"土豆肉丝盖浇饭","price":15,"cat":"盖浇饭","dishId":"sx23","kbName":"土豆肉丝盖浇饭"},{"name":"香菇肉丝盖浇饭","price":15,"cat":"盖浇饭","dishId":"sx24","kbName":"香菇肉丝盖浇饭"},{"name":"回锅肉盖浇饭","price":16,"cat":"盖浇饭","dishId":"sx25","kbName":"回锅肉盖浇饭"},{"name":"爆炒牛肉盖浇饭","price":19,"cat":"盖浇饭","dishId":"sx26","kbName":"爆炒牛肉盖浇饭"},{"name":"豆干","price":1,"cat":"小吃","dishId":"sx27","kbName":"豆干"},{"name":"卤蛋","price":2,"cat":"小吃","dishId":"sx28","kbName":"卤蛋"},{"name":"热狗","price":2,"cat":"小吃","dishId":"f09","kbName":"热狗"},{"name":"狮子头","price":2,"cat":"小吃","dishId":"sx29","kbName":"狮子头"},{"name":"煎蛋","price":3,"cat":"小吃","dishId":"sx30","kbName":"煎蛋"},{"name":"鸭胗","price":8,"cat":"小吃","dishId":"sx31","kbName":"鸭胗"},{"name":"大排","price":8,"cat":"小吃","dishId":"sx32","kbName":"大排"},{"name":"狮子头饭","price":14,"cat":"饭","dishId":"sx33","kbName":"狮子头饭"},{"name":"鸭头饭","price":14,"cat":"饭","dishId":"sx34","kbName":"鸭头饭"},{"name":"鸡腿饭","price":14,"cat":"饭","dishId":"sx35","kbName":"鸡腿饭"},{"name":"鸭腿饭","price":16,"cat":"饭","dishId":"sx36","kbName":"鸭腿饭"},{"name":"大排饭","price":16,"cat":"饭","dishId":"sx37","kbName":"大排饭"},{"name":"红烧牛肉饭","price":18,"cat":"饭","dishId":"sx38","kbName":"红烧牛肉饭"},{"name":"猪脚饭","price":20,"cat":"饭","dishId":"sx39","kbName":"猪脚饭"},{"name":"排骨汤饭","price":17,"cat":"饭","dishId":"sx40","kbName":"排骨汤饭"},{"name":"乌鸡汤饭","price":17,"cat":"饭","dishId":"sx41","kbName":"乌鸡汤饭"},{"name":"老鸭汤饭","price":21,"cat":"饭","dishId":"sx42","kbName":"老鸭汤饭"},{"name":"猪心汤饭","price":17,"cat":"饭","dishId":"sx43","kbName":"猪心汤饭"},{"name":"鸡蛋炒饭/米粉/河粉","price":10,"cat":"饭","dishId":"sx44","kbName":"鸡蛋炒饭/米粉/河粉"},{"name":"香肠炒饭/米粉/河粉","price":12,"cat":"饭","dishId":"sx45","kbName":"香肠炒饭/米粉/河粉"},{"name":"肉丝炒饭/米粉/河粉","price":13,"cat":"饭","dishId":"sx46","kbName":"肉丝炒饭/米粉/河粉"},{"name":"鸡腿炒饭/面/米粉/河粉","price":16,"cat":"饭","dishId":"sx47","kbName":"鸡腿炒饭/面/米粉/河粉"},{"name":"鸭腿炒饭/面/米粉/河粉","price":18,"cat":"饭","dishId":"sx48","kbName":"鸭腿炒饭/面/米粉/河粉"},{"name":"牛肉炒饭/米粉/河粉","price":19,"cat":"饭","dishId":"sx49","kbName":"牛肉炒饭/米粉/河粉"}],"uncertain":[]}]};
 /* SHOP_DB_BUILTIN:END */
 
 /* ===== 「今日想吃」标签跟着第 2 步的类型联动 =====
@@ -1825,15 +1825,27 @@ function saveSettings(){
 
 /* ------------------------------ 2b. 商家数据库 ------------------------------ */
 
-const SHOP_DB = { loaded:false, from:'', shops:[], index:new Map() };
+const SHOP_DB = { loaded:false, from:'', shops:[], byAmapId:new Map(), byBranch:new Map(), byBrand:new Map() };
 const _dbShopCache = new Map();
 
-// 店名归一化：去掉括号里的分店名/规格，去掉空格和常见后缀，方便"沙县小吃"对上"沙县小吃(裕华路店)"
+function dbScopeOf(s){ return (s && s.scope) || ((s && s.amapId) ? 'branch' : 'brand'); }
+function amapIdOf(shop){ return String((shop && shop.id) || '').replace(/^amap-/, ''); }
+// 城市名归一化：库里可能写"保定"，页面里是"保定市"，去掉后缀再比
+function normCityName(n){ return String(n || '').replace(/[市区县]$/, ''); }
+
+/* 店名归一化分两档，这是"本店确认"能不能精确的关键：
+ *   normShopName  —— 完整店名，保留分店名（"沙县小吃(时代店)" → "沙县小吃时代"），用来精确匹配同一家分店
+ *   normShopBrand —— 品牌名，去掉括号里的分店名（"沙县小吃(裕华路店)" → "沙县小吃"），用来做品牌级共享
+ * 之前只留了一个"品牌名"，结果"时代店"和"裕华路店"被当成同一家，本店确认就失效了。 */
 function normShopName(n){
   return String(n || '')
+    .replace(/[（）()\s·・\-—]/g, '')
+    .replace(/(分店|店|总店)$/, '');
+}
+function normShopBrand(n){
+  return String(n || '')
     .replace(/（.*?）|\(.*?\)/g, '')
-    .replace(/[（）()]/g, '')
-    .replace(/[\s·・\-—]/g, '')
+    .replace(/[（）()\s·・\-—]/g, '')
     .replace(/(分店|店|总店)$/, '');
 }
 /* 菜名归一化：和 build-data.mjs 保持一致。
@@ -1846,12 +1858,29 @@ function normDishName(n){
     .replace(/米粉|河粉|米线/g, '粉');
 }
 function buildShopDbIndex(){
-  SHOP_DB.index = new Map();
+  SHOP_DB.byAmapId = new Map();
+  SHOP_DB.byBranch = new Map();
+  SHOP_DB.byBrand = new Map();
   (SHOP_DB.shops || []).forEach(s => {
-    const k = normShopName(s.name);
-    if(!k) return;
-    if(!SHOP_DB.index.has(k)) SHOP_DB.index.set(k, []);
-    SHOP_DB.index.get(k).push(s);
+    if(s.amapId) SHOP_DB.byAmapId.set(String(s.amapId), s);
+    if(dbScopeOf(s) === 'branch'){
+      const k = normShopName(s.name);      // 带分店名的完整名字
+      if(k){
+        if(!SHOP_DB.byBranch.has(k)) SHOP_DB.byBranch.set(k, []);
+        SHOP_DB.byBranch.get(k).push(s);
+      }
+      // 本店确认的店同时可以作为"同名品牌"的兜底（比如就采了楼下这一家，别的分店也能参考）
+      const b = normShopBrand(s.name);
+      if(b){
+        if(!SHOP_DB.byBrand.has(b)) SHOP_DB.byBrand.set(b, []);
+        SHOP_DB.byBrand.get(b).push(s);
+      }
+    }else{
+      const b = normShopBrand(s.name);
+      if(!b) return;
+      if(!SHOP_DB.byBrand.has(b)) SHOP_DB.byBrand.set(b, []);
+      SHOP_DB.byBrand.get(b).push(s);
+    }
   });
   _dbShopCache.clear();
 }
@@ -1868,17 +1897,39 @@ async function loadShopDb(){
   SHOP_DB.loaded = true;
 }
 
-/* 高德搜到的店 → 数据库里的那家店。匹配不上就返回 null（那就还按老办法靠菜系推断）。 */
+/* 高德搜到的店 → 数据库里的那份菜单。四级匹配，越来越宽松：
+ *   ① 高德 ID 精确命中        → 本店确认（某一家分店实拍的那份）
+ *   ② 完整店名精确命中        → 本店确认（库里存的是带分店名的名字）
+ *   ③ 品牌名精确命中 + 同城    → 品牌参照（同品牌同名分店共用，价格是参考值）
+ *   ④ 品牌名是店名的一部分 + 同城 → 品牌参照（"沙县小吃" ⊂ "沙县小吃辰然小吃店"）
+ * 跨城市不共用：保定拍的菜单不会拿去给北京/福州的店用。
+ * 全都匹配不上就返回 null —— 那就回到老办法（按菜系推断）。 */
 function dbShopFor(shop){
   if(!SHOP_DB.loaded || !shop || !shop.name) return null;
+  const id = amapIdOf(shop);
+  if(id && SHOP_DB.byAmapId.has(id)) return SHOP_DB.byAmapId.get(id);
+
   const key = normShopName(shop.name);
   if(!key) return null;
-  const exact = SHOP_DB.index.get(key);
-  if(exact && exact.length) return exact[0];
-  // 放宽一档：库里的店名是高德店名的一部分（或反过来），比如"沙县小吃"↔"沙县小吃粥铺"
-  for(const [k, arr] of SHOP_DB.index){
+
+  // ② 完整店名一致 → 本店确认
+  const branch = SHOP_DB.byBranch.get(key);
+  if(branch && branch.length) return branch[0];
+
+  // ③④ 品牌名匹配（同城）
+  const brandKey = normShopBrand(shop.name);
+  const sameCity = arr => arr.filter(s => !s.city || normCityName(s.city) === normCityName(CITY.name));
+  const brand = brandKey ? SHOP_DB.byBrand.get(brandKey) : null;
+  if(brand && brand.length){
+    const hit = sameCity(brand);
+    if(hit.length) return hit[0];
+  }
+  for(const [k, arr] of SHOP_DB.byBrand){
     if(k.length < 3) continue;
-    if(key.indexOf(k) !== -1 || k.indexOf(key) !== -1) return arr[0];
+    if(brandKey && (brandKey.indexOf(k) !== -1 || k.indexOf(brandKey) !== -1)){
+      const hit = sameCity(arr);
+      if(hit.length) return hit[0];
+    }
   }
   return null;
 }
@@ -3897,11 +3948,16 @@ function altCardHtml(c, i){
 function menuBadge(shop){
   const db = dbShopForCached(shop);
   if(db){
+    const isBranch = dbScopeOf(db) === 'branch';
     return '<div class="meta" style="margin-top:6px">' +
-      '<span class="badge" style="background:#fff4e6;border-color:#ffd9a8;color:#a35a00">📋 真实菜单</span> ' +
+      '<span class="badge" style="background:#fff4e6;border-color:#ffd9a8;color:#a35a00">📋 ' +
+        (isBranch ? '本店确认' : '品牌参照') + '</span> ' +
       '<span style="opacity:.8">已采集 ' + dbMenuSize(db) + ' 道菜' +
-      (db.collectedAt ? '（' + esc(db.collectedAt) + '）' : '') +
-      '，这家店能不能做某道菜是确定的</span></div>';
+      (db.collectedAt ? '（' + esc(db.collectedAt) + '）' : '') + '，' +
+      (isBranch
+        ? '菜单和价格都是这家店实拍的，能做/不能做是确定的'
+        : '参照同品牌其他分店采集，能不能做菜基本准，价格可能各家不同') +
+      '</span></div>';
   }
   return '<div class="meta" style="margin-top:6px;opacity:.72">' +
     '菜单未采集：这一桌是按菜系和店铺类型推断的，建议去之前打电话确认</div>';
@@ -3909,7 +3965,9 @@ function menuBadge(shop){
 // 备选卡片里用的短句
 function menuSourceText(shop){
   const db = dbShopForCached(shop);
-  return db ? ('已采集 ' + dbMenuSize(db) + ' 道（真实菜单）') : '未采集（按菜系推断）';
+  if(!db) return '未采集（按菜系推断）';
+  return (dbScopeOf(db) === 'branch' ? '本店确认 ' : '品牌参照 ') + dbMenuSize(db) + ' 道' +
+    (dbScopeOf(db) === 'branch' ? '' : '（价格每家可能不同）');
 }
 
 function renderResult(combo, meal, extra, online){
@@ -4949,8 +5007,12 @@ function init(){
       el.textContent = shops.length
         ? ('数据源：' + (SHOP_DB.from === 'file' ? 'data/shops.json（可自行修改）' : '页面内置快照（用 file:// 打开时读不到本地 json）') + '\n' +
            '已采集 ' + shops.length + ' 家店 / ' + dishes + ' 道菜\n\n' +
-           shops.map(s => '· ' + s.name + '（' + (s.menu || []).length + ' 道，' + (s.collectedAt || '') + ' 采集）').join('\n') +
-           '\n\n作用：只在"这家店能不能做这道菜"上把推断换成事实；不参与挑店，也不会给这些店加分。')
+           shops.map(s => '· ' + s.name + '（' + (dbScopeOf(s) === 'branch' ? '本店确认' : '品牌参照') +
+             ' · ' + (s.menu || []).length + ' 道 · ' + (s.collectedAt || '') + ' 采集' +
+             (s.amapId ? ' · 绑定高德ID ' + s.amapId : '') + '）').join('\n') +
+           '\n\n本店确认 = 在这家分店实拍并用高德ID精确绑定，只对这一家生效；' +
+           '品牌参照 = 同品牌同名分店共用，跨城市不共享。\n' +
+           '作用：只在"这家店能不能做这道菜"上把推断换成事实；不参与挑店，也不会给这些店加分。')
         : '还没有采集任何菜单。把菜单照片放进「商家数据库」文件夹，跑一次采集脚本即可。';
     }
   }).catch(() => {});

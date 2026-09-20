@@ -61,6 +61,13 @@ for(const f of files){
     id: 'local-' + path.basename(f, '.json'),
     name: p.shop || path.basename(f, '.json'),
     city: p.city || '保定',
+    /* scope 决定这份菜单的作用范围：
+     *   branch = 本店确认（在某一家分店实拍，amapId 精确绑定，只对那一家生效）
+     *   brand  = 品牌参照（同品牌同名分店共用，价格标成参考价；跨城市不共享）
+     * 没写 scope 时：绑了 amapId 就算本店确认，否则算品牌参照。 */
+    scope: p.scope || (p.amapId ? 'branch' : 'brand'),
+    amapId: p.amapId || '',
+    branchName: p.branchName || '',
     confidence: 'confirmed',              // confirmed = 菜单是实际采集来的，不是推断
     source: p.source || '自己拍菜单',
     collectedAt: p.collectedAt || '',

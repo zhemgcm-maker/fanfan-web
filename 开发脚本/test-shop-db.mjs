@@ -30,7 +30,7 @@ async function mockFetch(url){
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY};')
+  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch);
 const D = globalThis.__D;
 
@@ -101,6 +101,40 @@ ok(canNoodle.every(v => v === true) || canNoodle.every(v => v === false),
    '它的能做/不能做完全取决于菜单（本轮 ' + canNoodle.filter(Boolean).length + '/' + canNoodle.length + ' 能做）');
 const menuDishes = D.dbMenuDishes(dbShop);
 ok(menuDishes.length === (dbShop.menu || []).length, '菜单 ' + (dbShop.menu || []).length + ' 道全部能在知识库里找到对应菜品（' + menuDishes.length + ' 道）');
+
+console.log('\n=== 八、本店确认 / 品牌参照 / 跨城市 的匹配优先级 ===');
+{
+  // 构造一个"沙县小吃：品牌参照保定 + 时代店本店确认"的库
+  D.SHOP_DB.shops = [
+    { id:'local-brand',  name:'沙县小吃',         city:'保定', scope:'brand',  collectedAt:'2026-09-19',
+      menu:[{ name:'千里香馄饨（小份）', price:7, dishId:'sx01' }] },
+    { id:'local-branch', name:'沙县小吃(时代店)', city:'保定', scope:'branch', amapId:'B0H06MD6IH', collectedAt:'2026-09-20',
+      menu:[{ name:'千里香馄饨（小份）', price:9, dishId:'sx01' }] }
+  ];
+  D.buildShopDbIndex();
+  D.applyCity('baoding');
+
+  const byId = D.dbShopFor({ id:'amap-B0H06MD6IH', name:'沙县小吃(时代店)' });
+  ok(byId && byId.id === 'local-branch', '① 高德ID 命中 → 用本店确认那份（¥9）');
+
+  const idByName = D.dbShopFor({ id:'amap-XXXXXXXX', name:'沙县小吃(时代店)' });
+  ok(idByName && idByName.id === 'local-branch', '② 没ID但完整店名一致 → 也是本店确认');
+
+  const otherBranch = D.dbShopFor({ id:'amap-OTHER', name:'沙县小吃(裕华路店)' });
+  ok(otherBranch && otherBranch.id === 'local-brand', '③ 别的分店 → 退到品牌参照（¥7，价格标参考）');
+
+  D.applyCity('beijing');
+  const beijing = D.dbShopFor({ id:'amap-BJ', name:'沙县小吃(王府井店)' });
+  ok(beijing === null, '④ 跨城市不共用：保定的菜单不会给北京的店用');
+
+  D.applyCity('baoding');
+  const unrelated = D.dbShopFor({ id:'amap-X', name:'兰州牛肉面' });
+  ok(unrelated === null, '⑤ 不相干的店不会被误配');
+
+  // 恢复真实数据库，别影响后面的断言
+  await D.loadShopDb();
+  ok(D.dbScopeOf(D.SHOP_DB.shops[0]) === 'brand', '⑥ 现有那份沙县菜单是"品牌参照"（还没绑定到具体分店）');
+}
 
 console.log('\n' + (fail ? '❌ 失败 ' + fail + ' 项' : '✅ 商家数据库（补菜单不改偏好）全部通过'));
 process.exit(fail ? 1 : 0);
