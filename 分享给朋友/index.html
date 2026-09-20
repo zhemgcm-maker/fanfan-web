@@ -504,12 +504,53 @@
     </div>
   </div>
 
+  <div class="me-title">我的账号</div>
+  <div class="me-card">
+    <!-- 未登录：注册 / 登录。账号在后端，登录后口味、忌口、设置跟着账号走，换设备也能恢复 -->
+    <div class="me-block" id="acctGuestBlock">
+      <div class="me-label"><span class="l-icon">☁️</span>登录账号（跨设备同步）</div>
+      <div class="me-hint">登录后：忌口、口味、设置都记在账号上，换手机也能恢复；不登录也能正常用，只是数据只在这台设备。</div>
+      <label class="field" for="acctUserTop">用户名</label>
+      <input type="text" id="acctUserTop" placeholder="2-20 个字符" autocomplete="username">
+      <label class="field" for="acctPassTop">密码</label>
+      <input type="password" id="acctPassTop" placeholder="至少 4 位" autocomplete="current-password">
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btnLoginTop">登录</button>
+        <button class="btn ghost" id="btnRegisterTop">注册新账号</button>
+      </div>
+      <p class="note" id="acctTopMsg">第一次用点「注册新账号」；之前注册过的直接填账号密码登录。</p>
+    </div>
+    <!-- 已登录 -->
+    <div class="me-block hidden" id="acctUserBlock">
+      <div class="me-label"><span class="l-icon">✅</span>已登录</div>
+      <div class="profile-grid">
+        <div class="p-box">
+          <div class="p-title">账号</div>
+          <div class="p-val" id="acctWho">—</div>
+        </div>
+        <div class="p-box">
+          <div class="p-title">同步状态</div>
+          <div class="p-val" id="acctSyncState">—</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost small" id="btnSyncTop">立即同步</button>
+        <button class="btn ghost small" id="btnLogoutTop">退出登录</button>
+      </div>
+      <p class="note">忌口、口味、设置会自动同步到这个账号；换手机登录同一个账号就能恢复。</p>
+    </div>
+  </div>
+
   <div class="me-title">我的口味</div>
   <div class="me-card">
     <div class="me-block">
       <div class="me-label"><span class="l-icon">🚫</span>忌口 / 过敏</div>
       <div class="me-hint">选中的食材会被硬性过滤，任何推荐都不会出现它们</div>
       <div class="chips" id="allergyList"></div>
+      <div class="row" style="margin-top:12px;align-items:center">
+        <button class="btn small" id="saveAllergy">💾 保存忌口</button>
+        <span class="note" id="allergyState" style="margin:0"></span>
+      </div>
     </div>
     <div class="me-block">
       <div class="me-label"><span class="l-icon">❤️</span>口味偏好</div>
@@ -598,27 +639,7 @@
       <input type="text" id="apiBase" placeholder="留空 = 纯本机模式">
       <p class="note" id="serverStatus">正在检查…</p>
 
-      <div id="serverLogin" style="border-top:1px dashed var(--line);padding-top:12px">
-        <label class="field" for="acctUser">账号</label>
-        <input type="text" id="acctUser" placeholder="用户名 2-20 个字符" autocomplete="username">
-        <label class="field" for="acctPass">密码</label>
-        <input type="password" id="acctPass" placeholder="至少 4 位" autocomplete="current-password">
-        <div class="row" style="margin-top:10px">
-          <button class="btn" id="btnLogin">登录</button>
-          <button class="btn ghost" id="btnRegister">注册新账号</button>
-        </div>
-      </div>
-
-      <div id="serverMe" class="hidden" style="border-top:1px dashed var(--line);padding-top:12px">
-        <div class="p-box">
-          <div class="p-title">当前身份</div>
-          <div class="p-val" id="meWho">—</div>
-        </div>
-        <div class="row" style="margin-top:10px">
-          <button class="btn ghost" id="btnSync">立即同步</button>
-          <button class="btn ghost" id="btnLogout">退出登录</button>
-        </div>
-      </div>
+      <p class="note">登录/注册在上面「我的账号」那张卡里；这里只放技术参数。</p>
 
       <label class="field" for="useServerLlm" style="margin-top:14px">大模型走哪条路</label>
       <select id="useServerLlm">
@@ -1928,6 +1949,7 @@ const state = {
    *   llmTools —— 后端 /api/llm 透不透传 function calling（决定 Agent 用原生还是文字协议） */
   identity:{ type:'guest' },
   server:{ amapOk:null, amapReason:'', llmTools:null, checkedAt:0, note:'' },
+  _allergySaved:[],        // 上一次保存的忌口快照（用来判断"有改动还没保存"）
   lastResult:null,
   seed:1,
   reroll:0,            // 「换一批」点了多少次：用来轮换饭店，保证点一次真的换一家
@@ -1951,6 +1973,7 @@ function loadStore(){
       state.profile.tastes = Array.isArray(p.tastes) ? p.tastes : [];
       state.profile.history = Array.isArray(p.history) ? p.history : [];
       state.profile.savedAddresses = Array.isArray(p.savedAddresses) ? p.savedAddresses : [];
+      state._allergySaved = state.profile.allergies.slice();   // 开机时的忌口就是"已保存"状态
       // 屏蔽记录：只保留 24 小时内的，顺手清掉过期项
       const ban = (p.banned && typeof p.banned === 'object') ? p.banned : {};
       const keepFresh = obj => { const out = {}; const now = Date.now();
@@ -1970,6 +1993,7 @@ function loadStore(){
 }
 function saveProfile(){
   try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+  state._allergySaved = (state.profile.allergies || []).slice();
   syncToServer('/api/profile', { profile:state.profile });
 }
 function saveSettings(){
@@ -2031,7 +2055,51 @@ const _syncTimers = {};
 function syncToServer(path, body){
   if(state.identity.type !== 'user' || !getToken() || !apiBase()) return;
   clearTimeout(_syncTimers[path]);
-  _syncTimers[path] = setTimeout(() => { apiCall(path, { method:'PUT', body }).catch(()=>{}); }, 1200);
+  _syncTimers[path] = setTimeout(() => {
+    apiCall(path, { method:'PUT', body })
+      .then(() => { state.server.lastSync = Date.now(); renderAccountUI(); })
+      .catch(()=>{});
+  }, 1200);
+}
+/* 显式保存（忌口那个「保存」按钮）：立刻写本机，并且立刻推后端——不等 1.2 秒的防抖。
+ * 返回一句能直接 toast 的话，让用户明确知道"存到哪儿了"。 */
+async function saveProfileNow(){
+  state._allergySaved = (state.profile.allergies || []).slice();
+  try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+  const n = (state.profile.allergies || []).length;
+  if(state.identity.type !== 'user' || !getToken() || !apiBase()){
+    return '已保存在本机：' + (n ? n + ' 项忌口' : '没有忌口') + '（登录账号后可以同步到云端）';
+  }
+  try{
+    await apiCall('/api/profile', { method:'PUT', body:{ profile:state.profile } });
+    state.server.lastSync = Date.now();
+    renderAccountUI();
+    return '✅ 已保存到账号「' + state.identity.username + '」：' + (n ? n + ' 项忌口' : '没有忌口');
+  }catch(err){
+    return '⚠️ 本机已保存，但同步到账号失败：' + err.message.slice(0, 40);
+  }
+}
+/* 安全网：用户点了忌口但没按「保存」就离开（去推荐、切页面、关页面），别把选择丢了。
+ * 静默存本机 + 立刻推后端（不走防抖）：切页/关页这种时刻，1.2 秒的防抖很可能永远等不到，
+ * 所以用 keepalive 直接发出去。显式确认还是留给「保存忌口」。 */
+function flushAllergyIfDirty(){
+  const cur = (state.profile.allergies || []).slice().sort().join(',');
+  const saved = (state._allergySaved || []).slice().sort().join(',');
+  if(cur === saved) return false;
+  saveProfile();
+  pushProfileNow();
+  return true;
+}
+/* 不等防抖，立刻把 profile 推后端；keepalive 让"页面正在关闭"时请求也能发完 */
+function pushProfileNow(){
+  if(state.identity.type !== 'user' || !getToken() || !apiBase()) return;
+  try{
+    fetch(apiBase() + '/api/profile', {
+      method:'PUT', keepalive:true,
+      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + getToken() },
+      body: JSON.stringify({ profile: state.profile })
+    }).then(() => { state.server.lastSync = Date.now(); }).catch(()=>{});
+  }catch(e){ /* 后端不通就算了，本机已经存了 */ }
 }
 
 /* 登录/注册 → 拉服务端数据。服务端为空就把本机的推上去（第一次登录不该把本地偏好弄丢）。 */
@@ -2043,6 +2111,7 @@ async function pullServerData(){
     state.profile = Object.assign({}, state.profile, prof.profile);
     prof.profile.memory = state.profile.memory || [];    // 记忆条目本机优先，别被空值顶掉
     try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+    state._allergySaved = (state.profile.allergies || []).slice();   // 登录后：这个账号的忌口就是已保存状态
     pulled.push('口味画像');
   }
   if(sett && sett.settings && typeof sett.settings === 'object'){
@@ -2058,6 +2127,7 @@ async function pullServerData(){
     await apiCall('/api/settings', { method:'PUT', body:{ settings:state.settings } }).catch(()=>{});
     return '首次登录：已把本机偏好上传到服务端';
   }
+  state.server.lastSync = Date.now();
   return '已从服务端同步：' + pulled.join('、');
 }
 
@@ -3833,7 +3903,9 @@ function renderChips(){
     b.onclick = () => {
       const i = state.profile.allergies.indexOf(t);
       if(i === -1) state.profile.allergies.push(t); else state.profile.allergies.splice(i,1);
-      saveProfile(); renderChips(); renderProfile();
+      /* 点一下先只改本地状态（不立刻落盘），让「保存忌口」按钮去显式确认——
+       * 这样用户能看见"有改动还没保存"，也知道自己存到哪个账号了。 */
+      renderChips(); renderProfile(); renderAllergyState();
     };
     allergy.appendChild(b);
   });
@@ -4113,6 +4185,7 @@ function renderProfile(){
 const SPICE_NAMES = ['完全不吃辣', '微辣可以', '中辣没问题', '无辣不欢'];
 
 function switchTab(name){
+  if(name !== 'me') flushAllergyIfDirty();
   $('#pageHome').classList.toggle('hidden', name !== 'home');
   $('#pageMe').classList.toggle('hidden', name !== 'me');
   $('#tabHome').classList.toggle('active', name === 'home');
@@ -4857,6 +4930,48 @@ function renderSettingsUI(){
 }
 
 // 后端与账号那一栏的状态渲染
+/* 用户层那张「我的账号」卡：未登录 → 登录表单；已登录 → 账号 + 同步状态。
+ * 技术参数（后端地址、通道开关、自检）留在下面的「后端与账号」里，两边不重复。 */
+function renderAccountUI(){
+  const on = state.identity.type === 'user';
+  const guest = $('#acctGuestBlock'), user = $('#acctUserBlock');
+  if(guest) guest.classList.toggle('hidden', on);
+  if(user) user.classList.toggle('hidden', !on);
+  if($('#acctWho')) $('#acctWho').textContent = on
+    ? (state.identity.username + '（' + String(state.identity.id || '').slice(0, 8) + '…）')
+    : '—';
+  const st = $('#acctSyncState');
+  if(st){
+    if(!on) st.textContent = '未登录（数据只在本机）';
+    else st.textContent = state.server.lastSync
+      ? ('已同步 · ' + new Date(state.server.lastSync).toLocaleTimeString('zh-CN'))
+      : '已登录 · 还没同步过';
+  }
+  const nameEl = document.querySelector('.mh-name');
+  if(nameEl) nameEl.textContent = on ? state.identity.username : '干饭人';
+  renderAllergyState();
+}
+
+/* 忌口那行的状态提示：告诉用户"这是谁的忌口、存没存、同步没同步"。
+ * 以前改一下就默默存了，用户根本不知道自己存了没有，也不知道登录后算谁的。 */
+function renderAllergyState(){
+  const el = $('#allergyState');
+  if(!el) return;
+  const cur = (state.profile.allergies || []).slice().sort();
+  const saved = (state._allergySaved || []).slice().sort();
+  const dirty = cur.join(',') !== saved.join(',');
+  const on = state.identity.type === 'user';
+  const who = on ? ('账号「' + state.identity.username + '」') : '本机';
+  const n = cur.length;
+  if(dirty){
+    el.textContent = '有改动还没保存 · 当前 ' + (n ? (n + ' 项忌口') : '没有忌口') + '（' + who + '）';
+  }else{
+    el.textContent = (n ? ('已保存 ' + n + ' 项忌口') : '已保存：没有忌口') + '（' + who +
+      (on ? '' : '，登录后可同步到账号') + '）';
+  }
+  el.style.color = dirty ? 'var(--warn, #e8542c)' : '';
+}
+
 function renderServerUI(){
   const s = state.settings;
   const baseEl = $('#apiBase');
@@ -4865,11 +4980,7 @@ function renderServerUI(){
   if($('#useServerLlm')) $('#useServerLlm').value = s.useServerLlm || 'auto';
   if($('#useServerAmap')) $('#useServerAmap').value = s.useServerAmap || 'auto';
   const on = state.identity.type === 'user';
-  if($('#serverLogin')) $('#serverLogin').classList.toggle('hidden', on);
-  if($('#serverMe')) $('#serverMe').classList.toggle('hidden', !on);
-  if($('#meWho')) $('#meWho').textContent = on
-    ? (state.identity.username + '（' + String(state.identity.id).slice(0, 8) + '…）')
-    : '—';
+  renderAccountUI();
   const parts = [];
   parts.push(apiBase() ? ('后端：' + apiBase().replace(/^https?:\/\//,'')) : '后端：未配置（纯本机模式）');
   parts.push(on ? '账号：已登录' : '账号：未登录');
@@ -5973,6 +6084,7 @@ async function runAgentFlow(){
 /* ------------------------------ 10. 主流程编排 ------------------------------ */
 
 async function run(){
+  flushAllergyIfDirty();          // 有没保存的忌口先落盘，别让用户忘了点保存就丢
   if(!state.tier || !state.cat || state.running) return;
   // 没选城市就先提醒去设置（城市决定搜哪个城市的店）
   if(!state.profile.city){
@@ -6457,35 +6569,51 @@ function init(){
   /* ---- 后端与账号 ---- */
   const doAuth = async (kind, btn) => {
     readSettingsUI();
-    const u = $('#acctUser') ? $('#acctUser').value : '';
-    const p = $('#acctPass') ? $('#acctPass').value : '';
+    const u = $('#acctUserTop') ? $('#acctUserTop').value : '';
+    const p = $('#acctPassTop') ? $('#acctPassTop').value : '';
     const old = btn.textContent;
     btn.disabled = true; btn.textContent = kind === 'register' ? '注册中…' : '登录中…';
     try{
       const msg = await loginOrRegister(kind, u, p);
-      if($('#acctPass')) $('#acctPass').value = '';
+      if($('#acctPassTop')) $('#acctPassTop').value = '';
       await loadShopDb().catch(()=>{});
-      renderSettingsUI(); renderProfile(); renderChips(); renderSpiceSeg(); renderTierSeg();
-      toast('✅ ' + (kind === 'register' ? '注册成功' : '登录成功') + '：' + msg);
+      renderSettingsUI(); renderProfile(); renderChips(); renderSpiceSeg(); renderTierSeg(); renderAccountUI();
+      const nm = (state.profile.allergies || []).length;
+      toast('✅ ' + (kind === 'register' ? '注册成功' : '登录成功') + '：' + msg +
+            '（这个账号的忌口：' + (nm ? nm + ' 项' : '暂无') + '）');
     }catch(err){
-      toast('❌ ' + err.message.slice(0, 60));
-      renderServerUI();
+      // 409 = 用户名已被注册过，直接引导去登录，别让用户一脸问号
+      const taken = /409|已存在|已注册|duplicate/i.test(err.message);
+      const m = taken ? '这个名字已经注册过了，直接点「登录」就行' : err.message.slice(0, 60);
+      toast('❌ ' + m);
+      if($('#acctTopMsg')) $('#acctTopMsg').textContent = taken
+        ? '这个用户名之前注册过——填同样的密码点「登录」，就能拿回你之前的忌口和口味。'
+        : ('出错了：' + err.message.slice(0, 80));
+      renderAccountUI();
     }finally{ btn.disabled = false; btn.textContent = old; }
   };
-  if($('#btnLogin')) $('#btnLogin').addEventListener('click', e => doAuth('login', e.currentTarget));
-  if($('#btnRegister')) $('#btnRegister').addEventListener('click', e => doAuth('register', e.currentTarget));
-  if($('#btnLogout')) $('#btnLogout').addEventListener('click', () => {
+  if($('#btnLoginTop')) $('#btnLoginTop').addEventListener('click', e => doAuth('login', e.currentTarget));
+  if($('#btnRegisterTop')) $('#btnRegisterTop').addEventListener('click', e => doAuth('register', e.currentTarget));
+  if($('#btnLogoutTop')) $('#btnLogoutTop').addEventListener('click', () => {
     readSettingsUI();
     logoutAccount();
-    renderSettingsUI();
+    renderSettingsUI(); renderAccountUI();
     toast('已退出登录，接下来只用本机数据');
   });
-  if($('#btnSync')) $('#btnSync').addEventListener('click', async e => {
+  if($('#btnSyncTop')) $('#btnSyncTop').addEventListener('click', async e => {
     const b = e.currentTarget, old = b.textContent;
     b.disabled = true; b.textContent = '同步中…';
     try{ toast('✅ ' + await pullServerData()); }
     catch(err){ toast('❌ 同步失败：' + err.message.slice(0, 50)); }
-    finally{ b.disabled = false; b.textContent = old; renderSettingsUI(); }
+    finally{ b.disabled = false; b.textContent = old; renderSettingsUI(); renderChips(); renderProfile(); renderAccountUI(); }
+  });
+  // 忌口「保存」按钮：显式落盘 + 立刻同步到账号 + 明确告诉用户存到哪了
+  if($('#saveAllergy')) $('#saveAllergy').addEventListener('click', async e => {
+    const b = e.currentTarget, old = b.textContent;
+    b.disabled = true; b.textContent = '保存中…';
+    try{ toast(await saveProfileNow()); }
+    catch(err){ toast('❌ 保存失败：' + err.message.slice(0, 50)); }
+    finally{ b.disabled = false; b.textContent = old; renderAllergyState(); renderAccountUI(); }
   });
   if($('#btnSelfCheck')) $('#btnSelfCheck').addEventListener('click', async e => {
     readSettingsUI();
@@ -6548,6 +6676,10 @@ function init(){
         : '还没有采集任何菜单。把菜单照片放进「商家数据库」文件夹，跑一次采集脚本即可。';
     }
   }).catch(() => {});
+}
+
+if(typeof document !== 'undefined' && document.addEventListener){
+  document.addEventListener('visibilitychange', () => { if(document.hidden) flushAllergyIfDirty(); });
 }
 
 init();

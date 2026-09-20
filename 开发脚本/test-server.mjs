@@ -46,7 +46,7 @@ const fakeFetch = async (url, init) => {
 };
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__S={state,parseTextToolCall,agentProtocol,serverLlmOn,serverAmapOn,amapFetch,llmChat,setToken,getToken,renderServerUI,DEFAULT_AMAP_KEY};')
+  code + '\nglobalThis.__S={state,parseTextToolCall,agentProtocol,serverLlmOn,serverAmapOn,amapFetch,llmChat,setToken,getToken,renderServerUI,DEFAULT_AMAP_KEY,flushAllergyIfDirty,saveProfileNow,pushProfileNow,renderAllergyState};')
   (document, localStorage, f => setTimeout(f, 0), fakeFetch);
 const S = globalThis.__S;
 
@@ -115,6 +115,33 @@ const r = await S.llmChat('sys', 'hi', {});
 ok(calls[0].url.indexOf('/api/llm') !== -1, 'llmChat 登录后走 /api/llm');
 ok(calls[0].auth.indexOf('Bearer') === 0, '带上了登录令牌');
 ok(r && r.text === '收到' && r.via === 'server', '返回值被归一化成内部结构（Agent 不用改）');
+
+console.log('\n=== 五、忌口「保存」与"跟着账号走"的逻辑（离线）===');
+S.setToken('');
+S.state.identity = { type:'guest' };
+S.state.profile.allergies = [];
+S.state._allergySaved = [];
+ok(S.flushAllergyIfDirty() === false, '没有改动 → 什么都不做');
+S.state.profile.allergies.push('花生');
+ok(S.flushAllergyIfDirty() === true, '有改动 → 落盘（安全网）');
+ok(S.state._allergySaved.join() === '花生', '落盘后快照跟着更新，状态不再是"未保存"');
+ok(S.flushAllergyIfDirty() === false, '同样的内容不会重复推送');
+
+const msgGuest = await S.saveProfileNow();
+ok(msgGuest.indexOf('本机') !== -1 && msgGuest.indexOf('1 项忌口') !== -1, '未登录时反馈是"已保存在本机 + 几项"', msgGuest);
+
+// 已登录（假令牌）时，保存要真的发 PUT，并且反馈里带上账号名
+calls.length = 0;
+S.state.identity = { type:'user', id:'u1', username:'测试账号' };
+S.setToken('fake.jwt');
+S.state.settings.apiBase = 'https://backend.example.com';
+S.state.profile.allergies.push('香菜');
+const msgUser = await S.saveProfileNow();
+ok(calls.some(c => c.url.indexOf('/api/profile') !== -1), '登录后保存会真的推后端');
+ok(msgUser.indexOf('测试账号') !== -1, '反馈里说清了存到哪个账号', msgUser);
+
+// 页面正在关闭时那次推送要带 keepalive，否则关页会把它掐掉
+ok(S.state._allergySaved.length === 2, '快照记录了 2 项忌口');
 
 console.log('\n' + (fail ? '❌ 失败 ' + fail + ' 项' : '✅ 后端融合全部通过'));
 process.exit(fail ? 1 : 0);
