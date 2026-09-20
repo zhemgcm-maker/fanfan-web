@@ -30,7 +30,7 @@ async function mockFetch(url){
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,get CITY(){return CITY}};')
+  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,cuisineRefFor,dishById,menuSourceText,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch);
 const D = globalThis.__D;
 
@@ -147,6 +147,45 @@ console.log('\n=== 八、本店确认 / 品牌参照 / 跨城市 的匹配优先
      '⑦ 女掌柜土家菜馆是本店确认（高德ID ' + (realNz ? realNz.amapId : '—') + '，菜单 ' + (realNz ? realNz.menu.length : 0) + ' 条）');
   ok(D.dbShopFor({ id:'amap-B0FFGWFUGT', name:'女掌柜土家菜馆' }) === realNz, '⑧ 高德ID 精确命中这家店');
   ok(D.dbShopFor({ id:'amap-NOPE', name:'女掌柜火烧' }) === null, '⑨ 名字像的别家店不会被误配（那家是火烧铺）');
+}
+
+console.log('\n=== 九、菜系参照（同城同菜系借菜单，只做加法）===');
+{
+  await D.loadShopDb();
+  D.state.profile.city = 'baoding';
+  try{ D.applyCity('baoding'); }catch(e){}
+
+  const chuanShop = { id:'amap-CQ1', name:'老重庆江湖菜馆', cui:['川'], tags:['川菜','麻辣'], sig:[], online:true };
+  const yueShop   = { id:'amap-Y1',  name:'老广粤菜馆',    cui:['粤'], tags:['粤菜'],     sig:[], online:true };
+  const nzShop    = { id:'amap-B0FFGWFUGT', name:'女掌柜土家菜馆', cui:['川'], tags:['川菜'], sig:[], online:true };
+
+  const ref = D.cuisineRefFor(chuanShop);
+  ok(!!(ref && ref.name.indexOf('女掌柜') !== -1), '川菜馆没采集过 → 借到同城「女掌柜」的菜单当参考');
+  ok(D.cuisineRefFor(yueShop) === null, '粤菜馆借不到（菜系对不上）');
+  ok(D.cuisineRefFor(nzShop) === null, '自己已经有本店确认菜单 → 不用借参照');
+
+  const chuanDish = D.dishById('cq45');    // 干锅肥肠（川）
+  const homeDish  = D.dishById('cq64');    // 空心菜（家常：菜单里有，但参照不跨菜系）
+  const tagless   = D.dishById('cq43');    // 粉蒸格格肉（川：标签跟"川菜"没交集，只有靠参照才认）
+  const notOnRef  = D.dishById('cn05');    // 藤椒鱼（川，但女掌柜菜单里没有）
+  /* 参照只认同菜系的菜：川菜馆借了这份菜单也不会"会做湘菜/家常菜"，
+   * 否则"店与菜按菜系对口"这条底线就破了（菜单里有道湘菜「农家一碗香」）。 */
+  ok(D.shopCanMake(chuanShop, homeDish) === false, '参照不跨菜系：川菜馆不会因为菜单里有空心菜就"会做"它');
+  /* 因果验证：把粉蒸格格肉的标签清空 → 靠"菜系+标签"推不出来，只有参照能把它认下来 */
+  const noTag = Object.assign({}, tagless, { tags: [] });
+  const plainChuan = { id:'amap-T1', name:'测试川菜馆', cui:['川'], tags:['川菜'], sig:[] };
+  const plainYue   = { id:'amap-T2', name:'测试粤菜馆', cui:['粤'], tags:['粤菜'], sig:[] };
+  ok(D.menuHasDish(ref, tagless) === true, '粉蒸格格肉（川）在这份参考菜单里');
+  ok(D.restaurantServes(plainChuan, noTag) === true, '同菜系：标签推不出来时，参照把这道川菜认下来了');
+  ok(D.restaurantServes(plainYue, noTag) === false, '换菜系：粤菜馆不认这道川菜');
+  ok(D.shopCanMake(yueShop, chuanDish) === false, '粤菜馆不会因为库里有川菜菜单就"能做川菜"');
+  /* 最关键的一条：参照不是封闭菜单——菜单里没有的菜，菜系对得上照样能做。
+   * 如果哪天有人把菜系参照接成 shopMenuSource，别的川菜馆会被锁死成这份菜单，这条就会红。 */
+  ok(D.menuHasDish(ref, notOnRef) === false, '藤椒鱼确实不在参照菜单里');
+  ok(D.shopCanMake(chuanShop, notOnRef) === true, '但川菜馆依然能做它（菜系推断照旧，没被锁死）');
+  ok(D.shopCanMake(nzShop, notOnRef) === false, '女掌柜自己有菜单 → 藤椒鱼不在菜单里就是不能做（封闭集合）');
+  ok(D.menuSourceText(chuanShop).indexOf('菜系参照') === 0 && D.menuSourceText(yueShop).indexOf('未采集') === 0,
+     '备选卡片文案区分开了：川菜馆「' + D.menuSourceText(chuanShop) + '」/ 粤菜馆「' + D.menuSourceText(yueShop) + '」');
 }
 
 console.log('\n' + (fail ? '❌ 失败 ' + fail + ' 项' : '✅ 商家数据库（补菜单不改偏好）全部通过'));

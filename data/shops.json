@@ -9,6 +9,9 @@
       "scope": "branch",
       "amapId": "B0FFGWFUGT",
       "branchName": "女掌柜土家菜馆",
+      "cuisineRef": [
+        "川"
+      ],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-20",
@@ -675,6 +678,7 @@
       "scope": "brand",
       "amapId": "",
       "branchName": "",
+      "cuisineRef": [],
       "confidence": "confirmed",
       "source": "自己拍菜单",
       "collectedAt": "2026-09-19",

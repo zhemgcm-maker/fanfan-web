@@ -483,5 +483,9 @@
   ],
   "scope": "branch",
   "amapId": "B0FFGWFUGT",
-  "branchName": "女掌柜土家菜馆"
+  "branchName": "女掌柜土家菜馆",
+  "cuisineRef": [
+    "川"
+  ],
+  "cuisineRefNote": "这份菜单同时给同城的川菜/重庆菜馆当参照（别的店没采集过菜单时用）——只做加法，不当封闭菜单。"
 }

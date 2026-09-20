@@ -77,6 +77,10 @@ for(const f of files){
     scope: p.scope || (p.amapId ? 'branch' : 'brand'),
     amapId: p.amapId || '',
     branchName: p.branchName || '',
+    /* cuisineRef：这份菜单还愿意给哪些菜系当参照（同城、别的店没采集过时用）。
+     * 例：女掌柜土家菜馆 cuisineRef:['川'] —— 保定的川菜馆没采集过菜单时，
+     * 可以拿它当"这类店通常有什么菜"的参考。只做加法，不当封闭菜单。 */
+    cuisineRef: p.cuisineRef || [],
     confidence: 'confirmed',              // confirmed = 菜单是实际采集来的，不是推断
     source: p.source || '自己拍菜单',
     collectedAt: p.collectedAt || '',
