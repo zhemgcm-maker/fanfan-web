@@ -587,6 +587,55 @@
 
   <div class="me-title">联网与模型设置</div>
 
+  <!-- 后端与账号（阿里云 FC）-->
+  <details id="serverCard">
+    <summary>☁️ 后端与账号（Key 不落前端 · 跨设备同步）</summary>
+    <div class="body">
+      <p class="note" style="margin-top:0">后端是朋友搭的阿里云函数计算：<b>大模型 Key 和高德 Key 都留在服务端</b>，页面里不再明文带 Key；登录后口味、忌口、设置还能跨设备同步。
+      后端连不上或登录态过期时，会自动回退成本机直连（下面那张卡里填的 Key），不影响使用。</p>
+
+      <label class="field" for="apiBase">后端地址</label>
+      <input type="text" id="apiBase" placeholder="留空 = 纯本机模式">
+      <p class="note" id="serverStatus">正在检查…</p>
+
+      <div id="serverLogin" style="border-top:1px dashed var(--line);padding-top:12px">
+        <label class="field" for="acctUser">账号</label>
+        <input type="text" id="acctUser" placeholder="用户名 2-20 个字符" autocomplete="username">
+        <label class="field" for="acctPass">密码</label>
+        <input type="password" id="acctPass" placeholder="至少 4 位" autocomplete="current-password">
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="btnLogin">登录</button>
+          <button class="btn ghost" id="btnRegister">注册新账号</button>
+        </div>
+      </div>
+
+      <div id="serverMe" class="hidden" style="border-top:1px dashed var(--line);padding-top:12px">
+        <div class="p-box">
+          <div class="p-title">当前身份</div>
+          <div class="p-val" id="meWho">—</div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn ghost" id="btnSync">立即同步</button>
+          <button class="btn ghost" id="btnLogout">退出登录</button>
+        </div>
+      </div>
+
+      <label class="field" for="useServerLlm" style="margin-top:14px">大模型走哪条路</label>
+      <select id="useServerLlm">
+        <option value="auto">登录就走后端（推荐，Key 不落前端）</option>
+        <option value="off">强制本机直连（用我自己填的 Key）</option>
+      </select>
+      <label class="field" for="useServerAmap">高德走哪条路</label>
+      <select id="useServerAmap">
+        <option value="auto">后端优先，不可用自动回退本机（推荐）</option>
+        <option value="off">强制本机直连</option>
+      </select>
+
+      <button class="btn ghost small" id="btnSelfCheck" style="margin-top:12px">跑一次后端自检</button>
+      <pre class="code" id="serverCheckOut" style="margin-top:10px">还没跑过自检。它会依次测：账号、大模型代理、function calling 透传、高德代理。</pre>
+    </div>
+  </details>
+
   <!-- 大模型接入 -->
   <details id="llmCard">
     <summary>🔌 大模型接入（DeepSeek 已配置）</summary>
@@ -1790,7 +1839,13 @@ function hasOfflineData(){ return !!CITY.offline && RESTAURANTS.length > 0; }
 const LS_PROFILE = 'eatAgent.profile.v1';
 const LS_SETTINGS = 'eatAgent.settings.v1';
 const LS_CRAVEPARSE = 'eatAgent.craveparse.v1';   // "用一句话说说"的解析缓存（同一句话不重复调大模型）
-const SETTINGS_VERSION = 6;   // 换默认服务商 / 内置 Key / 新增设置项时递增，避免浏览器里存的旧配置把新默认值顶掉
+const LS_TOKEN = 'eatAgent.token.v1';             // 后端账号的 JWT
+const LS_IDENTITY = 'eatAgent.identity.v1';       // 当前身份（游客 / 已登录用户）
+const SETTINGS_VERSION = 7;   // 换默认服务商 / 内置 Key / 新增设置项时递增，避免浏览器里存的旧配置把新默认值顶掉
+
+/* 后端（阿里云函数计算 FC）：把两个 Key 藏到服务端 + 账号跨设备同步。
+ * 留空 = 纯本地模式，直接用下面那两个内置 Key（离线也能跑）。 */
+const DEFAULT_API_BASE = 'https://fanfan-web-qpznnriewb.cn-hangzhou.fcapp.run';
 
 // 服务商预设（均为 OpenAI 兼容的 /chat/completions 接口）
 const PROVIDERS = {
@@ -1862,7 +1917,17 @@ const state = {
                 'agent' = Agent 模式（默认）：大模型自己调工具——读记忆、搜菜、反复搜店、查菜单，最后 finalize
                 'off'   = 算法引擎（兜底）：本地规则全程决策，大模型只在②b解析和⑨润色出现
                 没网／没 Key／额度用完时，不管这个值是什么，都会自动走算法引擎 */
-             agent:'agent' },
+             agent:'agent',
+             /* 后端：'auto' = 登录了就走后端代理（Key 不落前端）；'off' = 强制本机直连。
+              * 高德那个还有一层保险：后端 Key 不可用时会自动回退本机直连，不会把搜店搞崩。 */
+             apiBase: DEFAULT_API_BASE, useServerLlm:'auto', useServerAmap:'auto' },
+  /* 后端账号 + 后端代理状态。
+   * identity.type：'guest' = 只用本机；'user' = 登录了后端账号（口味/忌口/设置会同步到服务端）
+   * server：后端能力的实测结果（null = 还没测过）
+   *   amapOk   —— 后端那个高德 Key 能不能用（不行就自动回退直连）
+   *   llmTools —— 后端 /api/llm 透不透传 function calling（决定 Agent 用原生还是文字协议） */
+  identity:{ type:'guest' },
+  server:{ amapOk:null, amapReason:'', llmTools:null, checkedAt:0, note:'' },
   lastResult:null,
   seed:1,
   reroll:0,            // 「换一批」点了多少次：用来轮换饭店，保证点一次真的换一家
@@ -1905,9 +1970,167 @@ function loadStore(){
 }
 function saveProfile(){
   try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+  syncToServer('/api/profile', { profile:state.profile });
 }
 function saveSettings(){
   try{ localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings)); }catch(e){}
+  syncToServer('/api/settings', { settings:state.settings });
+}
+
+/* ------------------------------ 2c. 后端（阿里云 FC）与账号 ------------------------------
+ * 后端提供四件事：
+ *   ① /api/llm       大模型代理    —— DeepSeek Key 留在服务端，前端不再明文带 Key
+ *   ② /api/amap      高德代理      —— 高德 Key 同样留在服务端
+ *   ③ /api/register /api/login     —— 账号（服务端发 JWT）
+ *   ④ /api/profile /api/settings   —— 口味/忌口/设置跨设备同步
+ * 两条底线：后端挂了不影响用；后端 Key 不可用自动回退本机直连。 */
+
+function apiBase(){ return String((state.settings && state.settings.apiBase) || '').trim().replace(/\/+$/, ''); }
+function getToken(){ try{ return localStorage.getItem(LS_TOKEN) || ''; }catch(e){ return ''; } }
+function setToken(t){ try{ t ? localStorage.setItem(LS_TOKEN, t) : localStorage.removeItem(LS_TOKEN); }catch(e){} }
+function saveIdentity(){ try{ localStorage.setItem(LS_IDENTITY, JSON.stringify(state.identity)); }catch(e){} }
+function loadIdentity(){
+  try{
+    const s = JSON.parse(localStorage.getItem(LS_IDENTITY) || 'null');
+    if(s && s.type === 'user' && s.id && s.username) state.identity = { type:'user', id:s.id, username:s.username };
+  }catch(e){ state.identity = { type:'guest' }; }
+}
+
+async function apiCall(path, opts){
+  const o = opts || {};
+  const base = apiBase();
+  if(!base) throw new Error('还没配置后端地址');
+  const headers = Object.assign({ 'Content-Type':'application/json' }, o.headers || {});
+  const t = getToken();
+  if(t) headers.Authorization = 'Bearer ' + t;
+  const res = await fetchWithTimeout(base + path, {
+    method: o.method || 'GET', headers,
+    body: o.body ? JSON.stringify(o.body) : undefined
+  }, o.timeoutMs || 30000);
+  let data = null;
+  try{ data = await res.json(); }catch(e){}
+  if(!res.ok){
+    const hint = res.status === 401 ? '（没登录或登录已过期）' : (res.status === 502 ? '（后端代理上游失败）' : '');
+    const e = new Error(((data && (data.error || data.message)) || ('HTTP ' + res.status)) + hint);
+    e.status = res.status;
+    throw e;
+  }
+  return data;
+}
+
+// 走不走后端：登录了 + 地址在 + 没被显式关掉
+function serverLlmOn(){ return !!apiBase() && state.settings.useServerLlm !== 'off' && !!getToken(); }
+// 高德：后端上次明确不可用（amapOk === false）就不再试，免得每次都白等一轮
+function serverAmapOn(){ return !!apiBase() && state.settings.useServerAmap !== 'off' && state.server.amapOk !== false; }
+function identityLabel(){ return state.identity.type === 'user' ? ('已登录：' + state.identity.username) : '未登录（只用本机）'; }
+
+/* 把本机数据推到后端：失败静默——断网/后端没开也不能影响本地使用。
+ * 定时器按路径分桶：profile 和 settings 差不多同时变（比如改一次偏好会连带存设置），
+ * 共用一个定时器会把先到的那次吞掉，导致"改了却没同步上去"。 */
+const _syncTimers = {};
+function syncToServer(path, body){
+  if(state.identity.type !== 'user' || !getToken() || !apiBase()) return;
+  clearTimeout(_syncTimers[path]);
+  _syncTimers[path] = setTimeout(() => { apiCall(path, { method:'PUT', body }).catch(()=>{}); }, 1200);
+}
+
+/* 登录/注册 → 拉服务端数据。服务端为空就把本机的推上去（第一次登录不该把本地偏好弄丢）。 */
+async function pullServerData(){
+  const prof = await apiCall('/api/profile').catch(() => null);
+  const sett = await apiCall('/api/settings').catch(() => null);
+  let pulled = [];
+  if(prof && prof.profile && typeof prof.profile === 'object'){
+    state.profile = Object.assign({}, state.profile, prof.profile);
+    prof.profile.memory = state.profile.memory || [];    // 记忆条目本机优先，别被空值顶掉
+    try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+    pulled.push('口味画像');
+  }
+  if(sett && sett.settings && typeof sett.settings === 'object'){
+    const keepKey = state.settings.key, keepAmap = state.settings.amapKey, keepBase = state.settings.apiBase;
+    state.settings = Object.assign({}, state.settings, sett.settings);
+    // Key 是本机的事，服务端不存也不覆盖
+    state.settings.key = keepKey; state.settings.amapKey = keepAmap; state.settings.apiBase = keepBase;
+    try{ localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings)); }catch(e){}
+    pulled.push('设置');
+  }
+  if(!pulled.length){                                    // 服务端还是空的 → 把本机推上去
+    await apiCall('/api/profile', { method:'PUT', body:{ profile:state.profile } }).catch(()=>{});
+    await apiCall('/api/settings', { method:'PUT', body:{ settings:state.settings } }).catch(()=>{});
+    return '首次登录：已把本机偏好上传到服务端';
+  }
+  return '已从服务端同步：' + pulled.join('、');
+}
+
+async function loginOrRegister(kind, username, password){
+  const u = String(username || '').trim();
+  if(kind === 'register' && (u.length < 2 || u.length > 20)) throw new Error('用户名需 2-20 个字符');
+  if(kind === 'register' && String(password || '').length < 4) throw new Error('密码至少 4 位');
+  const data = await apiCall('/api/' + kind, { method:'POST', body:{ username:u, password:String(password || '') }, timeoutMs:20000 });
+  setToken(data.token);
+  state.identity = { type:'user', id:(data.user && data.user.id) || '', username:(data.user && data.user.username) || u };
+  saveIdentity();
+  return pullServerData();
+}
+
+function logoutAccount(){
+  setToken(''); state.identity = { type:'guest' }; saveIdentity();
+}
+
+/* 后端自检：一次把三件事测清楚——账号、大模型代理、高德代理，
+ * 顺带测出 /api/llm 到不到底透传 function calling（决定 Agent 用原生还是文字协议）。 */
+async function serverSelfCheck(){
+  const out = [];
+  const base = apiBase();
+  if(!base){ out.push('❌ 没填后端地址'); return out.join('\n'); }
+  out.push('后端：' + base);
+  if(!getToken()) out.push('⚠️ 还没登录：大模型代理需要登录（口味同步也要）');
+
+  // ① 大模型代理（顺带探测 tools）
+  if(getToken()){
+    try{
+      const r = await apiCall('/api/llm', { method:'POST', timeoutMs:90000, body:{
+        model: state.settings.model, temperature:0.3, max_tokens:32,
+        messages:[{ role:'user', content:'只回两个字：收到' }]
+      }});
+      out.push('✅ 大模型代理可用（' + (r.model || '?') + '，' + (r.ms || '?') + 'ms）');
+    }catch(e){ out.push('❌ 大模型代理失败：' + e.message); }
+
+    try{
+      const r = await apiCall('/api/llm', { method:'POST', timeoutMs:90000, body:{
+        model: state.settings.model, temperature:0.3, max_tokens:128, tool_choice:'auto',
+        tools:[{ type:'function', function:{ name:'ping_tool', description:'测试工具',
+                parameters:{ type:'object', properties:{ ok:{ type:'boolean' } }, required:['ok'] } } }],
+        messages:[{ role:'user', content:'必须调用 ping_tool 工具，参数 ok=true，不要直接回答。' }]
+      }});
+      const has = !!(r.tool_calls && r.tool_calls.length);
+      state.server.llmTools = has;
+      out.push(has
+        ? '✅ 后端透传 function calling → Agent 用原生工具协议'
+        : '⚠️ 后端把 tools 丢了（只回 ' + JSON.stringify(String(r.text || '').slice(0, 40)) +
+          '）→ Agent 自动改用文字工具协议（还是大模型决策，只是工具调用走 JSON 文本）');
+    }catch(e){ state.server.llmTools = null; out.push('⚠️ tools 探测失败：' + e.message); }
+  }
+
+  // ② 高德代理
+  try{
+    const j = await apiCall('/api/amap', { method:'POST', timeoutMs:20000, body:{ path:'/v3/geocode/geo', params:{ address:'保定万博广场' } } });
+    if(String(j.status) === '1' && j.geocodes && j.geocodes.length){
+      state.server.amapOk = true; state.server.amapReason = '';
+      out.push('✅ 高德代理可用（拿到 ' + j.geocodes[0].location + '）');
+    }else{
+      state.server.amapOk = false;
+      state.server.amapReason = (j.info || '高德返回异常') + (j.infocode ? ' [' + j.infocode + ']' : '');
+      const fix = String(j.infocode) === '10002' ? '：服务端那个 Key 没开通「Web服务」类型' :
+                  String(j.infocode) === '10001' ? '：服务端 Key 无效' :
+                  String(j.infocode) === '10009' ? '：服务端 Key 平台类型不对，必须选「Web服务」' : '';
+      out.push('❌ 高德代理不可用：' + state.server.amapReason + fix + '（已自动回退本机直连）');
+    }
+  }catch(e){ state.server.amapOk = false; state.server.amapReason = e.message; out.push('❌ 高德代理失败：' + e.message + '（已自动回退本机直连）'); }
+
+  state.server.checkedAt = Date.now();
+  saveSettings();
+  renderSettingsUI();
+  return out.join('\n');
 }
 
 /* ------------------------------ 2b. 商家数据库 ------------------------------ */
@@ -2295,8 +2518,26 @@ function geoKey(o){ return (+o.lng).toFixed(3) + ',' + (+o.lat).toFixed(3); }
 
 async function amapFetch(path, params, timeoutMs){
   const key = (state.settings.amapKey || '').trim();
-  if(!key) throw new Error('没填写高德 Key');
   amapCallTick();
+  /* 优先走后端代理（Key 在服务端）。服务端 Key 不可用时【自动回退】本机直连——
+   * 这是硬要求：后端那个 Key 出问题（实测就撞上"没开通 Web服务"），
+   * 不能让整个搜店功能跟着瘫痪。 */
+  if(serverAmapOn()){
+    try{
+      const j = await amapViaServer(path, params, timeoutMs);
+      return j;
+    }catch(err){
+      /* 后端这条路的任何失败都回退本机直连，不往外抛：
+       * 只有"Key 类"错误才把后端标成不可用（省得每次都白试一轮），
+       * 其余（后端挂了、返回格式不对、网络抖动）静默回退，绝不因为后端异常把搜店搞崩。 */
+      state.server.amapReason = (err && err.message) || String(err);
+      if(err && err.serverKeyProblem){
+        state.server.amapOk = false;
+        state.server.note = '后端高德不可用（' + state.server.amapReason + '），已自动改用本机 Key 直连';
+      }
+    }
+  }
+  if(!key) throw new Error('没填写高德 Key');
   const qs = new URLSearchParams({ key, ...params }).toString();
   const res = await fetchWithTimeout(AMAP_BASE + path + '?' + qs, {}, timeoutMs || 8000);
   if(!res.ok) throw new Error('高德 HTTP ' + res.status);
@@ -2318,6 +2559,18 @@ async function amapFetch(path, params, timeoutMs){
 }
 
 // 地址 → 经纬度（高德地理编码；没 key 时用内置粗略坐标）
+/* 高德走服务端代理：POST {path, params} 给 /api/amap，Key 由后端拼。
+ * 后端 Key 有问题（没开通 Web服务/无效/平台不匹配）时抛 serverKeyProblem，
+ * 让调用方把后端高德标成不可用并回退本机直连。 */
+async function amapViaServer(path, params, timeoutMs){
+  const r = await apiCall('/api/amap', { method:'POST', timeoutMs: timeoutMs || 8000, body:{ path, params } });
+  if(String(r.status) === '1') return r;
+  const code = String(r.infocode || '');
+  const e = new Error((r.info || '高德返回异常') + (code ? ' [' + code + ']' : ''));
+  if(code === '10001' || code === '10002' || code === '10009') e.serverKeyProblem = true;
+  throw e;
+}
+
 async function resolveLocation(address){
   const addr = (address || '').trim();
   // 用户点过「定位我 / 选地点」：直接用那个精确坐标，不再做地理编码（更准，也快）
@@ -2337,7 +2590,11 @@ async function resolveLocation(address){
     const cached = amapCacheGet(ck, AMAP_TTL.geo);
     if(cached) return cached;
     try{
-      const j = await amapFetch('/geocode', { address: addr, city: CITY.adcode }, 8000);
+      /* 注意末尾的 /geo：高德地理编码的端点是 /v3/geocode/geo。
+       * 这里以前写成 '/geocode'，拼出来是 /v3/geocode（少一段），高德一律回
+       * 10002 SERVICE_NOT_AVAILABLE——于是"手打地址 → 拿坐标"这条路一直是坏的，
+       * 只是失败被 catch 吞掉、退回粗略坐标，所以不容易发现。 */
+      const j = await amapFetch('/geocode/geo', { address: addr, city: CITY.adcode }, 8000);
       const g = (j.geocodes || [])[0];
       if(g && g.location){
         const [lng, lat] = g.location.split(',').map(Number);
@@ -3864,7 +4121,7 @@ function switchTab(name){
   $('#tabMe').setAttribute('aria-selected', String(name === 'me'));
   $('.bar').classList.toggle('hide', name !== 'home');   // "开始推荐"只在推荐页出现
   try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
-  if(name === 'me'){ renderProfile(); renderSettingsUI(); renderSpiceSeg(); renderTierSeg(); renderAddrList(); }
+  if(name === 'me'){ renderProfile(); renderSettingsUI(); renderServerUI(); renderSpiceSeg(); renderTierSeg(); renderAddrList(); }
 }
 
 function renderSpiceSeg(){
@@ -4596,6 +4853,34 @@ function renderSettingsUI(){
       : '⚙️ 算法引擎：本地规则全程决策，大模型只在「用一句话说说」的解析和最后的推荐语出现。结果稳定、可复现、离线可用，也不花 token。';
   }
   renderFlowStrip();
+  renderServerUI();
+}
+
+// 后端与账号那一栏的状态渲染
+function renderServerUI(){
+  const s = state.settings;
+  const baseEl = $('#apiBase');
+  if(!baseEl) return;
+  baseEl.value = s.apiBase || '';
+  if($('#useServerLlm')) $('#useServerLlm').value = s.useServerLlm || 'auto';
+  if($('#useServerAmap')) $('#useServerAmap').value = s.useServerAmap || 'auto';
+  const on = state.identity.type === 'user';
+  if($('#serverLogin')) $('#serverLogin').classList.toggle('hidden', on);
+  if($('#serverMe')) $('#serverMe').classList.toggle('hidden', !on);
+  if($('#meWho')) $('#meWho').textContent = on
+    ? (state.identity.username + '（' + String(state.identity.id).slice(0, 8) + '…）')
+    : '—';
+  const parts = [];
+  parts.push(apiBase() ? ('后端：' + apiBase().replace(/^https?:\/\//,'')) : '后端：未配置（纯本机模式）');
+  parts.push(on ? '账号：已登录' : '账号：未登录');
+  parts.push('大模型：' + (serverLlmOn() ? '走后端代理' : '本机直连'));
+  parts.push('工具协议：' + (agentProtocol() === 'native' ? '原生' : '文字协议'));
+  if(state.server.amapOk === false) parts.push('高德：后端不可用（' + (state.server.amapReason || '') + '）→ 已回退本机');
+  else if(state.server.amapOk === true) parts.push('高德：走后端代理');
+  else parts.push('高德：' + (serverAmapOn() ? '后端优先（还没自检）' : '本机直连'));
+  if(state.server.checkedAt) parts.push('上次自检：' + new Date(state.server.checkedAt).toLocaleTimeString('zh-CN'));
+  const st = $('#serverStatus');
+  if(st) st.textContent = parts.join('｜');
 }
 
 /* 开发者视角顶部那条流程条：内容跟着当前决策模式变。
@@ -4614,10 +4899,10 @@ function renderFlowStrip(){
     '<span class="f-step">' + s + '</span>').join('');
   if(!note) return;
   if(agent){
-    const ready = (state.settings.enabled === 'on' && !!String(state.settings.key || '').trim());
+    const ready = (state.settings.enabled === 'on' && (serverLlmOn() || !!String(state.settings.key || '').trim()));
     note.textContent = ready
       ? '当前：Agent 模式 —— 大模型自己决定每一步调哪个工具。它在 ①~⑥ 之间可以反复来回（换词重搜、换店再查），最后由 finalize 收尾；本地算法退成它手里的工具（打分、配桌、菜单核对）。'
-      : '当前：Agent 模式 —— 但没配大模型 Key，实际会走下面那条算法引擎，结果照样出。';
+      : '当前：Agent 模式 —— 但没配大模型 Key、也没登录后端账号，实际会走下面那条算法引擎，结果照样出。';
   }else{
     note.textContent = '当前：算法引擎 —— 本地规则全程决策，大模型只在「②b 解析口味」和「⑨ 写推荐语」两处露面。没网也能用，结果可复现。';
   }
@@ -4637,6 +4922,9 @@ function readSettingsUI(){
   s.base = $('#llmBase').value.trim() || (PROVIDERS[s.provider] ? PROVIDERS[s.provider].base : '');
   s.key = $('#llmKey').value.trim();
   s.online = $('#onlineEnabled').value;
+  if($('#apiBase')) s.apiBase = $('#apiBase').value.trim().replace(/\/+$/, '');
+  if($('#useServerLlm')) s.useServerLlm = $('#useServerLlm').value;
+  if($('#useServerAmap')) s.useServerAmap = $('#useServerAmap').value;
   // 输入框留空时，回退到代码里内置的 Key（别把内置 Key 存成空）
   s.amapKey = $('#amapKey').value.trim() || DEFAULT_AMAP_KEY || '';
   s.v = SETTINGS_VERSION;
@@ -4651,7 +4939,6 @@ function readSettingsUI(){
 async function llmChat(system, user, opts){
   const s = state.settings;
   const o = opts || {};
-  const url = s.base.replace(/\/+$/,'') + '/chat/completions';
   const t0 = Date.now();
   const messages = (Array.isArray(o.messages) && o.messages.length)
     ? o.messages
@@ -4667,6 +4954,33 @@ async function llmChat(system, user, opts){
     body.tools = o.tools;
     body.tool_choice = o.toolChoice || 'auto';
   }
+  /* 走后端代理（登录了就走）：Key 留在服务端，前端不再明文带 Key。
+   * 后端返回的是归一化的 {text, reasoning, model, ms, usage}——如果它把 tools 吞了，
+   * 这里拿不到 toolCalls，Agent 那边会自动切到"文字工具协议"（见 agentProtocol）。 */
+  if(serverLlmOn()){
+    let r;
+    try{
+      r = await apiCall('/api/llm', { method:'POST', timeoutMs:o.timeoutMs || 90000, body });
+    }catch(err){
+      const e = new Error('后端大模型代理失败：' + err.message);
+      e.serverFailed = true;
+      throw e;
+    }
+    const text = String(r.text || '').trim();
+    const reasoning = String(r.reasoning || '').trim();
+    const toolCalls = Array.isArray(r.tool_calls) ? r.tool_calls : [];
+    if(!text && !toolCalls.length){
+      if(reasoning){
+        const e = new Error('模型只输出了思考过程没给结论');
+        e.code = 'REASONING_ONLY'; e.reasoning = reasoning;
+        throw e;
+      }
+      throw new Error('后端返回内容为空');
+    }
+    return { text, reasoning, toolCalls, assistant:{ role:'assistant', content:text }, finish:'',
+             model:r.model || s.model, ms:r.ms || (Date.now() - t0), usage:r.usage || null, via:'server' };
+  }
+  const url = s.base.replace(/\/+$/,'') + '/chat/completions';
   let res;
   try{
     res = await fetchWithTimeout(url, {
@@ -4836,7 +5150,7 @@ async function traceCravingParse(){
   state.craveAutoInfo = null;
   if(!text){ renderCraveParse(); return; }
 
-  const canLLM = state.settings.enabled === 'on' && !!String(state.settings.key || '').trim();
+  const canLLM = state.settings.enabled === 'on' && (serverLlmOn() || !!String(state.settings.key || '').trim());
   if(!canLLM){
     state.craveAutoInfo = { src:'rules', text, tags:[], keywords:[], note:'没开大模型，用本地词表', model:'', ms:0 };
     lastParseDebug = { request:null, response:'（大模型未开启，直接用本地词表）' };
@@ -5322,13 +5636,68 @@ function agentUserBrief(){
  * 三道保险：
  *   ① 步数上限 AGENT_MAX_STEPS；② 单步超时；③ finalize 的 id 白名单（在 toolFinalize 里）
  * 任何一步失败都返回 ok:false，由调用方决定是弹错还是退回算法引擎。 */
+/* Agent 的工具调用有两种协议，用哪种不看心情，看后端/接口支不支持 function calling：
+ *   native —— 真正把 AGENT_TOOLS 随请求发出去，模型回 tool_calls（直连 DeepSeek 就是这种）
+ *   text   —— 后端代理会把 tools 吞掉（实测朋友的 FC 就是），于是把工具清单写进提示词，
+ *             要求模型只回一行 JSON，本地解析后还原成 tool_calls。
+ * 两种协议下 agentRun 的主循环完全一样——所以"大模型主导决策"这件事没变，
+ * 变的只是"工具调用"这层信封。 */
+function agentProtocol(){
+  if(!serverLlmOn()) return 'native';
+  return state.server.llmTools === true ? 'native' : 'text';
+}
+function agentToolCatalogText(){
+  return AGENT_TOOLS.map(t => {
+    const f = t.function;
+    const props = Object.keys((f.parameters && f.parameters.properties) || {});
+    const req = (f.parameters && f.parameters.required) || [];
+    return '· ' + f.name + '：' + f.description + '\n   参数：' + (props.length
+      ? props.map(k => k + (req.indexOf(k) !== -1 ? '（必填）' : '')).join('、') : '（无）');
+  }).join('\n');
+}
+const AGENT_TEXT_CONTRACT =
+  '\n\n【工具怎么调】这个通道不支持原生函数调用，所以你必须用文本表达工具调用：\n' +
+  '· 每一步只输出一个 JSON 对象，不要解释、不要代码块围栏、不要多余文字。\n' +
+  '· 调用工具：{"tool":"工具名","args":{参数}}\n' +
+  '· 一次调多个也可以：{"tools":[{"tool":"名字","args":{}}, {"tool":"名字","args":{}}]}\n' +
+  '· 想结束就直接调 finalize：{"tool":"finalize","args":{"shop_id":"…","items":[{"dish_id":"…","role":"main"}]}}\n' +
+  '· 工具返回后我会把结果发给你，你继续输出下一个 JSON，直到 finalize 成功为止。\n';
+// 从模型的一段文字里抠出工具调用（容忍代码块围栏和前后废话）
+function parseTextToolCall(text){
+  let t = String(text || '').replace(/```(?:json)?/gi, '');
+  const i = t.indexOf('{'), j = t.lastIndexOf('}');
+  if(i === -1 || j <= i) return null;
+  t = t.slice(i, j + 1);
+  let obj = null;
+  try{ obj = JSON.parse(t); }catch(e){
+    const m = t.match(/\{[\s\S]*?"tool"[\s\S]*?\}\s*\}?/);
+    if(!m) return null;
+    try{ obj = JSON.parse(m[0]); }catch(e2){ return null; }
+  }
+  if(!obj) return null;
+  const list = Array.isArray(obj.tools) ? obj.tools : [obj];
+  const calls = [];
+  for(const c of list){
+    const name = c && (c.tool || c.name || (c.function && c.function.name));
+    if(!name) continue;
+    let args = c.args || c.arguments || (c.function && c.function.arguments) || {};
+    if(typeof args === 'string'){ try{ args = JSON.parse(args); }catch(e){ args = {}; } }
+    calls.push({ id:'txt_' + name + '_' + calls.length, type:'function',
+                 function:{ name:String(name), arguments: JSON.stringify(args || {}) } });
+  }
+  return calls.length ? calls : null;
+}
+
 async function agentRun(opts){
   const o = opts || {};
   const emit = o.onStep || function(){};
   agentResetCtx();
   const ctx = agentCtx();
+  const mode = agentProtocol();
   const messages = [
-    { role:'system', content: AGENT_SYSTEM_PROMPT },
+    { role:'system', content: mode === 'text'
+        ? (AGENT_SYSTEM_PROMPT + '\n\n【可用工具】\n' + agentToolCatalogText() + AGENT_TEXT_CONTRACT)
+        : AGENT_SYSTEM_PROMPT },
     { role:'user', content: o.brief || agentUserBrief() }
   ];
   const log = [];
@@ -5339,7 +5708,7 @@ async function agentRun(opts){
     ctx.steps = step;
     let r;
     try{
-      r = await llmChat(null, null, { messages, tools:AGENT_TOOLS, temperature:0.3,
+      r = await llmChat(null, null, { messages, tools: mode === 'native' ? AGENT_TOOLS : null, temperature:0.3,
                                       maxTokens: o.maxTokens || 2048,
                                       timeoutMs: o.timeoutMs || AGENT_TIMEOUT_MS });
     }catch(err){
@@ -5351,6 +5720,11 @@ async function agentRun(opts){
     if(r.text || r.reasoning){
       push({ type:'think', step, text:r.text, reasoning:r.reasoning, ms:r.ms });
     }
+    // 文字协议：把模型写的那行 JSON 还原成 tool_calls，后面主循环一行都不用改
+    if(mode === 'text' && !r.toolCalls.length){
+      const parsed = parseTextToolCall(r.text);
+      if(parsed) r.toolCalls = parsed;
+    }
 
     // 模型没调工具：要么已经拿到方案，要么在裸聊——逼它走 finalize
     if(!r.toolCalls.length){
@@ -5361,7 +5735,10 @@ async function agentRun(opts){
       continue;
     }
 
-    messages.push({ role:'assistant', content: r.text || null, tool_calls: r.toolCalls });
+    // 原生协议：assistant 带 tool_calls，工具结果用 role:'tool' 回灌
+    // 文字协议：没有 tool_calls 这种消息结构，只能把结果当一段话发回去
+    if(mode === 'native') messages.push({ role:'assistant', content: r.text || null, tool_calls: r.toolCalls });
+    else messages.push({ role:'assistant', content: r.text || '' });
     for(const tc of r.toolCalls){
       const name = (tc.function && tc.function.name) || '';
       let args = {};
@@ -5369,7 +5746,14 @@ async function agentRun(opts){
       catch(e){ args = {}; }
       const { out, ms } = await runTool(name, args);
       push({ type:'tool', step, name, args, out, ms });
-      messages.push({ role:'tool', tool_call_id: tc.id, name, content: JSON.stringify(out) });
+      if(mode === 'native'){
+        messages.push({ role:'tool', tool_call_id: tc.id, name, content: JSON.stringify(out) });
+      }else{
+        const payload = JSON.stringify(out);
+        messages.push({ role:'user', content:
+          '工具 ' + name + ' 返回：' + payload.slice(0, 4000) + (payload.length > 4000 ? ' …（已截断）' : '') +
+          '\n继续：要么再输出一个 {"tool":…} 的 JSON，要么用 finalize 提交方案。' });
+      }
       if(name === 'finalize' && out && out.ok) {
         return { ok:true, plan: out.plan, log, usage, ctx };
       }
@@ -5387,7 +5771,7 @@ async function agentProbe(){
   const lines = [];
   const say = m => { lines.push(m); if(box) box.textContent = lines.join('\n'); };
   if(state.settings.enabled !== 'on'){ say('❌ 先在设置里把「启用大模型」打开，并填好 Key。'); return; }
-  if(!String(state.settings.key || '').trim()){ say('❌ 还没填 API Key。'); return; }
+  if(!serverLlmOn() && !String(state.settings.key || '').trim()){ say('❌ 还没填 API Key，也没登录后端账号。'); return; }
   if(state.running){ say('⏳ 上一次还在跑，等它结束。'); return; }
   // 表单可能还没选完：给几个默认值，保证自检随时能跑
   if(!state.tier) state.tier = 'small';
@@ -5400,6 +5784,9 @@ async function agentProbe(){
   say('模型：' + providerLabel() + ' · ' + state.settings.model);
   say('需求：' + agentUserBrief().replace(/\n\s*/g, ' '));
   say('工具数：' + AGENT_TOOLS.length + ' 个｜步数上限：' + AGENT_MAX_STEPS);
+  say('通道：' + (serverLlmOn() ? ('后端代理 /api/llm（' + identityLabel() + '）') : '本机直连（自带 Key）') +
+      '｜工具协议：' + (agentProtocol() === 'native' ? '原生 function calling' :
+        '文字协议（后端不透传 tools，模型用 JSON 文本调工具）'));
   say('');
   try{
     const r = await agentRun({
@@ -5610,12 +5997,15 @@ async function run(){
   /* 决策模式：默认 Agent（大模型自己调工具：读记忆 → 搜菜 → 搜店 → 查菜单 → finalize）。
    * 只有"确实用不了"才走算法引擎，而且每次换引擎都会在推理过程里说明原因，不偷偷降级。 */
   const agentWanted = (state.settings.agent === 'agent');
-  const agentReady = agentWanted && state.settings.enabled === 'on' && !!String(state.settings.key || '').trim();
+  /* 大模型有两条通道：本机直连（自带 Key）或后端代理（登录了就行，Key 在服务端）。
+   * 以前只认"本机填了 Key"，接了后端之后那样会把 Agent 模式白白降级。 */
+  const llmChannel = serverLlmOn() ? 'server' : (String(state.settings.key || '').trim() ? 'direct' : '');
+  const agentReady = agentWanted && state.settings.enabled === 'on' && !!llmChannel;
   const offline = (typeof navigator !== 'undefined' && navigator.onLine === false);
   if(agentWanted && !agentReady){
     traceAdd('⚙️ 改用算法引擎', (state.settings.enabled !== 'on'
       ? '大模型被关掉了'
-      : '没配大模型 Key') + '，这一轮用本地规则引擎（结果一样有）', 'done');
+      : '没配大模型 Key、也没登录后端账号') + '，这一轮用本地规则引擎（结果一样有）', 'done');
   }else if(agentReady && offline){
     traceAdd('⚙️ 改用算法引擎', '浏览器报告当前离线，用本地规则引擎（不联网、不花 token）', 'done');
   }else if(agentReady){
@@ -5780,7 +6170,7 @@ async function run(){
 
   // ⑧ 可选：大模型润色
   if(state.settings.enabled === 'on'){
-    if(!state.settings.key){ toast('还没填 API Key，先按本地引擎的结果来'); return; }
+    if(!serverLlmOn() && !String(state.settings.key || '').trim()){ toast('还没填 API Key、也没登录后端，先按本地引擎的结果来'); return; }
     const wrap = $('#llmWrap'); if(wrap) wrap.classList.remove('hidden');
     const t = $('#llmText');
     const payload = {
@@ -5869,6 +6259,7 @@ async function run(){
 /* ------------------------------ 11. 事件绑定与初始化 ------------------------------ */
 
 function init(){
+  loadIdentity();
   loadStore();
 
   // 应用「我的」里保存的偏好
@@ -6051,7 +6442,7 @@ function init(){
   });
   $('#testLLM').addEventListener('click', async () => {
     readSettingsUI();
-    if(!state.settings.key){ toast('请先填 API Key'); return; }
+    if(!serverLlmOn() && !String(state.settings.key || '').trim()){ toast('请先填 API Key，或登录后端账号'); return; }
     $('#llmStatus').textContent = '正在测试 ' + providerLabel() + ' ' + state.settings.model + ' …';
     try{
       const r = await callLLM({ test:true, say:'只回复四个字：连接成功' });
@@ -6062,6 +6453,51 @@ function init(){
       toast('❌ 失败：' + err.message.slice(0,60));
     }
   });
+
+  /* ---- 后端与账号 ---- */
+  const doAuth = async (kind, btn) => {
+    readSettingsUI();
+    const u = $('#acctUser') ? $('#acctUser').value : '';
+    const p = $('#acctPass') ? $('#acctPass').value : '';
+    const old = btn.textContent;
+    btn.disabled = true; btn.textContent = kind === 'register' ? '注册中…' : '登录中…';
+    try{
+      const msg = await loginOrRegister(kind, u, p);
+      if($('#acctPass')) $('#acctPass').value = '';
+      await loadShopDb().catch(()=>{});
+      renderSettingsUI(); renderProfile(); renderChips(); renderSpiceSeg(); renderTierSeg();
+      toast('✅ ' + (kind === 'register' ? '注册成功' : '登录成功') + '：' + msg);
+    }catch(err){
+      toast('❌ ' + err.message.slice(0, 60));
+      renderServerUI();
+    }finally{ btn.disabled = false; btn.textContent = old; }
+  };
+  if($('#btnLogin')) $('#btnLogin').addEventListener('click', e => doAuth('login', e.currentTarget));
+  if($('#btnRegister')) $('#btnRegister').addEventListener('click', e => doAuth('register', e.currentTarget));
+  if($('#btnLogout')) $('#btnLogout').addEventListener('click', () => {
+    readSettingsUI();
+    logoutAccount();
+    renderSettingsUI();
+    toast('已退出登录，接下来只用本机数据');
+  });
+  if($('#btnSync')) $('#btnSync').addEventListener('click', async e => {
+    const b = e.currentTarget, old = b.textContent;
+    b.disabled = true; b.textContent = '同步中…';
+    try{ toast('✅ ' + await pullServerData()); }
+    catch(err){ toast('❌ 同步失败：' + err.message.slice(0, 50)); }
+    finally{ b.disabled = false; b.textContent = old; renderSettingsUI(); }
+  });
+  if($('#btnSelfCheck')) $('#btnSelfCheck').addEventListener('click', async e => {
+    readSettingsUI();
+    const b = e.currentTarget, out = $('#serverCheckOut'), old = b.textContent;
+    b.disabled = true; b.textContent = '检测中…';
+    if(out) out.textContent = '正在检测后端（大模型代理会真发一次请求，约几秒）…';
+    try{ const txt = await serverSelfCheck(); if(out) out.textContent = txt; }
+    catch(err){ if(out) out.textContent = '❌ 自检异常：' + err.message; }
+    finally{ b.disabled = false; b.textContent = old; }
+  });
+  if($('#useServerLlm')) $('#useServerLlm').addEventListener('change', () => { readSettingsUI(); renderServerUI(); });
+  if($('#useServerAmap')) $('#useServerAmap').addEventListener('change', () => { readSettingsUI(); renderServerUI(); });
   // Agent 自检：真发一次带工具定义的请求，看模型会不会自己调工具
   const testAgentBtn = $('#testAgent');
   if(testAgentBtn) testAgentBtn.addEventListener('click', async () => {
