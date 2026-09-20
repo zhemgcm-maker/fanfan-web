@@ -112,7 +112,7 @@ async function mockFetch(url, opts) {
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__s={state,run,renderTiers,renderCats,renderChips,renderProfile,updateSummary,acceptCombo,dislikeDish,renderResult,recommend,recommendRestaurants,renderEmpty,PROVIDERS,DEFAULT_KEY,switchTab,renderTierSeg,renderAddrList,renderMeHeader,renderSpiceSeg,saveProfile,TIERS,CITIES,applyCity,changeCity,renderCitySelect,hasOfflineData,clearAmapCache,get CITY(){return CITY},onlineSearch,recommendRestaurantsSmart,DISHES};')
+  code + '\nglobalThis.__s={state,run,renderTiers,renderCats,renderChips,renderProfile,updateSummary,acceptCombo,dislikeDish,renderResult,recommend,recommendRestaurants,renderEmpty,PROVIDERS,DEFAULT_KEY,switchTab,renderTierSeg,renderAddrList,renderMeHeader,renderSpiceSeg,saveProfile,TIERS,CITIES,applyCity,changeCity,renderCitySelect,hasOfflineData,clearAmapCache,get CITY(){return CITY},onlineSearch,recommendRestaurantsSmart,DISHES,renderFlowStrip,renderSettingsUI,FLOW_AGENT,FLOW_ALGO};')
   (document, localStorage, (f) => setTimeout(f, 0), mockFetch);
 
 const api = globalThis.__s;
@@ -204,10 +204,27 @@ if (prefilled) {
   assert(api.state.settings.enabled === 'off', '分享版：大模型默认关闭');
 }
 
+// 决策模式：默认 Agent；开发者视角顶部那条流程条要跟着模式变（不能挂羊头卖狗肉）
+assert(api.state.settings.agent === 'agent', '默认决策模式是 Agent');
+api.state.settings.agent = 'agent';
+api.renderFlowStrip();
+const stripAgent = document.querySelector('#flowStrip').innerHTML;
+assert(stripAgent.includes('search_dishes') && stripAgent.includes('finalize'), 'Agent 模式下流程条画的是 Agent 链路');
+assert(document.querySelector('#flowNote').textContent.includes('Agent'), '流程条下方的说明标明当前是 Agent 模式');
+api.state.settings.agent = 'off';
+api.renderFlowStrip();
+const stripAlgo = document.querySelector('#flowStrip').innerHTML;
+assert(stripAlgo.includes('知识库检索') && stripAlgo.includes('大模型润色'), '算法引擎模式下流程条画的是①~⑨那条链');
+assert(document.querySelector('#flowNote').textContent.includes('算法引擎'), '流程条下方的说明标明当前是算法引擎');
+assert(api.FLOW_AGENT.length !== api.FLOW_ALGO.length || stripAgent !== stripAlgo, '两种模式的流程条确实不是同一条');
+
 // 正常返回
 mock.mode = 'ok'; mock.calls = 0;
 api.state.settings.enabled = 'on';
 api.state.settings.key = 'sk-test-dummy';
+/* 这个用例测的是算法引擎 + ⑨润色的那条老链路，所以把决策模式钉死在算法引擎上。
+ * 不钉的话它会因为"默认 Agent 模式 + 有 Key"去真连大模型，用例就变成了受网络影响的随机结果。 */
+api.state.settings.agent = 'off';
 try {
   Object.assign(api.state, { tier:'mid', cat:'rice', spiceMax:3, mode:'delivery', address:'五角场', craveTags:['想吃辣'], seed:1, budget:60 });
   api.state.profile.allergies = ['香菜'];

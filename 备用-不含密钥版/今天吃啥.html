@@ -631,8 +631,8 @@
 
       <label class="field" for="agentMode">决策模式</label>
       <select id="agentMode">
-        <option value="off">算法引擎（本地规则全程决策）</option>
-        <option value="agent">Agent 模式（大模型自己调工具决策）</option>
+        <option value="agent">Agent 模式（默认·大模型自己调工具决策）</option>
+        <option value="off">算法引擎（本地规则决策·快且省）</option>
       </select>
       <p class="note" id="agentModeNote">—</p>
 
@@ -658,19 +658,9 @@
   <details id="devCard">
     <summary>🧑‍💻 开发者视角（架构 / Prompt / 打分）</summary>
     <div class="body">
-      <div class="mini-title" style="margin-top:0">智能体流水线</div>
-      <div class="flow">
-        <span class="f-step">① 意图解析</span><span class="arrow">→</span>
-        <span class="f-step">② 记忆读取</span><span class="arrow">→</span>
-        <span class="f-step">②b 大模型解析口味</span><span class="arrow">→</span>
-        <span class="f-step">③ 知识库检索 (RAG)</span><span class="arrow">→</span>
-        <span class="f-step">④ 规则过滤</span><span class="arrow">→</span>
-        <span class="f-step">⑤ 多维打分</span><span class="arrow">→</span>
-        <span class="f-step">⑥ 联网搜店（工具调用）</span><span class="arrow">→</span>
-        <span class="f-step">⑦ 地址选址</span><span class="arrow">→</span>
-        <span class="f-step">⑧ 生成建议</span><span class="arrow">→</span>
-        <span class="f-step">⑨ 大模型润色</span>
-      </div>
+      <div class="mini-title" style="margin-top:0">智能体流水线（跟着当前决策模式变）</div>
+      <div class="flow" id="flowStrip"></div>
+      <p class="note" id="flowNote">—</p>
       <div class="mini-title">System Prompt（发给大模型的角色设定）</div>
       <pre class="code" id="devPrompt">—</pre>
       <div class="mini-title">工具定义（Tool Schema）</div>
@@ -702,7 +692,10 @@
     <div class="me-block">
       <p class="note" style="margin:0">
         🍽 推荐结果不是一道菜，而是<b>一桌菜</b>：按你的人均档位配「荤主菜＋素菜＋主食」，人多或预算宽裕时再加汤和饮品，全部来自同一家店，能一次点齐。<br>
-        🤖 <b>大模型负责"听懂"，算法负责"决定"</b>：第 3 步「用一句话说说」会交给大模型翻译成标签和关键词（词表里没有的说法也能听懂），再交给本地算法打分选菜；大模型关掉或调用失败时，自动退回本地词表，结果照样出。<br>
+        🤖 <b>两种决策模式，在「设置 › 决策模式」里切换</b>：<br>
+        &nbsp;&nbsp;· <b>Agent 模式（默认）</b>——大模型自己动手查：先读你的记忆和忌口，再检索菜品、联网搜真实店铺、查我们采集过的菜单，最后提交一桌菜。它调用的 12 个工具都是页面里真实存在的，编造的店名／菜名会被闸门直接驳回，让它重来。<br>
+        &nbsp;&nbsp;· <b>算法引擎</b>——本地规则全程决策（过滤、打分排序、组合搭配），大模型只出现在「用一句话说说」的解析和最后的推荐语。结果稳定、可复现、更快也更省。<br>
+        &nbsp;&nbsp;· <b>没网、没配 Key、Key 失效或余额不足</b>时，自动走算法引擎，结果照样出，不会空手而归。<br>
         🏙 <b>城市</b>：决定搜哪个城市的店铺，在「我的 › 我的习惯」里切换。<br>
         📍 店铺数据只来自实时检索：高德地图优先，没配 Key 时退回 OpenStreetMap。<b>应用不内置任何示例饭店</b>，所以没网或没 Key 时不会给你假店名。<br>
         菜品／口味部分为人工整理的知识库，距离由经纬度实时计算。<br>
@@ -1721,7 +1714,7 @@ function hasOfflineData(){ return !!CITY.offline && RESTAURANTS.length > 0; }
 const LS_PROFILE = 'eatAgent.profile.v1';
 const LS_SETTINGS = 'eatAgent.settings.v1';
 const LS_CRAVEPARSE = 'eatAgent.craveparse.v1';   // "用一句话说说"的解析缓存（同一句话不重复调大模型）
-const SETTINGS_VERSION = 5;   // 换默认服务商 / 内置 Key / 新增设置项时递增，避免浏览器里存的旧配置把新默认值顶掉
+const SETTINGS_VERSION = 6;   // 换默认服务商 / 内置 Key / 新增设置项时递增，避免浏览器里存的旧配置把新默认值顶掉
 
 // 服务商预设（均为 OpenAI 兼容的 /chat/completions 接口）
 const PROVIDERS = {
@@ -1790,9 +1783,10 @@ const state = {
   settings:{ v:SETTINGS_VERSION, enabled:'on', provider:'deepseek', model:'deepseek-chat', base:PROVIDERS.deepseek.base, key:DEFAULT_KEY,
              online:'on', amapKey: DEFAULT_AMAP_KEY,
              /* 决策模式：
-                'off'   = 算法引擎（现有行为：本地规则全程决策，大模型只在②b解析和⑨润色出现）
-                'agent' = Agent 模式（大模型自己调工具：搜菜、读记忆、反复搜店，最后 finalize）*/
-             agent:'off' },
+                'agent' = Agent 模式（默认）：大模型自己调工具——读记忆、搜菜、反复搜店、查菜单，最后 finalize
+                'off'   = 算法引擎（兜底）：本地规则全程决策，大模型只在②b解析和⑨润色出现
+                没网／没 Key／额度用完时，不管这个值是什么，都会自动走算法引擎 */
+             agent:'agent' },
   lastResult:null,
   seed:1,
   reroll:0,            // 「换一批」点了多少次：用来轮换饭店，保证点一次真的换一家
@@ -4468,8 +4462,34 @@ function renderSettingsUI(){
   const agentNote = $('#agentModeNote');
   if(agentNote){
     agentNote.textContent = (s.agent === 'agent')
-      ? '🤖 Agent 模式：大模型自己决定搜什么、选哪几道菜、去哪家店（它会反复调工具检索），算法退为工具和校验。断网或调用失败时自动回退到算法引擎。'
-      : '⚙️ 算法引擎：本地规则全程决策，大模型只在「用一句话说说」的解析和最后的推荐语出现。结果稳定、可复现、离线可用。';
+      ? '🤖 Agent 模式（默认）：大模型自己决定读什么记忆、搜什么词、选哪几道菜、去哪家店，它会反复调 12 个工具检索；算法退成它手里的工具和闸门。断网、没 Key、额度用完时自动回退到算法引擎，不会空手而归。'
+      : '⚙️ 算法引擎：本地规则全程决策，大模型只在「用一句话说说」的解析和最后的推荐语出现。结果稳定、可复现、离线可用，也不花 token。';
+  }
+  renderFlowStrip();
+}
+
+/* 开发者视角顶部那条流程条：内容跟着当前决策模式变。
+ * 以前写死的是算法引擎那条链，开了 Agent 模式就成了"挂羊头卖狗肉"，所以改成动态渲染。 */
+const FLOW_AGENT = ['🤖 大模型决策', '① 读记忆 get_profile', '② 搜菜 search_dishes',
+                    '③ 体检 filter_dishes', '④ 联网搜店 search_shops', '⑤ 查菜单 get_shop_menu',
+                    '⑥ 配桌 build_combo', '⑦ 定案 finalize'];
+const FLOW_ALGO  = ['① 意图解析', '② 记忆读取', '②b 大模型解析口味', '③ 知识库检索 (RAG)', '④ 规则过滤',
+                    '⑤ 多维打分', '⑥ 联网搜店（工具调用）', '⑦ 地址选址', '⑧ 生成建议', '⑨ 大模型润色'];
+function renderFlowStrip(){
+  const box = $('#flowStrip'), note = $('#flowNote');
+  if(!box) return;
+  const agent = (state.settings.agent === 'agent');
+  const steps = agent ? FLOW_AGENT : FLOW_ALGO;
+  box.innerHTML = steps.map((s, i) => (i ? '<span class="arrow">→</span>' : '') +
+    '<span class="f-step">' + s + '</span>').join('');
+  if(!note) return;
+  if(agent){
+    const ready = (state.settings.enabled === 'on' && !!String(state.settings.key || '').trim());
+    note.textContent = ready
+      ? '当前：Agent 模式 —— 大模型自己决定每一步调哪个工具。它在 ①~⑥ 之间可以反复来回（换词重搜、换店再查），最后由 finalize 收尾；本地算法退成它手里的工具（打分、配桌、菜单核对）。'
+      : '当前：Agent 模式 —— 但没配大模型 Key，实际会走下面那条算法引擎，结果照样出。';
+  }else{
+    note.textContent = '当前：算法引擎 —— 本地规则全程决策，大模型只在「②b 解析口味」和「⑨ 写推荐语」两处露面。没网也能用，结果可复现。';
   }
 }
 
@@ -5114,7 +5134,11 @@ function agentUserBrief(){
     address: state.address || null,
     location: state.origin ? { lng:state.origin.lng, lat:state.origin.lat, label:state.origin.label } : null,
     tier: tier ? { id:tier.id, name:tier.name, range:'¥' + tier.min + '-' + tier.max } : null,
-    budget_cap: state.budget,
+    /* 上限口径必须和 finalize 的闸门、buildCombo 的 cap 完全一致：
+     * 都是 min(档位上限, 心理预算)。以前这里直接发滑块值（默认 60），
+     * 于是「小饭」档模型以为能花 60，配出来的桌必被闸门驳回（¥25 上限），白烧好几步。 */
+    budget_cap: (tier ? Math.min(tier.max, state.budget) : state.budget),
+    budget_cap_note: '整桌合计不要超过这个数（含饮料），超了 finalize 会驳回',
     food_kind: state.cat || null,
     food_kind_name: state.cat ? catName(state.cat) : null,
     craving_tags: state.craveTags,
@@ -5413,13 +5437,22 @@ async function run(){
   // 商家数据库（自己采集的真实菜单）：没加载过就加载一次，失败也不影响流程（退回菜系推断）
   if(!SHOP_DB.loaded){ try{ await loadShopDb(); }catch(e){} }
 
-  /* Agent 模式：让大模型自己调工具决策（读记忆 → 搜菜 → 搜店 → 查菜单 → finalize）。
-   * 没跑通（没网／没 Key／步数用完／模型抽风）就自动回退到下面的算法引擎，用户不会空手而归。 */
-  if(state.settings.agent === 'agent' && state.settings.enabled === 'on' && String(state.settings.key || '').trim()){
+  /* 决策模式：默认 Agent（大模型自己调工具：读记忆 → 搜菜 → 搜店 → 查菜单 → finalize）。
+   * 只有"确实用不了"才走算法引擎，而且每次换引擎都会在推理过程里说明原因，不偷偷降级。 */
+  const agentWanted = (state.settings.agent === 'agent');
+  const agentReady = agentWanted && state.settings.enabled === 'on' && !!String(state.settings.key || '').trim();
+  const offline = (typeof navigator !== 'undefined' && navigator.onLine === false);
+  if(agentWanted && !agentReady){
+    traceAdd('⚙️ 改用算法引擎', (state.settings.enabled !== 'on'
+      ? '大模型被关掉了'
+      : '没配大模型 Key') + '，这一轮用本地规则引擎（结果一样有）', 'done');
+  }else if(agentReady && offline){
+    traceAdd('⚙️ 改用算法引擎', '浏览器报告当前离线，用本地规则引擎（不联网、不花 token）', 'done');
+  }else if(agentReady){
     try{
       const done = await runAgentFlow();
       if(done){ state.running = false; $('#goBtn').disabled = false; return; }
-      traceAdd('↩️ 回退算法引擎', 'Agent 模式这次没跑通，改用本地规则引擎（结果照样有）', 'done');
+      traceAdd('↩️ 回退算法引擎', 'Agent 模式这次没跑通（没网／超时／额度不足／步数用完），改用本地规则引擎', 'done');
       toast('Agent 模式没跑通，已回退到算法引擎');
     }catch(e){
       traceAdd('↩️ 回退算法引擎', 'Agent 模式出错：' + (e && e.message ? e.message : String(e)), 'done');
@@ -5790,6 +5823,12 @@ function init(){
     if(v === '__custom__'){ box.classList.remove('hidden'); box.focus(); }
     else { box.classList.add('hidden'); state.settings.model = v; }
   });
+  // 决策模式：切换后立刻重画顶部那条流程条（别让人看着和当前模式不符的图）
+  const agentModeSel = $('#agentMode');
+  if(agentModeSel) agentModeSel.addEventListener('change', () => {
+    state.settings.agent = (agentModeSel.value === 'agent') ? 'agent' : 'off';
+    renderSettingsUI();
+  });
   $('#llmModelCustom').addEventListener('input', e => { state.settings.model = e.target.value.trim(); });
   $('#llmEnabled').addEventListener('change', e => {
     state.settings.enabled = e.target.value;
@@ -5868,6 +5907,7 @@ function init(){
   $('#devPrompt').textContent = '【⑨ 润色用·算法引擎】\n' + SYSTEM_PROMPT + '\n\n【Agent 模式·决策用】\n' + AGENT_SYSTEM_PROMPT;
   $('#devTools').textContent = JSON.stringify(AGENT_TOOLS, null, 2);
   $('#devMemory').textContent = JSON.stringify(state.profile, null, 2);
+  renderFlowStrip();
 
   // 默认体验：预填地址，降低上手门槛
   if(!state.address){
