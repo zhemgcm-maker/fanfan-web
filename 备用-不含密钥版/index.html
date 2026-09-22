@@ -2364,6 +2364,8 @@ function dbShopFor(shop){
       if(hit.length) return hit[0];
     }
   }
+  // 都没匹配上 → 可能只是"页面开太久了、库里刚更新"，后台刷一次（5 分钟内只刷一次）
+  refreshShopDb().catch(()=>{});
   return null;
 }
 function dbShopForCached(shop){
@@ -2372,6 +2374,27 @@ function dbShopForCached(shop){
   const v = dbShopFor(shop);
   _dbShopCache.set(shop.id, v);
   return v;
+}
+/* 菜单库只会在打开页面时读一次。页面开着不动（手机上挂后台几小时）时，
+ * 期间新采集的店就永远看不到——实测踩过：明明入库了，用户那边还是"菜单未采集"。
+ * 所以配一个后台刷新：遇到"这家店没菜单"就悄悄重拉一次 data/shops.json，
+ * 真有新店就提示一句，下次推荐就能用上。 */
+let _dbRefreshAt = 0, _dbRefreshing = false;
+async function refreshShopDb(force){
+  if(_dbRefreshing) return false;
+  if(!force && Date.now() - _dbRefreshAt < 5 * 60 * 1000) return false;
+  if(SHOP_DB.from !== 'file') return false;        // 用内置快照时没有别的来源可拉
+  _dbRefreshing = true; _dbRefreshAt = Date.now();
+  const before = (SHOP_DB.shops || []).map(s => s.id).sort().join(',');
+  try{ await loadShopDb(); }catch(e){}
+  _dbRefreshing = false;
+  const after = (SHOP_DB.shops || []).map(s => s.id).sort().join(',');
+  const changed = before !== after;
+  if(changed){
+    renderServerUI();
+    toast('📚 菜单库更新了：现在有 ' + (SHOP_DB.shops || []).length + ' 家店，再点一次推荐就能用上');
+  }
+  return changed;
 }
 /* 菜系参照：某家店**没采集过**菜单时，允许拿"同城、同菜系"的另一份采集菜单当参考。
  *
@@ -6798,6 +6821,8 @@ function init(){
 
 if(typeof document !== 'undefined' && document.addEventListener){
   document.addEventListener('visibilitychange', () => { if(document.hidden) flushAllergyIfDirty(); });
+  /* 从后台切回来（手机上很常见）：顺手看看菜单库有没有更新 */
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) refreshShopDb().catch(()=>{}); });
 }
 
 init();
