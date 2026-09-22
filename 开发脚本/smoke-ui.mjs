@@ -58,7 +58,7 @@ const errors = [];
 process.on('unhandledRejection', e => errors.push('unhandledRejection: ' + (e && e.message)));
 
 // 可控的假 fetch：分别模拟 高德 / OpenStreetMap / DeepSeek
-const mock = { mode: 'ok', calls: 0, amapCalls: 0, osmCalls: 0, llmCalls: 0 };
+const mock = { mode: 'ok', calls: 0, amapCalls: 0, osmCalls: 0, llmCalls: 0, backendCalls: 0 };
 
 const baodingPois = [
   { id:'B0FF1', name:'老保定驴肉火烧（裕华路店）', type:'餐饮服务;中餐厅;河北菜', location:'115.4690,38.8760', adname:'莲池区', address:'裕华路128号', tel:'0312-2012345', biz_ext:{ rating:'4.6', cost:'22' } },
@@ -73,6 +73,16 @@ const baodingPois = [
 
 async function mockFetch(url, opts) {
   mock.calls++;
+  /* —— 我们的后端（阿里云 FC）——
+   * 这里模拟真实情况：后端的高德 Key 没开通「Web服务」（实测返回 10002），
+   * 应用必须先试后端、失败后自动回退本机直连。不显式拦这一路的话，
+   * 请求会掉进下面的 DeepSeek 分支，把整条降级链路带偏。 */
+  if (url.includes('fcapp.run') || url.includes('/api/amap')) {
+    mock.backendCalls++;
+    return { ok:true, status:200,
+             json: async () => ({ status:'0', info:'SERVICE_NOT_AVAILABLE', infocode:'10002' }),
+             text: async () => '' };
+  }
   // —— 高德 ——
   if (url.includes('restapi.amap.com')) {
     mock.amapCalls++;
@@ -301,13 +311,21 @@ try {
 }
 
 // 高德 Key 无效 → 自动降级到 OSM，不崩
-mock.mode = 'amap-badkey'; mock.calls = 0; mock.amapCalls = 0; mock.osmCalls = 0;
-api.state.amapDownUntil = 0; api.clearAmapCache();   // 清掉冷却与缓存，才能真正走到降级逻辑
+  mock.mode = 'amap-badkey'; mock.calls = 0; mock.amapCalls = 0; mock.osmCalls = 0; mock.backendCalls = 0;
+  api.state.server.amapOk = null;   // 模拟"这一轮刚开始"，让应用重新试一次后端
+  api.state.amapDownUntil = 0; api.clearAmapCache();   // 清掉冷却与缓存，才能真正走到降级逻辑
 try {
   await api.run();
   await new Promise(r => setTimeout(r, 3500));
   assert(mock.amapCalls > 0 && mock.osmCalls > 0, '高德失败后自动改走 OpenStreetMap');
+  assert(mock.backendCalls > 0, '先试过后端代理（' + mock.backendCalls + ' 次）再回退本机直连');
+  assert(api.state.server.amapOk === false, '后端高德的 Key 问题会被记住（下次不再白试一轮）');
   const html = document.querySelector('#result').innerHTML;
+  if(!html.includes('OpenStreetMap 实时数据')){
+    const marks = html.match(/[^<>]*实时数据[^<>]*/g) || [];
+    console.log('    ↳ 卡片里的来源标注：' + (marks.join(' | ') || '（没有「实时数据」字样）'));
+    console.log('    ↳ 卡片纯文本前 200 字：' + html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 200));
+  }
   assert(html.includes('OpenStreetMap 实时数据'), '降级后标注了实际数据来源');
 } catch (err) {
   assert(false, '高德降级路径异常：' + err.message);

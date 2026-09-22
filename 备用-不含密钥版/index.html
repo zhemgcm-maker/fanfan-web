@@ -1577,7 +1577,7 @@ const DISHES = [
   { id:'cq02', name:'伤心凉粉', cat:'other', role:'side', cui:'川', price:18, spicy:3, tags:['凉粉','麻辣','爽口','辣','重口','凉','素','蔬菜'], alg:[], desc:'川味麻辣凉粉，鲜香刺激', hot:88 },
   { id:'cq03', name:'爽口黑木耳', cat:'other', role:'side', cui:'川', price:18, spicy:1, tags:['木耳','凉拌','脆爽','辣','凉','素','蔬菜'], alg:[], desc:'凉拌黑木耳，口感脆嫩', hot:82 },
   { id:'cq04', name:'蒜茸苦瓜', cat:'other', role:'side', cui:'家常', price:18, spicy:0, tags:['苦瓜','清淡','解腻','凉','素','蔬菜'], alg:[], desc:'蒜香凉拌苦瓜，清热解腻', hot:78 },
-  { id:'cq05', name:'鸡蛋酥', cat:'other', role:'side', cui:'家常', price:16, spicy:0, tags:['蛋制品','香酥','小吃','凉','凉菜'], alg:['蛋'], desc:'香酥鸡蛋点心，咸香适口', hot:76 },
+  { id:'cq05', name:'鸡蛋酥', cat:'other', role:'side', cui:'家常', price:16, spicy:0, tags:['蛋制品','香酥','小吃','凉','凉菜','蛋','快'], alg:['蛋'], desc:'香酥鸡蛋点心，咸香适口', hot:76 },
   { id:'cq06', name:'豆拼', cat:'other', role:'side', cui:'家常', price:16, spicy:0, tags:['花生','豆类','下酒','凉','素','蔬菜'], alg:['花生'], desc:'双豆拼盘，佐酒小菜', hot:80 },
   { id:'cq07', name:'红油牛肚丝', cat:'other', role:'side', cui:'川', price:34, spicy:2, tags:['牛肚','红油','重口','辣','凉','肉','凉菜'], alg:['牛'], desc:'红油拌牛肚，筋道麻辣', hot:89 },
   { id:'cq08', name:'川腊肠', cat:'other', role:'side', cui:'川', price:34, spicy:1, tags:['腊肠','熏香','腊味','辣','凉','肉','凉菜'], alg:['猪'], desc:'川式腊肠切片，熏香浓郁', hot:87 },
@@ -1586,37 +1586,37 @@ const DISHES = [
   { id:'cq11', name:'桃仁菠菜', cat:'other', role:'side', cui:'家常', price:18, spicy:0, tags:['菠菜','桃仁','清爽','凉','素','蔬菜'], alg:[], desc:'菠菜搭配桃仁，清爽健康', hot:77 },
   { id:'cq12', name:'红油顺风耳', cat:'other', role:'side', cui:'川', price:28, spicy:2, tags:['猪耳','红油','下酒','辣','重口','凉','肉','凉菜'], alg:['猪'], desc:'凉拌猪耳，脆香麻辣', hot:85 },
   { id:'cq13', name:'老陕菜', cat:'other', role:'side', cui:'家常', price:18, spicy:1, tags:['素菜','凉拌','开胃','辣','凉','素','蔬菜'], alg:[], desc:'家常凉拌素菜，开胃爽口', hot:79 },
-  { id:'cq14', name:'大丰收', cat:'other', role:'side', cui:'家常', price:22, spicy:0, tags:['时蔬','蘸酱','清爽','凉','素','蔬菜'], alg:[], desc:'多种生鲜时蔬蘸酱，清爽解腻', hot:81 },
+  { id:'cq14', name:'大丰收', cat:'other', role:'side', cui:'家常', price:22, spicy:0, tags:['时蔬','蘸酱','清爽','凉','素','蔬菜'], alg:[], desc:'多种新鲜时蔬蘸酱，清爽解腻', hot:81 },
   { id:'cq15', name:'烧椒小皮蛋', cat:'other', role:'side', cui:'川', price:25, spicy:1, tags:['皮蛋','烧椒','凉拌','辣','凉','川','凉菜'], alg:['蛋'], desc:'烧椒拌皮蛋，椒香浓郁', hot:84 },
   { id:'cq16', name:'黄瓜大拉皮/花生米拌黄瓜', cat:'other', role:'side', cui:'家常', price:18, spicy:0, tags:['黄瓜','拉皮','凉拌','凉','素','蔬菜'], alg:[], desc:'黄瓜拉皮凉拌，清爽解腻', hot:78 },
-  { id:'cq17', name:'党参天麻炖土鸡', cat:'other', role:'soup', cui:'家常', price:138, spicy:0, tags:['炖汤','滋补','土鸡','肉'], alg:['鸡'], desc:'党参天麻慢炖土鸡，汤鲜味美滋补养生', hot:96 },
+  { id:'cq17', name:'党参天麻炖土鸡', cat:'other', role:'soup', cui:'家常', price:138, spicy:0, tags:['炖汤','滋补','土鸡','肉','汤','暖','聚餐','热'], alg:['鸡'], desc:'党参天麻慢炖土鸡，汤鲜味美滋补养生', hot:96 },
   { id:'cq18', name:'丈母娘待客菜', cat:'other', role:'main', cui:'川', price:58, spicy:1, tags:['砂锅','炖菜','家常','辣','肉'], alg:['猪'], desc:'砂锅慢炖，肉香浓郁，配菜丰富', hot:90 },
   { id:'cq19', name:'霸王跳跳兔', cat:'other', role:'main', cui:'川', price:68, spicy:3, tags:['兔肉','椒麻','爆炒','辣','重口','肉'], alg:[], desc:'外焦里嫩，椒麻复合口味，川味招牌', hot:93 },
   { id:'cq20', name:'霸王跳跳鸡/跳跳蛙', cat:'other', role:'main', cui:'川', price:58, spicy:3, tags:['鸡肉/蛙肉','椒麻','重口','辣','肉'], alg:['鸡'], desc:'椒麻爆炒，鲜香刺激，下饭神器', hot:92 },
   { id:'cq21', name:'金牌巫山烤鱼', cat:'other', role:'main', cui:'川', price:98, spicy:2, tags:['烤鱼','香辣','聚餐','辣','重口','重庆'], alg:['鱼'], desc:'巫山特色烤鱼，融合烤、炖，麻辣鲜香', hot:94 },
   { id:'cq22', name:'烧椒豆花过水鱼', cat:'other', role:'main', cui:'川', price:98, spicy:2, tags:['鱼','烧椒','豆花','辣','重口','川'], alg:['鱼','豆'], desc:'烧椒风味，鱼肉滑嫩搭配豆花', hot:91 },
-  { id:'cq23', name:'蒜香干烧鱼', cat:'other', role:'main', cui:'川', price:98, spicy:1, tags:['鱼','蒜香','干烧','辣'], alg:['鱼'], desc:'大量蒜香，干烧入味，鱼肉紧实', hot:88 },
+  { id:'cq23', name:'蒜香干烧鱼', cat:'other', role:'main', cui:'川', price:98, spicy:1, tags:['鱼','蒜香','干烧','辣','聚餐','下饭','热'], alg:['鱼'], desc:'大量蒜香，干烧入味，鱼肉紧实', hot:88 },
   { id:'cq24', name:'川味肉丝', cat:'other', role:'main', cui:'川', price:28, spicy:1, tags:['肉丝','家常','小炒','辣','肉'], alg:['猪'], desc:'家常川味小炒肉丝，鲜香适口', hot:84 },
   { id:'cq25', name:'泡椒腰花', cat:'other', role:'main', cui:'川', price:58, spicy:2, tags:['腰花','泡椒','爆炒','辣','重口','下饭','川','肉'], alg:['猪'], desc:'泡椒爆炒腰花，脆嫩无腥，酸辣开胃', hot:89 },
-  { id:'cq26', name:'干豆角红烧肉/杂菌红烧肉', cat:'other', role:'main', cui:'川', price:46, spicy:1, tags:['猪肉','干菜','炖烧','辣','肉'], alg:['猪'], desc:'五花肉搭配干豆角焖烧，肥而不腻', hot:86 },
+  { id:'cq26', name:'干豆角红烧肉/杂菌红烧肉', cat:'other', role:'main', cui:'川', price:46, spicy:1, tags:['猪肉','干菜','炖烧','辣','肉','下饭','聚餐','热'], alg:['猪'], desc:'五花肉搭配干豆角焖烧，肥而不腻', hot:86 },
   { id:'cq27', name:'泡椒美蛙/水煮美蛙', cat:'other', role:'main', cui:'川', price:58, spicy:3, tags:['蛙肉','泡椒','水煮','辣','重口','下饭','川','重庆','肉'], alg:[], desc:'泡椒风味美蛙，肉质鲜嫩酸辣过瘾', hot:92 },
   { id:'cq28', name:'酸豆角炒鸡胗', cat:'other', role:'main', cui:'川', price:38, spicy:2, tags:['鸡胗','酸豆角','脆爽','辣','重口','肉'], alg:['鸡'], desc:'酸豆角爆炒鸡胗，口感脆爽，开胃', hot:87 },
   { id:'cq29', name:'肝腰合炒', cat:'other', role:'main', cui:'川', price:58, spicy:2, tags:['猪肝','腰花','爆炒','辣','重口','肉'], alg:['猪'], desc:'猪肝腰花同炒，火候到位鲜嫩爽口', hot:88 },
-  { id:'cq30', name:'火辣辣的吻', cat:'other', role:'main', cui:'川', price:42, spicy:3, tags:['田螺','香辣','下酒','辣','重口'], alg:['海鲜'], desc:'香辣爆炒田螺，适合佐酒', hot:85 },
-  { id:'cq31', name:'铁板水晶粉', cat:'other', role:'staple', cui:'川', price:26, spicy:1, tags:['粉丝','铁板','香锅','辣','聚餐'], alg:[], desc:'铁板水晶粉丝，香气浓郁', hot:80 },
+  { id:'cq30', name:'火辣辣的吻', cat:'other', role:'main', cui:'川', price:42, spicy:3, tags:['田螺','香辣','下酒','辣','重口','海鲜','小吃','夜宵'], alg:['海鲜'], desc:'香辣爆炒田螺，适合佐酒', hot:85 },
+  { id:'cq31', name:'铁板水晶粉', cat:'other', role:'staple', cui:'川', price:26, spicy:1, tags:['粉丝','铁板','香锅','辣','聚餐','快','下饭'], alg:[], desc:'铁板水晶粉丝，香气浓郁', hot:80 },
   { id:'cq32', name:'酸辣魔芋', cat:'other', role:'side', cui:'川', price:26, spicy:2, tags:['魔芋','酸辣','低脂','辣','重口'], alg:[], desc:'酸辣魔芋，口感Q弹开胃', hot:82 },
   { id:'cq33', name:'农家一碗香', cat:'other', role:'main', cui:'湘', price:32, spicy:2, tags:['鸡蛋','猪肉','小炒','辣','重口','肉'], alg:['蛋','猪'], desc:'鸡蛋肉片同炒，锅气十足', hot:86 },
   { id:'cq34', name:'飘香大排', cat:'other', role:'main', cui:'川', price:68, spicy:2, tags:['排骨','椒麻','香煎','辣','重口','肉'], alg:['猪'], desc:'椒麻风味大排，肉香浓郁', hot:90 },
   { id:'cq35', name:'泡椒牛双脆', cat:'other', role:'main', cui:'川', price:56, spicy:2, tags:['牛肚','泡椒','脆爽','辣','重口','下饭','川','肉'], alg:['牛'], desc:'泡椒牛双脆，脆嫩酸辣', hot:88 },
   { id:'cq36', name:'泡椒牛肉', cat:'other', role:'main', cui:'川', price:58, spicy:2, tags:['牛肉','泡椒','小炒','辣','重口','下饭','川','肉'], alg:['牛'], desc:'泡椒炒牛肉，酸辣鲜嫩', hot:87 },
   { id:'cq37', name:'锅仔牛三样', cat:'other', role:'main', cui:'川', price:88, spicy:2, tags:['牛杂','锅仔','热菜','辣','重口','聚餐','肉'], alg:['牛'], desc:'锅仔牛杂组合，热气鲜香', hot:89 },
-  { id:'cq38', name:'葱香牛肉', cat:'other', role:'main', cui:'川', price:48, spicy:1, tags:['牛肉','葱香','小炒','辣','肉'], alg:['牛'], desc:'大葱爆炒牛肉，葱香突出', hot:83 },
+  { id:'cq38', name:'葱香牛肉', cat:'other', role:'main', cui:'川', price:48, spicy:1, tags:['牛肉','葱香','小炒','辣','肉','下饭','热'], alg:['牛'], desc:'大葱爆炒牛肉，葱香突出', hot:83 },
   { id:'cq39', name:'烧椒豆花牛肉', cat:'other', role:'main', cui:'川', price:58, spicy:2, tags:['牛肉','豆花','烧椒','辣','重口','川','肉'], alg:['牛','豆'], desc:'烧椒风味牛肉搭配嫩豆花，鲜辣入味', hot:91 },
-  { id:'cq40', name:'外婆粗粮王', cat:'other', role:'staple', cui:'家常', price:22, spicy:0, tags:['粗粮','面点','蒸菜'], alg:['麦'], desc:'粗粮面点组合，健康清淡', hot:76 },
+  { id:'cq40', name:'外婆粗粮王', cat:'other', role:'staple', cui:'家常', price:22, spicy:0, tags:['粗粮','面点','蒸菜','清淡','素','小吃','快'], alg:['麦'], desc:'粗粮面点组合，健康清淡', hot:76 },
   { id:'cq41', name:'杭椒油渣', cat:'other', role:'main', cui:'川', price:28, spicy:2, tags:['猪油渣','杭椒','小炒','辣','重口','肉'], alg:['猪'], desc:'杭椒爆炒油渣，脂香浓郁', hot:84 },
-  { id:'cq42', name:'铁板抗日豆腐', cat:'other', role:'side', cui:'家常', price:28, spicy:1, tags:['豆腐','铁板','香煎','辣','聚餐'], alg:['豆'], desc:'铁板香煎豆腐，外酥里嫩', hot:81 },
-  { id:'cq43', name:'粉蒸格格肉', cat:'other', role:'main', cui:'川', price:32, spicy:1, tags:['猪肉','粉蒸','万州特色','辣','重庆','肉'], alg:['猪'], desc:'万州格格，粉蒸五花肉软糯入味', hot:88 },
-  { id:'cq44', name:'农家烧白', cat:'other', role:'main', cui:'川', price:32, spicy:0, tags:['五花肉','蒸菜','咸香','肉'], alg:['猪'], desc:'川式烧白，五花肉配咸菜蒸制，咸香软糯', hot:85 },
+  { id:'cq42', name:'铁板抗日豆腐', cat:'other', role:'side', cui:'家常', price:28, spicy:1, tags:['豆腐','铁板','香煎','辣','聚餐','素','下饭'], alg:['豆'], desc:'铁板香煎豆腐，外酥里嫩', hot:81 },
+  { id:'cq43', name:'粉蒸格格肉', cat:'other', role:'main', cui:'川', price:32, spicy:1, tags:['猪肉','粉蒸','万州特色','辣','重庆','肉','下饭','聚餐','热'], alg:['猪'], desc:'万州格格，粉蒸五花肉软糯入味', hot:88 },
+  { id:'cq44', name:'农家烧白', cat:'other', role:'main', cui:'川', price:32, spicy:0, tags:['五花肉','蒸菜','咸香','肉','下饭','聚餐','热'], alg:['猪'], desc:'川式烧白，五花肉配咸菜蒸制，咸香软糯', hot:85 },
   { id:'cq45', name:'干锅肥肠', cat:'other', role:'main', cui:'川', price:58, spicy:3, tags:['肥肠','干锅','香辣','辣','重口','聚餐','肉'], alg:['猪'], desc:'干锅肥肠，焦香入味，重口下酒', hot:90 },
   { id:'cq46', name:'干锅鱿鱼大虾/香辣虾', cat:'other', role:'main', cui:'川', price:68, spicy:2, tags:['鱿鱼','大虾','干锅','辣','重口','下饭','聚餐'], alg:['海鲜','虾'], desc:'干锅鱿鱼虾，鲜香Q弹', hot:91 },
   { id:'cq47', name:'莴笋炒腊肉', cat:'other', role:'main', cui:'川', price:48, spicy:1, tags:['腊肉','莴笋','小炒','辣','川','肉'], alg:['猪'], desc:'莴笋炒川味腊肉，腊香十足', hot:86 },
@@ -1633,15 +1633,15 @@ const DISHES = [
   { id:'cq58', name:'素烧腐竹', cat:'other', role:'side', cui:'家常', price:22, spicy:0, tags:['腐竹','素烧','清淡','素','蔬菜'], alg:['豆'], desc:'素烧腐竹，软嫩鲜香', hot:76 },
   { id:'cq59', name:'砂煲四季豆', cat:'other', role:'side', cui:'家常', price:24, spicy:1, tags:['四季豆','砂煲','保温','辣','素','蔬菜'], alg:[], desc:'砂煲焖四季豆，热气鲜香', hot:81 },
   { id:'cq60', name:'豆角烧茄子', cat:'other', role:'side', cui:'家常', price:26, spicy:1, tags:['茄子','豆角','红烧','辣','素','蔬菜'], alg:[], desc:'豆角烧茄子，软烂下饭', hot:82 },
-  { id:'cq61', name:'油渣包菜', cat:'other', role:'side', cui:'川', price:22, spicy:1, tags:['包菜','油渣','小炒','辣','肉'], alg:['猪'], desc:'油渣炒包菜，脂香清爽', hot:80 },
+  { id:'cq61', name:'油渣包菜', cat:'other', role:'side', cui:'川', price:22, spicy:1, tags:['包菜','油渣','小炒','辣','肉','下饭','热'], alg:['猪'], desc:'油渣炒包菜，脂香清爽', hot:80 },
   { id:'cq62', name:'快菜', cat:'other', role:'side', cui:'家常', price:18, spicy:0, tags:['青菜','清炒','清淡','素','蔬菜'], alg:[], desc:'清炒快菜，清爽解腻', hot:75 },
-  { id:'cq63', name:'豌豆尖', cat:'other', role:'side', cui:'家常', price:26, spicy:0, tags:['豌豆尖','清炒','时蔬','素','蔬菜'], alg:[], desc:'清炒新鲜豌豆尖，鲜嫩清香', hot:83 },
-  { id:'cq64', name:'空心菜', cat:'other', role:'side', cui:'家常', price:26, spicy:0, tags:['空心菜','清炒','时蔬','素','蔬菜'], alg:[], desc:'清炒空心菜，脆嫩爽口', hot:81 },
-  { id:'cq65', name:'拔丝红薯', cat:'other', role:'side', cui:'家常', price:25, spicy:0, tags:['红薯','拔丝','甜'], alg:[], desc:'拔丝红薯，香甜拉丝', hot:80 },
-  { id:'cq66', name:'松仁玉米', cat:'other', role:'side', cui:'家常', price:22, spicy:0, tags:['玉米','松仁','清甜'], alg:[], desc:'松仁炒玉米，清甜爽口', hot:78 },
-  { id:'cq67', name:'黄金沙滩', cat:'other', role:'side', cui:'家常', price:22, spicy:0, tags:['玉米','香甜','小吃'], alg:[], desc:'香甜玉米小吃，口感酥脆', hot:77 },
-  { id:'cq68', name:'红糖糍粑', cat:'other', role:'side', cui:'川', price:20, spicy:0, tags:['糍粑','红糖','软糯'], alg:[], desc:'红糖淋糍粑，软糯香甜', hot:86 },
-  { id:'cq69', name:'龙抄手', cat:'noodle', cui:'川', price:12, spicy:1, tags:['抄手','红油','主食','辣','肉'], alg:['麦','猪'], desc:'红油龙抄手，皮薄馅嫩', hot:85 },
+  { id:'cq63', name:'豌豆尖', cat:'other', role:'side', cui:'家常', price:26, spicy:0, tags:['豌豆尖','清炒','时蔬','素','蔬菜','清淡','快','解腻'], alg:[], desc:'清炒新鲜豌豆尖，鲜嫩清香', hot:83 },
+  { id:'cq64', name:'空心菜', cat:'other', role:'side', cui:'家常', price:26, spicy:0, tags:['空心菜','清炒','时蔬','素','蔬菜','清淡','快','解腻'], alg:[], desc:'清炒空心菜，脆嫩爽口', hot:81 },
+  { id:'cq65', name:'拔丝红薯', cat:'other', role:'side', cui:'家常', price:25, spicy:0, tags:['红薯','拔丝','甜','甜口','小吃'], alg:[], desc:'拔丝红薯，香甜拉丝', hot:80 },
+  { id:'cq66', name:'松仁玉米', cat:'other', role:'side', cui:'家常', price:22, spicy:0, tags:['玉米','松仁','清甜','甜','甜口','素','清淡','小吃'], alg:[], desc:'松仁炒玉米，清甜爽口', hot:78 },
+  { id:'cq67', name:'黄金沙滩', cat:'other', role:'side', cui:'家常', price:22, spicy:0, tags:['玉米','香甜','小吃','甜','甜口'], alg:[], desc:'香甜玉米小吃，口感酥脆', hot:77 },
+  { id:'cq68', name:'红糖糍粑', cat:'other', role:'side', cui:'川', price:20, spicy:0, tags:['糍粑','红糖','软糯','甜','甜口','小吃'], alg:[], desc:'红糖淋糍粑，软糯香甜', hot:86 },
+  { id:'cq69', name:'龙抄手', cat:'noodle', cui:'川', price:12, spicy:1, tags:['抄手','红油','主食','辣','肉','馄饨','小吃','快'], alg:['麦','猪'], desc:'红油龙抄手，皮薄馅嫩', hot:85 },
 
   /* ===== 采集入库：熊麻婆现炒浇头面·饭（保定市永华北大街店，2026-09-22 录入）=====
    * 定位：这家是"现炒浇头面/饭"快餐连锁，菜品多为一人食盖饭与拌面/汤面。
@@ -1656,7 +1656,7 @@ const DISHES = [
   { id:'xm07', name:'毛豆烧鸡', cat:'rice', cui:'家常', price:17.9, spicy:1, tags:['鸡肉','毛豆','酱香','辣','下饭','快','肉'], alg:['鸡','豆'], desc:'毛豆焖烧鸡肉，酱香浓郁', hot:68 },
   { id:'xm08', name:'香辣鸡杂', cat:'rice', cui:'川', price:18.9, spicy:3, tags:['鸡杂','香辣','重口','辣','下饭','快','肉'], alg:['鸡'], desc:'鸡杂猛火爆炒，香辣重口', hot:80 },
   { id:'xm09', name:'酸菜肥肠', cat:'rice', cui:'川', price:23.9, spicy:2, tags:['猪大肠','酸菜','酸辣','辣','重口','下饭','快','肉'], alg:['猪'], desc:'酸菜焖炒肥肠，酸辣油润', hot:86 },
-  { id:'xm10', name:'加一勺卤肉的葱油拌面', cat:'noodle', cui:'家常', price:9.9, spicy:0, tags:['面条','卤肉','葱香','咸香','干拌','肉'], alg:['猪','麦'], desc:'葱油拌面搭配卤肉浇头，葱香浓郁', hot:88 },
+  { id:'xm10', name:'加一勺卤肉的葱油拌面', cat:'noodle', cui:'家常', price:9.9, spicy:0, tags:['面条','卤肉','葱香','咸香','干拌','肉','面','快'], alg:['猪','麦'], desc:'葱油拌面搭配卤肉浇头，葱香浓郁', hot:88 },
   { id:'xm11', name:'黑金酸菜卤肉饭', cat:'rice', cui:'家常', price:16.9, spicy:0, tags:['猪肉','酸菜','卤香','下饭','快','肉'], alg:['猪'], desc:'卤肉配酸菜盖饭，咸香卤味', hot:85 },
   { id:'xm12', name:'农家茄丁肉酱', cat:'rice', cui:'家常', price:15.9, spicy:0, tags:['茄子','猪肉','酱香','清淡','下饭','快','肉'], alg:['猪'], desc:'茄丁搭配肉酱慢熬，酱香浓郁', hot:74 },
   { id:'xm13', name:'菌菇鲜肉炒蛋', cat:'rice', cui:'家常', price:17.9, spicy:0, tags:['菌菇','猪肉','鸡蛋','鲜','清淡','下饭','锅气','快','肉'], alg:['猪','蛋'], desc:'菌菇鲜肉搭配鸡蛋炒制，鲜味足', hot:71 },
@@ -1666,9 +1666,9 @@ const DISHES = [
   { id:'xm17', name:'菌菇肉酱拌面', cat:'noodle', cui:'家常', price:13.9, spicy:0, tags:['面条','菌菇','猪肉','鲜','清淡','干拌','肉'], alg:['猪','麦'], desc:'菌菇肉酱拌面，鲜香醇厚', hot:77 },
   { id:'xm18', name:'麻婆鸡丁汤面', cat:'noodle', cui:'川', price:14.9, spicy:2, tags:['面条','鸡肉','麻辣','汤','辣','重口','暖','肉'], alg:['鸡','麦'], desc:'麻婆风味鸡丁汤底，麻辣鲜香', hot:82 },
   { id:'xm19', name:'三鲜菌菇汤面', cat:'noodle', cui:'家常', price:9.9, spicy:0, tags:['面条','菌菇','鲜','清汤','清淡','汤','暖'], alg:['麦'], desc:'菌菇三鲜清汤面，清淡鲜美', hot:73 },
-  { id:'xm20', name:'卤千子', cat:'other', role:'side', cui:'小吃', price:1, spicy:0, tags:['卤味','素','咸香','小吃'], alg:['豆'], desc:'卤制千子，面条搭配小食', hot:50 },
+  { id:'xm20', name:'卤千子', cat:'other', role:'side', cui:'小吃', price:1, spicy:0, tags:['卤味','素','咸香','小吃','凉','下酒'], alg:['豆'], desc:'卤制千子，面条搭配小食', hot:50 },
   { id:'xm21', name:'卤鸡腿', cat:'other', role:'side', cui:'小吃', price:5, spicy:0, tags:['卤味','鸡','肉多','小吃','肉'], alg:['鸡'], desc:'卤香鸡腿，扎实肉感', hot:66 },
-  { id:'xm22', name:'卤鸭腿', cat:'other', role:'side', cui:'小吃', price:6, spicy:0, tags:['卤味','鸭','咸香','小吃'], alg:[], desc:'卤鸭腿，咸香肉厚', hot:60 },
+  { id:'xm22', name:'卤鸭腿', cat:'other', role:'side', cui:'小吃', price:6, spicy:0, tags:['卤味','鸭','咸香','小吃','肉','凉','下酒'], alg:[], desc:'卤鸭腿，咸香肉厚', hot:60 },
   { id:'xm23', name:'红豆酒', cat:'other', role:'drink', cui:'甜品', price:5, spicy:0, tags:['红豆','甜','冰饮','清淡','饮品'], alg:[], desc:'招牌红豆酒饮品，冰爽甜润', hot:70 },
 ];
 
@@ -3773,21 +3773,43 @@ function setCandidateDishes(rec){
 
 // 在"菜 + 店"的候选里，选出整桌最合适的一单
 function planMeal(rec, online, preferShop){
-  const anchors = pickAnchors(rec, preferShop);
+  let anchors = pickAnchors(rec, preferShop);
   const combos = [];
   const banned = bannedShopIds();
   const preferShopId = preferShop ? preferShop.id : null;
-  for(const a of anchors){
+  /* 兜底：锚定菜（最想吃的那几道）如果附近没有一家店能配齐，别直接告诉用户"凑不出一桌菜"——
+   * 退一步，在同类候选里继续找能配齐的。实测踩过：补完标签后排序变了，
+   * 前 6 道锚定菜正好都不是那两家小店能做的，于是明明有别的选择却给了死胡同。 */
+  let widened = false;
+  for(let round = 0; round < 2; round++){
+    if(round === 1){
+      if(!anchors.length) break;
+      const seenAnchor = new Set(anchors.map(a => a.dish.id));
+      const more = rec.scored.concat(rec.mains || [])
+        .filter(s => s && s.dish && !seenAnchor.has(s.dish.id))
+        .sort((a,b) => b.total - a.total);      // 不设上限：候选池本来就只有几十道，全试一遍也不会慢
+      if(!more.length) break;
+      anchors = more;
+      widened = true;
+    }
+    for(const a of anchors){
     const shops = recommendRestaurantsSmart(a.dish, online);
     /* 「换一批 / 不喜欢」要真的生效，三步：
      *   ① 被"不喜欢"拉黑的店直接排除（除非一家不剩）
      *   ② 上一批展示过的店排到后面
      *   ③ 再按 reroll 次数旋转着取前 2 家，所以点一次真的会换一家 */
     let list = shops.list.slice();
+    /* 来源标签跟着"最终用了哪批店"走：现算出来的店（手动换店 / 放宽轮）如果还标成
+     * recommendRestaurantsSmart 返回的 'none'，卡片就会显示"无可用数据源"——
+     * 明明店是高德/OSM 搜回来的。实测踩过。 */
+    let src = shops.source;
     // 手动换店时，这道菜可能不在原来的搜店结果里（byDish 只覆盖最初的锚定菜）→
     // 直接从"搜到的候选店池"里现算谁做得了这道菜
-    if(preferShopId && !list.length){
+    /* 放宽轮（round 1）同理：那几道新锚定菜不在最初的锚定列表里，byDish 里没有它们，
+     * 不现算的话每道都拿到空列表 —— 放宽就白放了（实测就是这么卡住的）。 */
+    if((preferShopId || widened) && !list.length){
       list = shopsForDish(a.dish, online);
+      if(list.length) src = (online && online.source) || src;
     }
     // 用户自己点了某家店 → 只留这家（做不了这道菜就跳过这道菜，换这道店能做的菜当主角）
     if(preferShopId){
@@ -3817,7 +3839,7 @@ function planMeal(rec, online, preferShop){
       combo.km = s.km;
       combo.eta = s.eta;
       combo.score = +(combo.score + s.total * 0.5).toFixed(1);
-      combo.source = shops.source;
+      combo.source = src;
       combo.anchorDish = a.dish;
       // 「你说的想吃什么」是硬需求，命中度直接计入组合分，避免被"店更近、菜更全"盖过去
       combo.craveFit = craveHits(a.dish).crave;
@@ -3826,6 +3848,8 @@ function planMeal(rec, online, preferShop){
       if(state.reroll > 0 && state.shownShopIds.indexOf(s.restaurant.id) !== -1) combo.score = +(combo.score - 35).toFixed(1);
       combos.push(combo);
     }
+    }
+    if(combos.length) break;      // 这一轮配出结果了，就不再放宽锚定菜
   }
   combos.sort((a,b) => b.score - a.score);
 
@@ -3842,7 +3866,7 @@ function planMeal(rec, online, preferShop){
     if(seen.has(c.restaurant.id)) continue;
     seen.add(c.restaurant.id); unique.push(c);
   }
-  return { best: unique[0] || null, list: unique, source: unique[0] ? unique[0].source : 'none' };
+  return { best: unique[0] || null, list: unique, source: unique[0] ? unique[0].source : 'none', widened };
 }
 
 /* ------------------------------ 7. 渲染 ------------------------------ */
