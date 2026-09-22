@@ -197,6 +197,16 @@
     margin-top:10px;font-size:12.5px;color:var(--muted);background:none;border:none;
     padding:6px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px
   }
+  /* 结果页模式：出结果后把"选档位／选类型／想吃什么"这三段收起来，
+   * 页面从"一路往下滚的长表单"变成"一步一页"。底部操作栏（开始推荐）也收掉，
+   * 换成一个「重新选菜」按钮回到第一步。 */
+  body.result-mode #secTier,
+  body.result-mode #secCat,
+  body.result-mode #secCrave,
+  body.result-mode .bar{display:none}
+  .restart-wrap{margin:18px 0 4px;text-align:center}
+  .restart-wrap .btn{width:100%;max-width:320px}
+  .restart-hint{font-size:12.5px;color:var(--muted);margin-top:8px}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
   .spin{display:inline-block;width:12px;height:12px;border:2px solid #ffd0bd;border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;margin-left:6px}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -4714,9 +4724,10 @@ function renderResult(combo, meal, extra, online){
               ' ｜ 能做 ' + x.can + ' 道你想吃的</span>' +
           '</span><span class="r-arrow">›</span></div>').join('') +
         '<p class="note" style="margin:6px 0 0">换店之后会按这家店重新配一桌菜（同一家店一次点齐）</p></div>'
-      : '');
+      : '') + restartHTML();
 
   box.classList.add('show');
+  bindRestartButton();
 
   $('#acceptBtn').onclick = () => acceptCombo(combo);
   $('#rerollBtn').onclick = () => { state.reroll++; state.seed++; run(); };
@@ -4759,8 +4770,44 @@ function renderResult(combo, meal, extra, online){
 }
 
 function renderEmpty(msg){
-  $('#result').innerHTML = '<div class="card-main"><div class="empty">' + msg + '</div></div>';
+  $('#result').innerHTML = '<div class="card-main"><div class="empty">' + msg + '</div></div>' + restartHTML();
   $('#result').classList.add('show');
+  bindRestartButton();
+}
+
+/* ---- 结果页：进入 / 退出 ----
+ * 进入：收起"选档位／选类型／想吃什么"三段和底部操作栏，页面变成一页结果，
+ *       并把视图拉回顶部 —— 不然用户要一路往下滚。
+ * 退出（重新选菜）：恢复三段，清掉上一轮结果与推理过程，滚回"今天吃多大一口"。 */
+function enterResultMode(scroll){
+  const body = (typeof document !== 'undefined' && document.body) ? document.body : null;
+  const already = !!(body && body.classList.contains('result-mode'));
+  if(body) body.classList.add('result-mode');
+  if(already) return;        // 已经在结果页里（换菜／换店／换一批），别再往上跳一下
+  if(scroll !== false){
+    try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){ try{ window.scrollTo(0,0); }catch(e2){} }
+  }
+}
+function exitResultMode(){
+  const body = (typeof document !== 'undefined' && document.body) ? document.body : null;
+  if(body) body.classList.remove('result-mode');
+  const box = $('#result');
+  if(box){ box.classList.remove('show'); box.innerHTML = ''; }
+  const trace = $('#traceCard');
+  if(trace) trace.classList.remove('show');       // 新一轮从干净页面开始
+  try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
+}
+// 结果页最底下那个「重新选菜」：拼进结果 HTML 里（跟其它按钮一个写法，好测也好维护）
+function restartHTML(){
+  return '<div class="restart-wrap">' +
+    '<button class="btn ghost" id="restartBtn">🔄 重新选菜</button>' +
+    '<div class="restart-hint">回到「今天吃多大一口」，重新选档位和想吃的</div>' +
+  '</div>';
+}
+function bindRestartButton(){
+  const btn = $('#restartBtn');
+  if(btn) btn.onclick = exitResultMode;
+  enterResultMode();          // 出结果 = 跳到结果页（收起前面的选择步骤）
 }
 
 /* ------------------------------ 8. 记忆学习 ------------------------------ */

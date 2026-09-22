@@ -46,6 +46,7 @@ const segButtons = ['0','1','2','3'].map(v => {
   return b;
 });
 const document = {
+  body: fakeEl('body'),          // 结果页模式会给 body 加 class（真实浏览器里必然有 body）
   querySelector(sel) { if (!cache.has(sel)) cache.set(sel, fakeEl(sel)); return cache.get(sel); },
   querySelectorAll(sel) { return sel === '#spiceSeg button' ? segButtons : []; },
   createElement(tag) { return fakeEl(tag); },
@@ -390,6 +391,31 @@ try {
   assert(document.querySelector('#homePrefSummary').textContent.includes('常用地址 1 个'), '首页摘要显示常用地址数量');
 } catch (err) {
   assert(false, '常用地址异常：' + err.message);
+}
+
+// ---------- 结果页跳转 / 重新选菜 ----------
+console.log('\n--- 出结果后跳到结果页 + 重新选菜 ---');
+try {
+  api.state.settings.enabled = 'off'; api.state.settings.online = 'on'; api.state.settings.amapKey = 'fake-amap-key';
+  mock.mode = 'ok'; mock.calls = 0; mock.amapCalls = 0;
+  api.state.tier = 'good'; api.state.cat = 'rice'; api.state.address = '保定市裕华路步行街';
+  api.state.craveTags = []; api.state.craveText = '';
+  await api.run();
+  await new Promise(r => setTimeout(r, 3000));
+
+  assert(document.body.classList.contains('result-mode'), '出结果后进入"结果页模式"（前面的选择步骤收起）');
+  const h = document.querySelector('#result').innerHTML;
+  assert(h.indexOf('restartBtn') !== -1, '结果页底部有「重新选菜」按钮');
+  assert(h.indexOf('回到「今天吃多大一口」') !== -1, '按钮下面有一行说明');
+
+  // 点「重新选菜」→ 回到第一步
+  const btn = document.querySelector('#restartBtn');
+  assert(!!btn && typeof btn.onclick === 'function', '按钮可点（绑了 onclick）');
+  if (btn && btn.onclick) btn.onclick();
+  assert(!document.body.classList.contains('result-mode'), '点完之后退出结果页模式（选择步骤回来了）');
+  assert(document.querySelector('#result').innerHTML === '', '上一轮结果被清掉');
+} catch (err) {
+  assert(false, '结果页跳转异常：' + err.message);
 }
 
 // ---------- 城市切换 ----------
