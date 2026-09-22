@@ -119,17 +119,82 @@ try {
   } catch { Write-Host ('      建仓库失败：' + $_.Exception.Message) -ForegroundColor Yellow }
 }
 
+
+# 备用通道：github.com:443（git 协议）在国内经常连不上，这时改用 GitHub REST API 推送。
+# 效果一样（远端会产生一个新提交），只要文件内容对就没事。
+function Push-ViaApi {
+  param([string]$Tok, [string]$Owner, [string]$Repo, [string]$Msg, [string]$Root)
+  $h = @{ Authorization = "token $Tok"; "User-Agent" = "fanfan-upload"; Accept = 'application/vnd.github+json' }
+  $API = "https://api.github.com/repos/$Owner/$Repo"
+  $files = & git -C $Root ls-files
+  $items = @()
+  foreach ($f in $files) {
+    if (-not $f) { continue }
+    $full = Join-Path $Root $f
+    if (-not (Test-Path -LiteralPath $full)) { continue }
+    $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($full))
+    $body = @{ content = $b64; encoding = 'base64' } | ConvertTo-Json -Compress
+    $blob = Invoke-RestMethod -Method Post -Uri "$API/git/blobs" -Headers $h -Body ([Text.Encoding]::UTF8.GetBytes($body)) -ContentType 'application/json; charset=utf-8' -TimeoutSec 60
+    $items += @{ path = ($f -replace '\\','/'); mode = '100644'; type = 'blob'; sha = $blob.sha }
+    Write-Host ('      ↑ ' + $f) -ForegroundColor DarkGray
+  }
+  $ref = Invoke-RestMethod -Uri "$API/git/ref/heads/main" -Headers $h -TimeoutSec 30
+  $rc  = Invoke-RestMethod -Uri "$API/git/commits/$($ref.object.sha)" -Headers $h -TimeoutSec 30
+  $treeBody = @{ base_tree = $rc.tree.sha; tree = $items } | ConvertTo-Json -Depth 8 -Compress
+  $tree = Invoke-RestMethod -Method Post -Uri "$API/git/trees" -Headers $h -Body ([Text.Encoding]::UTF8.GetBytes($treeBody)) -ContentType 'application/json; charset=utf-8' -TimeoutSec 60
+  $cBody = @{ message = $Msg; tree = $tree.sha; parents = @($ref.object.sha) } | ConvertTo-Json -Compress
+  $commit = Invoke-RestMethod -Method Post -Uri "$API/git/commits" -Headers $h -Body ([Text.Encoding]::UTF8.GetBytes($cBody)) -ContentType 'application/json; charset=utf-8' -TimeoutSec 60
+  Invoke-RestMethod -Method Patch -Uri "$API/git/refs/heads/main" -Headers $h -Body ([Text.Encoding]::UTF8.GetBytes((@{ sha = $commit.sha } | ConvertTo-Json -Compress))) -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 | Out-Null
+  return $commit.sha
+}
+
 Write-Host '[4/4] 推送 ...'
 if ((& $git remote) -match '^origin$') { & $git remote set-url origin $remote } else { & $git remote add origin $remote }
 $b64 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-access-token:$tok"))
 & $git -c credential.helper= -c "http.extraHeader=Authorization: Basic $b64" push -u origin main
+$pushOk = ($LASTEXITCODE -eq 0)
 
-if ($LASTEXITCODE -eq 0) {
+$lastMsg = (& git -C $Target log -1 --pretty=%B) -join ' '
+if (-not $pushOk) {
+  Write-Host '      git 通道走不通（国内网络常见），改用 GitHub API 推送 ...' -ForegroundColor Yellow
+  try {
+    $remoteSha = Push-ViaApi -Tok $tok -Owner $Owner -Repo $Repo -Msg $lastMsg -Root $Target
+    Write-Host ('      ✅ API 推送成功：' + $remoteSha.Substring(0,7)) -ForegroundColor Green
+    $pushOk = $true
+  } catch {
+    Write-Host ('      ❌ API 推送也失败：' + $_.Exception.Message) -ForegroundColor Red
+  }
+}
+if (-not $pushOk) {
+  Write-Host '      最后再检查一次远端是不是有本地没有的提交 ...' -ForegroundColor Yellow
+  try {
+    $h = @{ Authorization = "token $tok"; "User-Agent" = "fanfan-upload" }
+    $rref = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$Repo/git/ref/heads/main" -Headers $h -TimeoutSec 20
+    $rcommit = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$Repo/git/commits/$($rref.object.sha)" -Headers $h -TimeoutSec 20
+    $localTree = (& $git rev-parse "HEAD^{tree}").Trim()
+    if ($remoteTree = $rcommit.tree.sha) {
+      if ($remoteTree -eq $localTree) {
+        Write-Host '      远端有个本地没有的提交，但两边文件内容完全一样 → 直接覆盖同步' -ForegroundColor Yellow
+        & $git -c credential.helper= -c "http.extraHeader=Authorization: Basic $b64" push --force origin main 2>&1 | Select-Object -Last 2
+        $pushOk = ($LASTEXITCODE -eq 0)
+      } else {
+        Write-Host '      远端有本地没有的改动（内容不一样），先别强推，把窗口截图发我' -ForegroundColor Red
+      }
+    }
+  } catch {
+    Write-Host ('      检查远端失败：' + $_.Exception.Message) -ForegroundColor Yellow
+    Write-Host '      如果提示连不上 github.com，多半是网络问题，过几分钟再双击一次'
+  }
+}
+
+if ($pushOk) {
   Write-Host ''
   Write-Host ('✅ 上传完成：https://github.com/' + $Owner + '/' + $Repo) -ForegroundColor Green
 } else {
   Write-Host ''
-  Write-Host '❌ 推送失败。把上面的报错发我。' -ForegroundColor Red
+  Write-Host '❌ 推送失败。两个通道都没成功，最常见的原因是网络（国内连 github.com 时好时坏）：' -ForegroundColor Red
+  Write-Host '   1) 过几分钟再双击一次本脚本试试；'
+  Write-Host '   2) 还不行就把这个窗口的报错截图发我。'
 }
 Write-Host ''
 Read-Host '按回车退出'
