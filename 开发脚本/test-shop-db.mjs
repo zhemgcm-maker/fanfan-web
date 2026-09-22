@@ -186,6 +186,24 @@ console.log('\n=== 九、菜系参照（同城同菜系借菜单，只做加法�
   ok(D.shopCanMake(nzShop, notOnRef) === false, '女掌柜自己有菜单 → 藤椒鱼不在菜单里就是不能做（封闭集合）');
   ok(D.menuSourceText(chuanShop).indexOf('菜系参照') === 0 && D.menuSourceText(yueShop).indexOf('未采集') === 0,
      '备选卡片文案区分开了：川菜馆「' + D.menuSourceText(chuanShop) + '」/ 粤菜馆「' + D.menuSourceText(yueShop) + '」');
+
+  /* 熊麻婆（现炒浇头面·饭，保定永华北大街店）：本店确认 + 给"盖面盖饭类店"当参照。
+   * 它的参照不能只挂菜系——程序把这家店推成「保定」（店名里带城市名），
+   * 黄焖鸡这类被判成「西」，所以还得能按店名关键词认（cuisineRefKeys）。 */
+  const xm = D.SHOP_DB.shops.find(s => s.name.indexOf('熊麻婆') !== -1);
+  ok(xm && xm.amapId === 'B0MUH1QNEC' && D.dbScopeOf(xm) === 'branch',
+     '熊麻婆是"本店确认"（高德ID ' + (xm ? xm.amapId : '—') + '）');
+  ok(!!(xm && (xm.cuisineRefKeys || []).length), '它同时声明了给盖面盖饭类店的参照关键词');
+  /* 高德店名写的是"面.饭"（ASCII 点），库里绑定时写成了"面·饭"（间隔号）。
+   * 品牌名归一化必须把这俩当同一个，否则同城分店借不到菜单——实测踩过这个坑。 */
+  const sameBrandOther = { id:'amap-XM2', name:'熊麻婆现炒浇头面.饭(保定裕华路店)', cui:['保定'], tags:['中餐厅'], sig:[] };
+  ok(D.dbShopFor(sameBrandOther) === xm, '同城同品牌分店能借到（"面.饭" 和 "面·饭" 视为同一品牌）');
+
+  const gaiFan = { id:'amap-GF', name:'老李盖浇饭', cui:['家常'], tags:['快餐'], sig:[] };
+  const laMian = { id:'amap-LM', name:'兰州牛肉拉面', cui:['西北'], tags:['拉面'], sig:[] };
+  const refGai = D.cuisineRefFor(gaiFan);
+  ok(!!(refGai && refGai.name.indexOf('熊麻婆') !== -1), '盖浇饭店没采集过 → 借到熊麻婆的菜单当参考');
+  ok(D.cuisineRefFor(laMian) === null, '兰州拉面不借（菜系和店名都对不上）');
 }
 
 console.log('\n' + (fail ? '❌ 失败 ' + fail + ' 项' : '✅ 商家数据库（补菜单不改偏好）全部通过'));

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-20",
+  "updatedAt": "2026-09-22",
   "shops": [
     {
       "id": "local-女掌柜土家菜馆",
@@ -12,6 +12,7 @@
       "cuisineRef": [
         "川"
       ],
+      "cuisineRefKeys": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-20",
@@ -679,6 +680,7 @@
       "amapId": "",
       "branchName": "",
       "cuisineRef": [],
+      "cuisineRefKeys": [],
       "confidence": "confirmed",
       "source": "自己拍菜单",
       "collectedAt": "2026-09-19",
@@ -1054,6 +1056,245 @@
           "cat": "饭",
           "dishId": "sx49",
           "kbName": "牛肉炒饭/米粉/河粉"
+        }
+      ],
+      "uncertain": []
+    },
+    {
+      "id": "local-熊麻婆",
+      "name": "熊麻婆现炒浇头面·饭（保定市永华北大街店）",
+      "city": "保定",
+      "scope": "branch",
+      "amapId": "B0MUH1QNEC",
+      "branchName": "熊麻婆现炒浇头面.饭(保定市永华北大街店)",
+      "cuisineRef": [
+        "家常",
+        "保定"
+      ],
+      "cuisineRefKeys": [
+        "盖饭",
+        "盖浇饭",
+        "盖码饭",
+        "盖面",
+        "浇头面",
+        "现炒浇头",
+        "拌面",
+        "快餐"
+      ],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-09-22",
+      "image": "",
+      "menu": [
+        {
+          "name": "辣椒炒肉",
+          "price": 17.9,
+          "cat": "招牌盖饭",
+          "dishId": "c07",
+          "kbName": "辣椒炒肉"
+        },
+        {
+          "name": "十八秒猪肝",
+          "price": 17.9,
+          "cat": "招牌盖饭",
+          "dishId": "xm01",
+          "kbName": "十八秒猪肝"
+        },
+        {
+          "name": "小炒黄牛肉",
+          "price": 24.9,
+          "cat": "招牌盖饭",
+          "dishId": "c06",
+          "kbName": "小炒黄牛肉"
+        },
+        {
+          "name": "柴火香干炒肉",
+          "price": 17.9,
+          "cat": "辣口盖饭",
+          "dishId": "xm02",
+          "kbName": "柴火香干炒肉"
+        },
+        {
+          "name": "农家一碗香",
+          "price": 17.9,
+          "cat": "辣口盖饭",
+          "dishId": "cq33",
+          "kbName": "农家一碗香"
+        },
+        {
+          "name": "泡椒爆炒猪肝",
+          "price": 17.9,
+          "cat": "辣口盖饭",
+          "dishId": "xm03",
+          "kbName": "泡椒爆炒猪肝"
+        },
+        {
+          "name": "土豆丝炒肉",
+          "price": 13.9,
+          "cat": "辣口盖饭",
+          "dishId": "xm04",
+          "kbName": "土豆丝炒肉"
+        },
+        {
+          "name": "泡椒肉丝",
+          "price": 17.9,
+          "cat": "辣口盖饭",
+          "dishId": "xm05",
+          "kbName": "泡椒肉丝"
+        },
+        {
+          "name": "葱爆鸡丁",
+          "price": 17.9,
+          "cat": "辣口盖饭",
+          "dishId": "xm06",
+          "kbName": "葱爆鸡丁"
+        },
+        {
+          "name": "毛豆烧鸡",
+          "price": 17.9,
+          "cat": "辣口盖饭",
+          "dishId": "xm07",
+          "kbName": "毛豆烧鸡"
+        },
+        {
+          "name": "香辣鸡杂",
+          "price": 18.9,
+          "cat": "辣口盖饭",
+          "dishId": "xm08",
+          "kbName": "香辣鸡杂"
+        },
+        {
+          "name": "酸菜肥肠",
+          "price": 23.9,
+          "cat": "辣口盖饭",
+          "dishId": "xm09",
+          "kbName": "酸菜肥肠"
+        },
+        {
+          "name": "加一勺卤肉的葱油拌面",
+          "price": 9.9,
+          "cat": "不辣盖饭",
+          "dishId": "xm10",
+          "kbName": "加一勺卤肉的葱油拌面"
+        },
+        {
+          "name": "黑金酸菜卤肉饭",
+          "price": 16.9,
+          "cat": "不辣盖饭",
+          "dishId": "xm11",
+          "kbName": "黑金酸菜卤肉饭"
+        },
+        {
+          "name": "番茄炒蛋",
+          "price": 14.9,
+          "cat": "不辣盖饭",
+          "dishId": "mg11",
+          "kbName": "番茄炒蛋饭"
+        },
+        {
+          "name": "农家茄丁肉酱",
+          "price": 15.9,
+          "cat": "不辣盖饭",
+          "dishId": "xm12",
+          "kbName": "农家茄丁肉酱"
+        },
+        {
+          "name": "菌菇鲜肉炒蛋",
+          "price": 17.9,
+          "cat": "不辣盖饭",
+          "dishId": "xm13",
+          "kbName": "菌菇鲜肉炒蛋"
+        },
+        {
+          "name": "番茄牛肉滑蛋",
+          "price": 21.9,
+          "cat": "不辣盖饭",
+          "dishId": "xm14",
+          "kbName": "番茄牛肉滑蛋"
+        },
+        {
+          "name": "番茄肉酱拌面",
+          "price": 14.9,
+          "cat": "拌面",
+          "dishId": "xm15",
+          "kbName": "番茄肉酱拌面"
+        },
+        {
+          "name": "土豆泥肉酱拌面",
+          "price": 12.9,
+          "cat": "拌面",
+          "dishId": "xm16",
+          "kbName": "土豆泥肉酱拌面"
+        },
+        {
+          "name": "菌菇肉酱拌面",
+          "price": 13.9,
+          "cat": "拌面",
+          "dishId": "xm17",
+          "kbName": "菌菇肉酱拌面"
+        },
+        {
+          "name": "酸菜肉丝面",
+          "price": 15.9,
+          "cat": "汤面",
+          "dishId": "nd36",
+          "kbName": "东北酸菜肉丝面"
+        },
+        {
+          "name": "麻婆鸡丁汤面",
+          "price": 14.9,
+          "cat": "汤面",
+          "dishId": "xm18",
+          "kbName": "麻婆鸡丁汤面"
+        },
+        {
+          "name": "三鲜菌菇汤面",
+          "price": 9.9,
+          "cat": "汤面",
+          "dishId": "xm19",
+          "kbName": "三鲜菌菇汤面"
+        },
+        {
+          "name": "卤千子",
+          "price": 1,
+          "cat": "卤味小食",
+          "dishId": "xm20",
+          "kbName": "卤千子"
+        },
+        {
+          "name": "卤鸡蛋",
+          "price": 2,
+          "cat": "卤味小食",
+          "dishId": "sx28",
+          "kbName": "卤蛋"
+        },
+        {
+          "name": "卤鸡爪",
+          "price": 5,
+          "cat": "卤味小食",
+          "dishId": "sn24",
+          "kbName": "卤鸡爪"
+        },
+        {
+          "name": "卤鸡腿",
+          "price": 5,
+          "cat": "卤味小食",
+          "dishId": "xm21",
+          "kbName": "卤鸡腿"
+        },
+        {
+          "name": "卤鸭腿",
+          "price": 6,
+          "cat": "卤味小食",
+          "dishId": "xm22",
+          "kbName": "卤鸭腿"
+        },
+        {
+          "name": "红豆酒",
+          "price": 5,
+          "cat": "饮品",
+          "dishId": "xm23",
+          "kbName": "红豆酒"
         }
       ],
       "uncertain": []

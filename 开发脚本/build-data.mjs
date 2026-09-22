@@ -81,6 +81,10 @@ for(const f of files){
      * 例：女掌柜土家菜馆 cuisineRef:['川'] —— 保定的川菜馆没采集过菜单时，
      * 可以拿它当"这类店通常有什么菜"的参考。只做加法，不当封闭菜单。 */
     cuisineRef: p.cuisineRef || [],
+    /* cuisineRefKeys：按"店名/店铺标签关键词"认的参照（盖饭、盖浇饭、浇头面这类）。
+     * 为什么不能只按菜系：程序把"熊麻婆现炒浇头面.饭(保定市永华北大街店)"推成了「保定」
+     * （店名里带城市名），黄焖鸡米饭这类被判成「西」——光靠菜系挂不住同类店。 */
+    cuisineRefKeys: p.cuisineRefKeys || [],
     confidence: 'confirmed',              // confirmed = 菜单是实际采集来的，不是推断
     source: p.source || '自己拍菜单',
     collectedAt: p.collectedAt || '',
