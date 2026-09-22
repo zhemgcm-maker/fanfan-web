@@ -17,7 +17,8 @@ function fakeEl(name = 'el') {
     setAttribute(){}, getAttribute(){ return null; },
     addEventListener(){}, removeEventListener(){},
     appendChild(c){ el.children.push(c); return c; },
-    querySelector(){ return fakeEl(); }, querySelectorAll(){ return []; },
+    querySelector(sel){ if(!el._q) el._q = {}; if(!el._q[sel]) el._q[sel] = fakeEl(sel); return el._q[sel]; },
+    querySelectorAll(){ return []; },
     scrollIntoView(){}, focus(){}, onclick: null, disabled: false
   };
   let text = '';
@@ -70,6 +71,11 @@ U.state.craveText = '想吃点下饭的家常菜，别太辣';
 console.log('\n===== 1. Agent 模式：真跑一次，看有没有结果卡片 =====');
 /* 大模型有随机性：偶尔会把步数烧在"换词重搜"上。所以这里允许两次机会，
  * 并如实报出第几次才过——测试要反映真实稳定性，不能靠一次运气。 */
+/* 记录这一轮的推理过程行（连 class 一起，才能区分"可见"和"折叠"）。
+ * 必须跑之前装钩子：traceAdd 是 appendChild 出来的，事后再看 DOM 桩里什么都没有。 */
+const agentTrace = [];
+const traceHookEl = document.querySelector('#traceList');
+traceHookEl.appendChild = child => { agentTrace.push({ node:child, cls:String(child.className||''), html:String(child.innerHTML||'') }); return child; };
 const t0 = Date.now();
 let done = false, attempts = 0;
 while(!done && attempts < 2){
@@ -89,6 +95,13 @@ ok(!!shownShop && card.indexOf(shownShop) !== -1, '卡片里写了推荐的店�
 ok(U.state.lastCombo && U.state.lastCombo.items.length > 0, '卡片里有菜');
 ok(!!(U.state.lastCombo && U.state.lastCombo.km >= 0), '距离字段有值', String(U.state.lastCombo && U.state.lastCombo.km));
 ok(!!(U.state.lastCombo && U.state.lastCombo.agentPlan), '保留了 Agent 的方案与用量（可展示"为什么"）');
+/* Agent 跑通时界面只留一行：定案 */
+const vis2 = agentTrace.filter(x => x.cls.indexOf('t-silent') === -1);
+const vis2Html = vis2.map(x => x.html).join(' ') + ' ' +
+                 vis2.map(x => { try{ return x.node.querySelector('.t-title').textContent; }catch(e){ return ''; } }).join(' ');
+console.log('    ↳ Agent 成功后界面可见 ' + vis2.length + ' 行：' + vis2Html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 50));
+ok(vis2.length === 1, 'Agent 跑通时界面只有 1 行');
+ok(vis2Html.indexOf('定案') !== -1 || vis2Html.indexOf('↩️') !== -1, '那一行是"定案"（或说明为什么没用智能体）');
 const onlineShops = (U.state.lastOnline && Array.isArray(U.state.lastOnline.shops)) ? U.state.lastOnline.shops : [];
 ok(onlineShops.length > 0, '把本次搜到的店交给了"换一家也行"清单', onlineShops.length + ' 家');
 
@@ -97,7 +110,7 @@ console.log('\n===== 2. 兜底：Agent 跑不通时，run() 必须自动回退�
  * 所以这里自己接一根记录线，把每一步的标题收集起来。 */
 const traceLines = [];
 const traceListEl = document.querySelector('#traceList');
-traceListEl.appendChild = child => { traceLines.push(String(child.innerHTML || child.textContent || '')); return child; };
+traceListEl.appendChild = child => { traceLines.push({ node:child, cls:String(child.className || ''), html:String(child.innerHTML || child.textContent || '') }); return child; };
 U.state.settings.key = 'sk-00000000000000000000000000000000';   // 故意用假 Key，让大模型必然失败
 U.state.lastCombo = null;
 U.state.address = '华北电力大学保定二校区';
@@ -107,12 +120,20 @@ try{ await U.run(); }catch(e){ threw = e; }
 const secs2 = ((Date.now() - t1)/1000).toFixed(1);
 const card2 = document.querySelector('#result').innerHTML || '';
 const trace2 = document.querySelector('#traceList').innerHTML || '';
-const traceText = traceLines.join('\n');
+const traceText = traceLines.map(x => x.html).join('\n');
 console.log('  用时 ' + secs2 + 's，结果卡片长度 ' + card2.length + '，是否抛异常：' + (threw ? threw.message : '否'));
 console.log('  推理过程步数：' + traceLines.length);
 ok(!threw, '假 Key 下 run() 没抛异常');
 ok(traceText.indexOf('回退算法引擎') !== -1, '推理过程里明确写了"回退算法引擎"');
 ok(!!(U.state.lastCombo && U.state.lastCombo.items && U.state.lastCombo.items.length), '回退后依然出了结果（不是白屏）');
+/* 界面上只留关键几行：兜底时 = 「回退算法引擎」+ 算法引擎的最后一行 */
+const vis = traceLines.filter(x => x.cls.indexOf('t-silent') === -1);
+/* 读"活"的标题：traceAdd 先把初始文字塞进 innerHTML，之后 traceUpdate 会把标题改成
+ * 「↩️ 回退算法引擎」——只读抓取时刻的字符串会看不到这次更新。 */
+const liveTitle = x => { try{ return String(x.node.querySelector('.t-title').textContent || ''); }catch(e){ return ''; } };
+console.log('    ↳ 界面可见 ' + vis.length + ' 行：' + vis.map(x => x.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40)).join(' ／ '));
+ok(vis.length <= 2, '兜底时用户最多看到 2 行（回退提示 + 最终方案）');
+ok(vis.some(x => x.html.indexOf('回退算法引擎') !== -1 || liveTitle(x).indexOf('回退算法引擎') !== -1), '其中一行是回退说明');
 
 console.log('\n===== 汇总 =====');
 console.log(fail === 0 ? '✅ 全部通过' : '❌ ' + fail + ' 项未通过');

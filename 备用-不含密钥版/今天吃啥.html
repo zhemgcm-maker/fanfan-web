@@ -4489,11 +4489,18 @@ function traceReset(){
 /* traceAdd/traceUpdate 的第 4 个参数 opts.silent = 这条属于"细节步骤"：
  * 默认折叠起来（界面上只留智能体的自述和最后定案），点「展开完整推理过程」才显示。
  * 注意：只是**视觉上折叠**，DOM 里照样有这条记录——排查问题、跑测试都还读得到。 */
+/* 哪些推理过程行是"折叠"的。用 WeakSet 记，而不是靠 classList 判断——
+ * traceUpdate 会整体重写 className，万一某个环境里 classList 和 className 没联动，
+ * 折叠状态就会被抹掉（测试桩里就踩过：算法引擎那十几行全冒出来了）。 */
+const _silentTrace = (typeof WeakSet === 'function') ? new WeakSet() : null;
 function traceAdd(title, detail, status, opts){
   const li = document.createElement('li');
   const silent = !!(opts && opts.silent);
   li.className = (status || 'done') + (silent ? ' t-silent' : '');
-  if(silent) li.setAttribute('aria-hidden', 'true');
+  if(silent){
+    li.setAttribute('aria-hidden', 'true');
+    if(_silentTrace) _silentTrace.add(li);
+  }
   li.innerHTML = '<span class="dot">' + (status==='active' ? '⋯' : '✓') + '</span>' +
                  '<span class="t-body"><span class="t-title">' + title + '</span>' +
                  (detail ? '<span class="t-detail">' + detail + '</span>' : '') + '</span>';
@@ -4505,7 +4512,7 @@ function traceAdd(title, detail, status, opts){
 function traceUpdate(li, title, detail, status){
   if(!li) return;
   // 保住 t-silent：traceUpdate 会整体重写 className，不带上它就会被"抖"出来
-  const silent = li.classList.contains('t-silent');
+  const silent = !!(_silentTrace && _silentTrace.has(li)) || li.classList.contains('t-silent');
   li.className = 'in ' + (status || 'done') + (silent ? ' t-silent' : '');
   li.querySelector('.dot').textContent = status === 'active' ? '⋯' : '✓';
   li.querySelector('.t-title').textContent = title;
@@ -5488,7 +5495,7 @@ async function traceCravingParse(){
     return;
   }
 
-  const li = traceAdd('②b 大模型理解你说的话', providerLabel() + ' 正在解析「' + text + '」…', 'active');
+  const li = traceAdd('②b 大模型理解你说的话', providerLabel() + ' 正在解析「' + text + '」…', 'active', {silent:true});
   try{
     const v = await parseCraving(text, state.cat);
     if(!v.tags.length && !v.keywords.length){
@@ -6198,7 +6205,7 @@ async function runAgentFlow(){
   const t0 = Date.now();
   /* 用户视线里只留这一行：智能体自己说的话（工具细节都折叠起来了）。
    * 标题用「智能体正在决策」，detail 会被每一步模型的原话覆盖。 */
-  const stepLi = traceAdd('🤖 智能体正在决策', '它要自己决定：读记忆 → 搜菜 → 搜店 → 查菜单 → 定案', 'active');
+  const stepLi = traceAdd('🤖 智能体正在决策…', '它正在自己查：读记忆 → 搜菜 → 搜店 → 查菜单', 'active');
   // 换一批时告诉它别再来同一家店／同一道菜
   let brief = {};
   try{ brief = JSON.parse(agentUserBrief()); }catch(e){ brief = {}; }
@@ -6213,8 +6220,8 @@ async function runAgentFlow(){
       if(rec.type === 'tool'){
         traceAdd('🔧 第 ' + rec.step + ' 步 · ' + (AGENT_TOOL_LABEL[rec.name] || rec.name),
                  agentStepDetail(rec), 'done', {silent:true});      // 工具细节折叠起来，用户只看智能体的自述
-      }else if(rec.type === 'think' && rec.text){
-    traceUpdate(stepLi, '🤖 智能体正在决策', rec.text.replace(/\s+/g, ' ').slice(0, 110));
+      /* 这里以前会把模型的原话贴在界面上：文本协议下它可能是半截 JSON、或中英混杂，
+       * 看着就是"乱码"。现在只留一行静态提示，模型原话不往界面上放。 */
       }else if(rec.type === 'nudge'){
         traceAdd('↩️ 提醒它交方案', '模型光说话没调工具，已提醒它用 finalize 提交', 'done', {silent:true});
       }
@@ -6222,13 +6229,13 @@ async function runAgentFlow(){
   });
   const secs = ((Date.now() - t0)/1000).toFixed(1);
   if(!r.ok || !r.plan){
-    traceUpdate(stepLi, '🤖 智能体正在决策', '没跑通（' + (r.error || '没有拿到方案') + '），回退算法引擎');
+    traceUpdate(stepLi, '↩️ 回退算法引擎', '智能体这次没跑通（' + (r.error || '没有拿到方案') + '），改用本地规则引擎');
     return false;
   }
   const ctx = r.ctx;
   const restaurant = ctx.seenShop.get(r.plan.shop_id);
   if(!restaurant){
-    traceUpdate(stepLi, '🤖 智能体正在决策', '方案里的店不在本次检索结果里，回退算法引擎');
+    traceUpdate(stepLi, '↩️ 回退算法引擎', '智能体给的店不在本次检索结果里，改用本地规则引擎');
     return false;
   }
   const anchorId = (r.plan.items.find(i => i.role === 'main') || r.plan.items[0]).dish_id;
@@ -6237,7 +6244,7 @@ async function runAgentFlow(){
     const sc = scoreDish(d, { ignoreBudget:true });
     return { dish:d, role:i.role, score:sc.total, reasons:(sc.reasons || []), anchor:(i.dish_id === anchorId) };
   }).filter(x => x.dish);
-  if(!items.length){ traceUpdate(stepLi, '🤖 智能体正在决策', '方案里的菜都不在知识库里，回退算法引擎'); return false; }
+  if(!items.length){ traceUpdate(stepLi, '↩️ 回退算法引擎', '智能体给的菜不在知识库里，改用本地规则引擎'); return false; }
 
   const sum = items.reduce((n, x) => n + x.dish.price, 0);
   const tier = pickTier();
@@ -6284,9 +6291,10 @@ async function runAgentFlow(){
   state.lastCrossCat = [];
 
   const meal = { best:combo, list:[combo], source:combo.source };
-  traceUpdate(stepLi, '🤖 智能体正在决策',
-    '共 ' + ctx.steps + ' 步、' + secs + ' 秒定案（token 输入 ' + r.usage.prompt + ' / 输出 ' + r.usage.completion + '）');
-  traceAdd('🎯 定案：' + restaurant.name, '这一桌：' + items.map(x => x.dish.name).join(' ＋ ') + '（合计 ¥' + sum + '）', 'done');
+  /* 就这一行：决策中显示静态提示，定案后原地变成结果。
+   * 界面上总共只留一行，用户不用看工具调用，也看不到模型那些半截 JSON。 */
+  traceUpdate(stepLi, '🎯 定案：' + restaurant.name,
+    '这一桌：' + items.map(x => x.dish.name).join(' ＋ ') + '（合计 ¥' + sum + '）· 共 ' + ctx.steps + ' 步／' + secs + ' 秒');
 
   renderResult(combo, meal, r.plan.reason || '', online);
   const wrap = $('#llmWrap');
@@ -6345,10 +6353,10 @@ async function run(){
     try{
       const done = await runAgentFlow();
       if(done){ state.running = false; $('#goBtn').disabled = false; return; }
-      traceAdd('↩️ 回退算法引擎', 'Agent 模式这次没跑通（没网／超时／额度不足／步数用完），改用本地规则引擎', 'done');
+      traceAdd('↩️ 回退算法引擎', 'Agent 模式这次没跑通（没网／超时／额度不足／步数用完），改用本地规则引擎', 'done', {silent:true});
       toast('Agent 模式没跑通，已回退到算法引擎');
     }catch(e){
-      traceAdd('↩️ 回退算法引擎', 'Agent 模式出错：' + (e && e.message ? e.message : String(e)), 'done');
+      traceAdd('↩️ 回退算法引擎', 'Agent 模式出错：' + (e && e.message ? e.message : String(e)), 'done', {silent:true});
       toast('Agent 模式出错，已回退到算法引擎');
     }
   }else{
@@ -6360,7 +6368,7 @@ async function run(){
   const addr = state.address || '（未填写地址，按全部商圈估算）';
 
   // ① 意图解析
-  let li = traceAdd('① 解析需求', '档位 ' + tier.name + '（' + (tier.min===0?'≤¥'+tier.max:'¥'+tier.min+'–'+tier.max) + '，心理上限 ¥' + Math.min(tier.max,state.budget) + '）｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食'), 'active', undefined, {silent:true});
+  let li = traceAdd('① 解析需求', '档位 ' + tier.name + '（' + (tier.min===0?'≤¥'+tier.max:'¥'+tier.min+'–'+tier.max) + '，心理上限 ¥' + Math.min(tier.max,state.budget) + '）｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食'), 'active', {silent:true});
   await sleep(320); traceUpdate(li, '① 解析需求', '档位 ' + tier.name + '｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食') + '｜📍' + addr);
 
   // ② 记忆
@@ -6370,7 +6378,7 @@ async function run(){
   const likeTop = Object.keys(state.profile.likes).slice(0,5);
   if(likeTop.length) memBits.push('历史喜欢 ' + likeTop.join('、'));
   if(state.profile.history.length) memBits.push('历史用餐 ' + state.profile.history.length + ' 条');
-  li = traceAdd('② 读取长期记忆', memBits.length ? memBits.join('；') : '暂无记忆，先按通用口味推荐', 'active', undefined, {silent:true});
+  li = traceAdd('② 读取长期记忆', memBits.length ? memBits.join('；') : '暂无记忆，先按通用口味推荐', 'active', {silent:true});
   await sleep(300); traceUpdate(li, '② 读取长期记忆', memBits.length ? memBits.join('；') : '暂无记忆，先按通用口味推荐');
 
   // ②b 大模型理解"用一句话说说"（没开模型/调用失败就自动退回本地词表）
@@ -6383,7 +6391,7 @@ async function run(){
     (rec.crossCatUsed
       ? '，另外你说的想吃什么在「' + catName(state.cat) + '」里一道都没命中，所以从其它类别补了 ' + rec.crossCatNames.length + ' 道（' + rec.crossCatNames.slice(0,3).join('、') + '）'
       : '（你点的"今日想吃"在本类别里就有对应菜，所以不跨类别）');
-  li = traceAdd('③ 检索菜品知识库', '库内 ' + DISHES.length + ' 道菜 · ' + catDetail, 'active', undefined, {silent:true});
+  li = traceAdd('③ 检索菜品知识库', '库内 ' + DISHES.length + ' 道菜 · ' + catDetail, 'active', {silent:true});
   await sleep(340); traceUpdate(li, '③ 检索菜品知识库', catDetail + ' → 预算内 ' + rec.inBudget.length + ' 道候选');
   state.lastCrossCat = rec.crossCatUsed ? rec.crossCatNames : null;
 
@@ -6391,7 +6399,7 @@ async function run(){
   const filterDetail = rec.filtered.length
     ? '过滤掉 ' + rec.filtered.length + ' 道：' + rec.filtered.slice(0,3).map(f=>f.dish.name+'（'+f.why+'）').join('；')
     : '没有触发忌口／辣度过滤，全部通过';
-  li = traceAdd('④ 硬性规则过滤', filterDetail, 'active', undefined, {silent:true});
+  li = traceAdd('④ 硬性规则过滤', filterDetail, 'active', {silent:true});
   await sleep(320); traceUpdate(li, '④ 硬性规则过滤', filterDetail);
 
   if(!rec.scored.length){
@@ -6406,7 +6414,7 @@ async function run(){
   // 自检：用户点了、但菜品库里根本没有对应菜的标签（之前会静默忽略）
   const deadTags = state.craveTags.filter(t => tagHitCount(t) === 0);
   state.lastDeadTags = deadTags;
-  li = traceAdd('⑤ 多维打分排序', top3.map(s=>s.dish.name+' '+s.total+'分').join('　'), 'active', undefined, {silent:true});
+  li = traceAdd('⑤ 多维打分排序', top3.map(s=>s.dish.name+' '+s.total+'分').join('　'), 'active', {silent:true});
   await sleep(420);
   traceUpdate(li, '⑤ 多维打分排序', '预算匹配／今日想吃／口味画像／辣度／时段／新鲜感／口碑／探索 加权后：' + top3.map(s=>s.dish.name+' '+s.total+'分').join('，') +
     (deadTags.length ? '　⚠️ 注意：「' + deadTags.join('」「') + '」在菜品库里没找到对应的菜，这次只能靠其它维度推荐' : ''));
@@ -6429,7 +6437,7 @@ async function run(){
     }else{
       onlineDetail = '联网搜索没成功（' + (online.error || '原因未知') + '），所以这次没有店铺可用';
     }
-    li = traceAdd('⑥ 联网检索真实饭店', onlineDetail, 'active', undefined, {silent:true});
+    li = traceAdd('⑥ 联网检索真实饭店', onlineDetail, 'active', {silent:true});
     await sleep(360);
     traceUpdate(li, '⑥ 联网检索真实饭店', onlineDetail);
   }
@@ -6451,13 +6459,13 @@ async function run(){
   state.lastSig = sig;
   rememberShown(meal);
   const comboDesc = combo.items.map(i => i.dish.name).join(' ＋ ');
-  li = traceAdd('⑦ 组合搭配（一桌菜）', comboDesc, 'active', undefined, {silent:true});
+  li = traceAdd('⑦ 组合搭配（一桌菜）', comboDesc, 'active', {silent:true});
   await sleep(420);
   traceUpdate(li, '⑦ 组合搭配（一桌菜）', '按「' + tier.name + '」人均档位配成 ' + combo.items.length + ' 道：' + comboDesc +
     '，合计 ¥' + combo.total + (combo.items.length > 1 ? '（人均 ¥' + combo.perPerson + '）' : ''));
 
   // ⑧ 选址
-  li = traceAdd('⑧ 按地址选饭店', combo.restaurant.name + '（' + combo.km + 'km，' + combo.eta + '分钟）', 'active', undefined, {silent:true});
+  li = traceAdd('⑧ 按地址选饭店', combo.restaurant.name + '（' + combo.km + 'km，' + combo.eta + '分钟）', 'active', {silent:true});
   await sleep(340);
   traceUpdate(li, '⑧ 按地址选饭店', '数据来源：' + sourceLabel(combo.source) + '。这一桌菜都能在「' + combo.restaurant.name + '」一次点齐' +
     '：' + combo.km + 'km' + (combo.restaurant.rating ? ' · 评分' + combo.restaurant.rating : ''));
@@ -6555,7 +6563,7 @@ async function run(){
     };
     $('#devPayload').textContent = JSON.stringify(payload, null, 2);
     if(t) t.innerHTML = providerLabel() + ' ' + state.settings.model + ' 正在写推荐语<span class="spin"></span>';
-  const llmStep = traceAdd('⑨ 调用大模型润色', providerLabel() + ' ' + state.settings.model + ' 正在读候选数据…', 'active', undefined, {silent:true});
+  const llmStep = traceAdd('⑨ 调用大模型润色', providerLabel() + ' ' + state.settings.model + ' 正在读候选数据…', 'active', {silent:true});
     try{
       let r = null, degradedFrom = null, degradedReasoning = null;
       try{
