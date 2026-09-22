@@ -204,6 +204,17 @@ console.log('\n=== 九、菜系参照（同城同菜系借菜单，只做加法�
   const refGai = D.cuisineRefFor(gaiFan);
   ok(!!(refGai && refGai.name.indexOf('熊麻婆') !== -1), '盖浇饭店没采集过 → 借到熊麻婆的菜单当参考');
   ok(D.cuisineRefFor(laMian) === null, '兰州拉面不借（菜系和店名都对不上）');
+
+  /* 川香苑：点菜型川菜馆，本店确认；同城"川菜参照"现在有两家（女掌柜 + 川香苑），
+   * 必须合并成一份，而不是"谁排在前面算谁"。 */
+  const cx = D.SHOP_DB.shops.find(s => s.name === '川香苑');
+  ok(cx && cx.amapId === 'B0K05HVF6L' && D.dbScopeOf(cx) === 'branch', '川香苑是本店确认（' + (cx ? cx.amapId : '—') + '）');
+  ok(!!(cx && cx.menu.some(m => m.name === '米饭' && m.price === 2)), '菜单里有米饭 ¥2（川香苑也有主食）');
+  const chuanShop2 = { id:'amap-CX1', name:'老成都川菜馆', cui:['川'], tags:['川菜'], sig:[] };
+  const ref2 = D.cuisineRefFor(chuanShop2);
+  ok(!!(ref2 && ref2.name.indexOf('女掌柜') !== -1 && ref2.name.indexOf('川香苑') !== -1),
+     '同城同类店合并成一份参考：' + (ref2 ? ref2.name : '无'));
+  ok(!!(ref2 && D.menuHasDish(ref2, D.dishById('cx01'))), '川香苑的招牌菜在合并参考里');
 }
 
 console.log('\n' + (fail ? '❌ 失败 ' + fail + ' 项' : '✅ 商家数据库（补菜单不改偏好）全部通过'));
