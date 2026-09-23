@@ -37,12 +37,33 @@ const places = [
   { id:'P2', name:'河北大学', type:'科教文化服务;学校', location:'115.4930,38.8870', pname:'河北省', cityname:'保定市', adname:'莲池区', address:'五四东路', biz_ext:{} }
 ];
 let lastQuery = '';
+let lastTipsQuery = '';
+let tipsDelayMs = 0;
+/* 高德「输入提示」的假数据：按关键词返回不同候选，方便断言"联想"和"旧响应丢弃" */
+function tipsFor(kw){
+  if(kw === '华电') return [
+    { name:'华北电力大学（保定二校区）', district:'莲池区', address:'永华北大街', location:'115.5146,38.8889', adcode:'130600' },
+    { name:'华电家园', district:'莲池区', address:'', location:'', adcode:'130600' }          // 只有名字、没有坐标
+  ];
+  if(kw === '万') return [ { name:'万博旧响应测试点', district:'莲池区', address:'', location:'', adcode:'130600' } ];
+  if(kw === '万博') return [ { name:'万博广场（联想）', district:'竞秀区', address:'朝阳北大街', location:'115.4800,38.8830', adcode:'130600' } ];
+  return [];
+}
 async function mockFetch(url){
   const u = String(url);
   if(u.includes('restapi.amap.com')){
     if(u.includes('/geocode/regeo')){
       return { ok:true, status:200, json: async () => ({ status:'1', regeocode:{ formatted_address:regeo.addr,
         addressComponent:{ adcode:regeo.adcode, city:regeo.city, province:regeo.province } } }), text: async () => '' };
+    }
+    if(u.includes('/assistant/inputtips')){
+      lastTipsQuery = decodeURIComponent((u.match(/keywords=([^&]*)/) || [,''])[1]);
+      const tips = tipsFor(lastTipsQuery);
+      if(tipsDelayMs) await new Promise(r => setTimeout(r, tipsDelayMs));
+      return { ok:true, status:200, json: async () => ({ status:'1', count:String(tips.length), tips }), text: async () => '' };
+    }
+    if(u.includes('/geocode/geo')){
+      return { ok:true, status:200, json: async () => ({ status:'1', geocodes:[{ location:'115.5146,38.8889' }] }), text: async () => '' };
     }
     if(u.includes('/place/text')){
       lastQuery = decodeURIComponent((u.match(/keywords=([^&]*)/) || [,''])[1]);
@@ -70,6 +91,7 @@ const navigator = {
 
 new Function('document','localStorage','requestAnimationFrame','fetch','navigator',
   code + '\nglobalThis.__L={state,resolveLocation,renderAddrStatus,geolocateMe,toggleLocPanel,searchPlaces,pickLoc,renderLocList,' +
+         'locTypeahead,locScore,localLocTips,' +
          'CITY:()=>CITY, CITIES, applyCity, DEFAULT_AMAP_KEY, locResults:()=>locResults, switchCityByAdcode};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch, navigator);
 const api = globalThis.__L;
@@ -128,6 +150,62 @@ ok(api.state.origin && api.state.origin.source === 'picked', '记下了选点坐
 origin = await api.resolveLocation(api.state.address);
 ok(Math.abs(origin.lng - 115.48) < 0.0001 && origin.precise === true, '搜店直接用选点坐标：' + origin.lng + ',' + origin.lat);
 ok(document.querySelector('#addrStatus').textContent.indexOf('已选点') !== -1, '页面显示「已选点」');
+
+console.log('\n=== 四之二、选地点的模糊联想（打「华电」出「华北电力大学」） ===');
+api.applyCity('baoding'); api.state.origin = null; api.state.address = '';
+api.state.settings.amapKey = api.DEFAULT_AMAP_KEY || 'fake-key';
+document.querySelector('#locPanel').classList.add('hidden');
+api.toggleLocPanel();
+await tick(200);
+
+const qEl = document.querySelector('#locQuery');
+ok(typeof qEl._handlers.input === 'function', '搜索框绑定了 input 事件（边打字边联想）');
+
+// 模糊打分本身：三种命中方式
+ok(api.locScore('华电', '华北电力大学') > 0, '跳字匹配：「华电」能命中「华北电力大学」（' + api.locScore('华电','华北电力大学') + ' 分）');
+ok(api.locScore('万博', '万博广场') > api.locScore('万博', '保定东站'), '包含匹配比不匹配得分高');
+ok(api.locScore('华北电力大学', '华北电力大学') === 1000, '完全相同得分最高');
+ok(api.locScore('炸鸡', '华北电力大学') === 0, '完全不沾边的返回 0');
+
+qEl._handlers.input({ target:{ value:'华电' } });
+await tick(600);                                        // 300ms 防抖 + 请求 + 渲染
+let names = api.locResults().map(x => x.name);
+ok(names.some(n => n.indexOf('华北电力大学') === 0), '打「华电」命中内置地标：' + names.slice(0, 5).join('、'));
+ok(document.querySelector('#locList').innerHTML.indexOf('<b>华电</b>') !== -1, '命中的那两个字在列表里高亮');
+ok(lastTipsQuery === '华电', '同时问了高德的输入提示接口（keywords=' + lastTipsQuery + '）');
+ok(names.includes('华电家园'), '高德返回的长尾候选合并进来了');
+ok(api.locResults()[0].name.indexOf('华北电力大学') === 0, '内置地标排在前面（离线也能立刻出）：' + api.locResults()[0].name);
+ok(document.querySelector('#locNote').textContent.indexOf('联想') !== -1,
+   '状态行写清来源：' + document.querySelector('#locNote').textContent.slice(0, 46));
+
+// 高德候选里"只有名字、没有坐标"的那种：点的时候自动补一次地理编码
+const idxNoCoord = api.locResults().map(x => x.name).indexOf('华电家园');
+await api.pickLoc(idxNoCoord);
+ok(api.state.address === '华电家园' && api.state.origin && Math.abs(api.state.origin.lng - 115.5146) < 0.0001,
+   '没坐标的候选点选后自动补上坐标：' + JSON.stringify(api.state.origin && { lng:api.state.origin.lng, lat:api.state.origin.lat }));
+
+// 没填高德 Key：只有内置地标，但这条功能依然能用（离线兜底）
+api.state.origin = null; api.state.address = '';
+api.state.settings.amapKey = '';
+document.querySelector('#locPanel').classList.add('hidden');
+api.toggleLocPanel(); await tick(200);
+qEl._handlers.input({ target:{ value:'河大' } });
+await tick(600);
+names = api.locResults().map(x => x.name);
+ok(names.includes('河北大学'), '没填 Key 时内置地标照样匹配：「河大」→ ' + names.join('、'));
+ok(document.querySelector('#locNote').textContent.indexOf('内置地标') !== -1,
+   '状态行说明这是离线匹配：' + document.querySelector('#locNote').textContent.slice(0, 40));
+api.state.settings.amapKey = api.DEFAULT_AMAP_KEY || 'fake-key';
+
+// 打字快：慢的那次（"万"）结果回来时不能覆盖后发起的（"万博"）
+tipsDelayMs = 500;
+const slow = api.locTypeahead('万');
+tipsDelayMs = 0;
+await api.locTypeahead('万博');
+await slow;
+const after = api.locResults().map(x => x.name);
+ok(after.includes('万博广场（联想）') && after.indexOf('万博旧响应测试点') === -1,
+   '慢的旧响应被丢弃，不会覆盖新结果：' + after.join('、'));
 
 console.log('\n=== 五、手动改地址会作废定位坐标 ===');
 const inputHandler = document.querySelector('#addr')._handlers.input;

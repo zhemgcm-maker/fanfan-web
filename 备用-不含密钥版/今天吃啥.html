@@ -137,7 +137,8 @@
   .loc-list{margin-top:9px;max-height:300px;overflow:auto;-webkit-overflow-scrolling:touch}
   .loc-item{padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:7px;cursor:pointer}
   .loc-item:active{background:var(--brand-soft)}
-  .loc-name{font-size:14px;font-weight:600;display:block}
+.loc-name{font-size:14px;font-weight:600;display:block}
+.loc-name b{color:var(--brand)}          /* 联想结果里命中的那几个字高亮（"华电" → 华北电力大学） */
   .loc-sub{font-size:11.5px;color:var(--muted);display:block;margin-top:2px;line-height:1.45}
 
   details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:14px;box-shadow:var(--shadow);overflow:hidden}
@@ -477,11 +478,11 @@
     <p class="note" id="addrStatus">📍 —</p>
     <div class="loc-panel hidden" id="locPanel">
       <div class="loc-search">
-        <input type="text" id="locQuery" placeholder="搜小区 / 商场 / 学校，留空就看附近" autocomplete="off">
+        <input type="text" id="locQuery" placeholder="打几个字就联想：华电 / 万博 / 小区，留空看附近" autocomplete="off">
         <button class="btn small" id="locSearchBtn" type="button">搜索</button>
       </div>
       <div class="loc-list" id="locList"></div>
-      <p class="note" id="locNote">点一个地点，就用它当你的位置</p>
+      <p class="note" id="locNote">边打字边给候选（认识"华电 → 华北电力大学"这种简称）；点一个就用它当你的位置</p>
     </div>
     <p class="note" id="homeCityLine">📍 —</p>
     <label class="field" for="mode">用餐方式</label>
@@ -1833,19 +1834,24 @@ const TASTE_TAGS = ['清淡','重口','爱喝汤','爱干拌','嗜辣','偏爱�
 /* ====== 可选城市 ======
  * offline 表示这个城市有没有"离线兜底饭店库"。现在这份数据已经清空（见 RESTAURANTS），
  * 所以所有城市都是 offline:false：必须联网（高德 → OpenStreetMap）才能搜到真实店铺。
- * landmarks 的坐标是粗略值，只在没有高德 Key、需要确定"以哪里为中心搜周边"时使用；
- * 有 Key 时走高德地理编码，坐标是精确的。 */
+ * landmarks 的坐标已用高德的 POI 数据校准过（2026-09-23 逐个核对：原来手写的粗略值偏差不小，
+ * 比如"华北电力大学"差了约 2 公里）；没有高德 Key 时靠它兜底，有 Key 时走实时地理编码。 */
 const CITIES = {
   baoding: {
     key:'baoding', name:'保定市', adcode:'130600', full:'河北省保定市',
     center:[115.4646, 38.8740], offline:false,
-    landmarks:['直隶总督署','裕华路步行街','古莲花池','河北大学','华北电力大学',
+    landmarks:['直隶总督署','裕华路步行街','古莲花池','河北大学','华北电力大学(一校区)','华北电力大学(二校区)',
                '万博广场','军校广场','保定东站','保定站','竞秀公园','三丰路','高新区'],
     coords:{
-      '直隶总督署':[115.4640,38.8740], '裕华路步行街':[115.4670,38.8760], '古莲花池':[115.4660,38.8740],
-      '河北大学':[115.4930,38.8870],   '华北电力大学':[115.5380,38.8730], '万博广场':[115.4800,38.8830],
-      '军校广场':[115.4790,38.8900],   '保定东站':[115.5790,38.8500],     '保定站':[115.4580,38.8620],
-      '竞秀公园':[115.4580,38.8830],   '三丰路':[115.4720,38.8650],       '高新区':[115.5100,38.8900]
+      '直隶总督署':[115.497234,38.859794], '裕华路步行街':[115.496239,38.859446], '古莲花池':[115.499442,38.858189],
+      '河北大学':[115.516084,38.870484],
+      /* 华电两个校区分开：一校区在市区，二校区在北边。泛指"华北电力大学"时按二校区算。
+       * 顺序有讲究：resolveLocation 是按 key 顺序做子串匹配的，具体的那两个要排在泛指前面。 */
+      '华北电力大学(一校区)':[115.505224,38.877102], '华北电力大学(二校区)':[115.514611,38.888900],
+      '华北电力大学':[115.514611,38.888900],
+      '万博广场':[115.469655,38.875891],   '军校广场':[115.528358,38.868401], '保定东站':[115.601563,38.864034],
+      '保定站':[115.479846,38.863197],     '竞秀公园':[115.465979,38.880138], '三丰路':[115.502261,38.846720],
+      '高新区':[115.5100,38.8900]
     },
     areas:{
       '裕华路':['裕华','总督署','古莲花池','大慈阁','钟楼','保定百货','裕华路'],
@@ -1867,10 +1873,10 @@ const CITIES = {
     center:[116.4074, 39.9042], offline:false,
     landmarks:['天安门','三里屯','国贸','中关村','西单','王府井','望京','五道口','朝阳大悦城','北京南站'],
     coords:{
-      '天安门':[116.3975,39.9087], '三里屯':[116.4551,39.9337], '国贸':[116.4610,39.9087],
-      '中关村':[116.3160,39.9836], '西单':[116.3740,39.9075],   '王府井':[116.4105,39.9151],
-      '望京':[116.4700,40.0000],   '五道口':[116.3380,39.9920], '朝阳大悦城':[116.5140,39.9230],
-      '北京南站':[116.3786,39.8654]
+      '天安门':[116.397463,39.909187], '三里屯':[116.455294,39.937492], '国贸':[116.459288,39.910882],
+      '中关村':[116.321669,39.985266], '西单':[116.372960,39.910884],   '王府井':[116.412007,39.913479],
+      '望京':[116.466485,39.995197],   '五道口':[116.339336,39.991922], '朝阳大悦城':[116.519009,39.924544],
+      '北京南站':[116.378517,39.865246]
     },
     areas:{
       '朝阳区':['朝阳','三里屯','国贸','望京','大悦城'],
@@ -1886,10 +1892,10 @@ const CITIES = {
     center:[119.2965, 26.0745], offline:false,
     landmarks:['三坊七巷','东街口','五四路','台江步行街','仓山万达','福州站','福州南站','上下杭','西湖公园','鼓山'],
     coords:{
-      '三坊七巷':[119.2960,26.0810], '东街口':[119.3020,26.0870], '五四路':[119.3050,26.1030],
-      '台江步行街':[119.3110,26.0570], '仓山万达':[119.2830,26.0330], '福州站':[119.3180,26.1170],
-      '福州南站':[119.3620,25.9930], '上下杭':[119.3050,26.0700], '西湖公园':[119.2850,26.0960],
-      '鼓山':[119.3600,26.0500]
+      '三坊七巷':[119.296623,26.081958], '东街口':[119.301390,26.086644], '五四路':[119.305245,26.108849],
+      '台江步行街':[119.317374,26.053404], '仓山万达':[119.273854,26.035858], '福州站':[119.320571,26.113972],
+      '福州南站':[119.391728,25.986348], '上下杭':[119.304687,26.052103], '西湖公园':[119.289152,26.092037],
+      '鼓山':[119.375610,26.053221]
     },
     areas:{
       '鼓楼区':['鼓楼','三坊七巷','东街口','五四路','西湖'],
@@ -4198,8 +4204,163 @@ function toggleLocPanel(){
   panel.classList.toggle('hidden', !show);
   if(show){
     const q = $('#locQuery'); if(q && q.focus){ try{ q.focus(); }catch(e){} }
+    locOriginReset();          // 重新打开面板，参考点重新算一遍
     searchPlaces('');
   }
+}
+
+/* ===== 输入联想：像高德那样"打几个字就出候选" =====
+ * 两路候选合起来给：
+ *   ① 内置地标 + 城市商圈关键词 —— 离线、打字瞬间就出、坐标可靠。
+ *      专门解决"华电 → 华北电力大学"这种简写：既认连续子串，也认跳字匹配（华…电）。
+ *   ② 高德「输入提示」/v3/assistant/inputtips —— 内置表里没有的长尾（小区、写字楼、小店）。
+ * 打字停 300ms 才发高德；每次输入带一个序号，回来晚的旧响应直接丢掉（打字快时不会串结果）。 */
+const LOC_AREA_SCORE = 700;
+let _locSeq = 0, _locTimer = null, _locOrigin = null, _locOriginKey = '', _locHi = '';
+
+// 归一化：去掉空格和常见分隔符，统一小写（模糊匹配用）
+function locNorm(s){
+  return String(s == null ? '' : s).toLowerCase().replace(/[\s·・\-—_/\\()（）\[\]【】,，。.]/g, '');
+}
+// 归一化 + 下标映射（高亮匹配片段时要回到原串的位置）
+function locNormMap(s){
+  const str = String(s == null ? '' : s);
+  let norm = '';
+  const map = [];
+  for(let i = 0; i < str.length; i++){
+    const ch = str[i].toLowerCase();
+    if(/[\s·・\-—_/\\()（）\[\]【】,，。.]/.test(ch)) continue;
+    norm += ch; map.push(i);
+  }
+  return { norm, map };
+}
+
+/* 模糊打分：完全相同 > 前缀 > 包含 > 跳字（"华电"命中"华北电力大学"）。0 = 不匹配 */
+function locScore(q, name){
+  const Q = locNorm(q), N = locNorm(name);
+  if(!Q || !N) return 0;
+  if(N === Q) return 1000;
+  const at = N.indexOf(Q);
+  if(at === 0) return 900 - Math.min(80, N.length - Q.length);
+  if(at > 0) return 800 - Math.min(150, at * 3);
+  let p = 0, gaps = 0;
+  for(let i = 0; i < Q.length; i++){
+    const k = N.indexOf(Q[i], p);
+    if(k === -1) return 0;
+    gaps += k - p;
+    p = k + 1;
+  }
+  return Math.max(150, 620 - gaps * 14);
+}
+
+/* 本机就能出的候选：内置地标 + 商圈关键词表（'华电'/'河大'/'万博' 这些简称指到对应地标） */
+function localLocTips(q){
+  const best = new Map();
+  const put = (name, score, coords) => {
+    if(!name) return;
+    const prev = best.get(name);
+    if(prev && prev._score >= score) return;
+    best.set(name, { name, lng: coords ? coords[0] : null, lat: coords ? coords[1] : null,
+                     addr: coords ? '内置地标' : '内置地标（坐标待解析）', _score: score });
+  };
+  (LANDMARKS || []).forEach(n => {
+    const s = locScore(q, n);
+    if(s) put(n, s, LANDMARK_COORDS[n] || null);
+  });
+  const areas = CITY.areas || {};
+  Object.keys(areas).forEach(k => {
+    const target = (LANDMARKS || []).find(n => n.indexOf(k) !== -1 || k.indexOf(n) !== -1) || k;
+    const coords = LANDMARK_COORDS[target] || null;
+    const baseHit = locScore(q, target) ? LOC_AREA_SCORE : 0;
+    (areas[k] || []).forEach(word => {
+      const s = Math.max(locScore(q, word), baseHit);
+      if(s) put(target, s, coords);
+    });
+  });
+  return [...best.values()].sort((a, b) => b._score - a._score);
+}
+
+function locOriginReset(){ _locOrigin = null; _locOriginKey = ''; }
+/* 联想时算距离用的参考点：优先用"定位我/选地点"的坐标，其次按地址栏解析。
+ * 用 key 记住是哪一次的参考点，地址或城市变了会自动重算。 */
+async function locOriginRef(){
+  const k = CITY.adcode + '|' + (state.origin ? 'origin' : '') + '|' + (state.address || '');
+  if(_locOrigin && _locOriginKey === k) return _locOrigin;
+  try{ _locOrigin = await resolveLocation(state.address || CITY.name); }
+  catch(e){ _locOrigin = null; }
+  _locOriginKey = k;
+  return _locOrigin;
+}
+
+/* 高德「输入提示」：比 /place/text 更适合"边打字边联想"，返回的是补全候选 */
+async function locInputTips(q){
+  const ck = 'tips:' + CITY.adcode + ':' + q;
+  const cached = amapCacheGet(ck, AMAP_TTL.search);
+  if(cached) return cached;
+  const j = await amapFetch('/assistant/inputtips',
+    { keywords: q, city: CITY.adcode, citylimit: 'true', datatype: 'all' }, 8000);
+  amapCacheSet(ck, j);
+  return j;
+}
+
+// 两路候选合并、按名去重：内置地标在前（按命中分），高德结果在后（按距离）
+function mergeLocTips(local, remote, origin){
+  const seen = new Set(), head = [], tail = [];
+  const mk = (t, isLocal) => {
+    if(seen.has(t.name)) return;
+    seen.add(t.name);
+    const hasPt = typeof t.lng === 'number' && !isNaN(t.lng) && typeof t.lat === 'number' && !isNaN(t.lat);
+    const item = { name: t.name, addr: t.addr || '',
+                   lng: hasPt ? t.lng : null, lat: hasPt ? t.lat : null,
+                   km: (hasPt && origin) ? +haversine(origin.lng, origin.lat, t.lng, t.lat).toFixed(2) : null };
+    (isLocal ? head : tail).push(item);
+  };
+  local.forEach(t => mk(t, true));
+  remote.forEach(t => mk(t, false));
+  tail.sort((a, b) => (a.km === null ? 1e9 : a.km) - (b.km === null ? 1e9 : b.km));
+  return head.concat(tail);
+}
+
+async function locTypeahead(q){
+  const kw = String(q == null ? '' : q).trim();
+  const noteEl = $('#locNote');
+  const say = m => { if(noteEl) noteEl.textContent = m; };
+  const seq = ++_locSeq;
+  _locHi = kw;
+  if(!kw){ say('留空就看附近；打几个字试试「华电」「万博」'); searchPlaces(''); return; }
+
+  const origin = await locOriginRef();
+  if(seq !== _locSeq) return;
+  const local = localLocTips(kw);
+  locResults = mergeLocTips(local, [], origin);
+  renderLocList();
+
+  // 和 searchPlaces 一个口径：本机没 Key 就只走内置地标（后端代理那套留给"搜店"用）
+  const canOnline = !!(state.settings.amapKey || '').trim();
+  if(!canOnline){
+    say(local.length
+      ? '内置地标命中 ' + local.length + ' 条（没填高德 Key，搜不了长尾地点）'
+      : '没填高德 Key：只能匹配内置地标，试试「华电」「河大」「万博」');
+    return;
+  }
+  say('正在联想…（内置地标先出了 ' + local.length + ' 条）');
+  let j = null;
+  try{ j = await locInputTips(kw); }
+  catch(e){
+    if(seq === _locSeq) say('高德联想失败：' + e.message + (local.length ? '（下面只有内置地标）' : ''));
+    return;
+  }
+  if(seq !== _locSeq) return;                       // 已经又输入过了，这次结果作废
+  const remote = (j.tips || []).map(t => {
+    const [lng, lat] = String(t.location || '').split(',').map(Number);
+    const addr = [t.district, t.address].filter(v => typeof v === 'string' && v && v !== t.name).join(' ');
+    return { name: t.name || '', addr, lng, lat };
+  }).filter(t => t.name);
+  locResults = mergeLocTips(local, remote, origin);
+  renderLocList();
+  say(locResults.length
+    ? '联想 ' + locResults.length + ' 条（内置地标 ' + local.length + ' + 高德 ' + remote.length + '），点一个就用它当位置'
+    : '没找到「' + kw + '」，换个词试试，比如「万博广场」「河北大学」');
 }
 
 async function searchPlaces(kw){
@@ -4209,6 +4370,7 @@ async function searchPlaces(kw){
   if(box) box.innerHTML = '<div class="loc-item"><span class="loc-sub">搜索中…</span></div>';
   const origin = await resolveLocation(state.address);
   say('以「' + (state.address || CITY.name) + '」为参考');
+  _locHi = '';
   let pois = [];
   try{
     if(String(kw || '').trim()){
@@ -4239,19 +4401,49 @@ async function searchPlaces(kw){
     : '没找到，换个词试试，比如「万博广场」「河北大学」');
 }
 
+/* 把命中的那一段加粗（只在"连续命中"时高亮；跳字匹配不高亮，免得花）。
+ * 用 locNormMap 把归一化后的下标映射回原串，空格/括号不会让它高亮错位。 */
+function locHighlight(name, q){
+  const plain = esc(name);
+  const Q = locNorm(q);
+  if(!Q) return plain;
+  const { norm, map } = locNormMap(name);
+  const at = norm.indexOf(Q);
+  if(at < 0) return plain;
+  const start = map[at], end = map[at + Q.length - 1] + 1;
+  return esc(name.slice(0, start)) + '<b>' + esc(name.slice(start, end)) + '</b>' + esc(name.slice(end));
+}
+
 function renderLocList(){
   const box = $('#locList'); if(!box) return;
   box.innerHTML = locResults.slice(0, 20).map((x, i) =>
     '<div class="loc-item" data-i="' + i + '">' +
-      '<span class="loc-name">' + esc(x.name) + '</span>' +
+      '<span class="loc-name">' + locHighlight(x.name, _locHi) + '</span>' +
       '<span class="loc-sub">' + esc(x.addr || '') + (x.km !== null ? ' · ' + x.km + 'km' : '') + '</span>' +
     '</div>').join('');
   box.querySelectorAll('.loc-item').forEach(el => { el.onclick = () => pickLoc(parseInt(el.getAttribute('data-i'), 10)); });
 }
 
-function pickLoc(i){
+async function pickLoc(i){
   const x = locResults[i]; if(!x) return;
-  state.origin = { lng:x.lng, lat:x.lat, label:x.name, precise:true, source:'picked' };
+  let lng = x.lng, lat = x.lat;
+  /* 高德"输入提示"里有些条目只给了名字（小区名、写字楼这种没收录成 POI 的），
+   * 点的时候再补一次地理编码，别让用户遇到"点了没反应"。 */
+  if(typeof lng !== 'number' || isNaN(lng) || typeof lat !== 'number' || isNaN(lat)){
+    const noteEl = $('#locNote');
+    if(noteEl) noteEl.textContent = '正在解析「' + x.name + '」的坐标…';
+    try{
+      const j = await amapFetch('/geocode/geo', { address: x.name, city: CITY.adcode }, 8000);
+      const g = (j.geocodes || [])[0];
+      if(g && g.location){ const p = String(g.location).split(',').map(Number); lng = p[0]; lat = p[1]; }
+    }catch(e){ /* 下面统一提示 */ }
+  }
+  if(typeof lng !== 'number' || isNaN(lng) || typeof lat !== 'number' || isNaN(lat)){
+    if($('#locNote')) $('#locNote').textContent = '「' + x.name + '」拿不到坐标，换一条试试';
+    toast('这条地点没有坐标，换一条试试');
+    return;
+  }
+  state.origin = { lng, lat, label:x.name, precise:true, source:'picked' };
   state.address = x.name;
   const el = $('#addr'); if(el) el.value = x.name;
   const panel = $('#locPanel'); if(panel) panel.classList.add('hidden');
@@ -6700,6 +6892,7 @@ function init(){
   $('#addr').addEventListener('input', e => {
     state.address = e.target.value.trim();
     state.origin = null;            // 手动改了地址：之前"定位/选点"的坐标就不用了
+    locOriginReset();               // 参考点也作废，下次联想按新地址算距离
     renderAddrStatus(); updateSummary();
   });
   // 定位 / 选地点
@@ -6708,6 +6901,13 @@ function init(){
   const locSearchBtn = $('#locSearchBtn');
   if(locSearchBtn) locSearchBtn.addEventListener('click', () => searchPlaces($('#locQuery') ? $('#locQuery').value : ''));
   const locQuery = $('#locQuery');
+  /* 边打字边联想（停 300ms 才发请求）：本机地标立刻出，高德输入提示随后补长尾。
+   * 按回车 / 点「搜索」还是老行为——用 /place/text 拉一整页同类地点。 */
+  if(locQuery) locQuery.addEventListener('input', e => {
+    const v = e.target.value;
+    clearTimeout(_locTimer);
+    _locTimer = setTimeout(() => { locTypeahead(v).catch(() => {}); }, 300);
+  });
   if(locQuery) locQuery.addEventListener('keydown', e => {
     if(e.key === 'Enter'){ e.preventDefault(); searchPlaces(locQuery.value); }
   });
