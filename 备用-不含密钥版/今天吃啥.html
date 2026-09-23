@@ -6903,11 +6903,18 @@ function init(){
   const locQuery = $('#locQuery');
   /* 边打字边联想（停 300ms 才发请求）：本机地标立刻出，高德输入提示随后补长尾。
    * 按回车 / 点「搜索」还是老行为——用 /place/text 拉一整页同类地点。 */
-  if(locQuery) locQuery.addEventListener('input', e => {
-    const v = e.target.value;
-    clearTimeout(_locTimer);
-    _locTimer = setTimeout(() => { locTypeahead(v).catch(() => {}); }, 300);
-  });
+  if(locQuery){
+    /* 手机上打中文是"拼音合成"过程：合成期间输入框里是 huadian 这种字母，input 事件会连着来。
+     * 这期间不发请求（否则会拿拼音去问高德，白花额度还闪一堆无关结果），等 compositionend 再联想。 */
+    let composing = false;
+    const schedule = v => {
+      clearTimeout(_locTimer);
+      _locTimer = setTimeout(() => { locTypeahead(v).catch(() => {}); }, 300);
+    };
+    locQuery.addEventListener('compositionstart', () => { composing = true; });
+    locQuery.addEventListener('compositionend', e => { composing = false; schedule(e.target.value); });
+    locQuery.addEventListener('input', e => { if(composing) return; schedule(e.target.value); });
+  }
   if(locQuery) locQuery.addEventListener('keydown', e => {
     if(e.key === 'Enter'){ e.preventDefault(); searchPlaces(locQuery.value); }
   });
