@@ -2219,6 +2219,39 @@ function logoutAccount(){
   setToken(''); state.identity = { type:'guest' }; saveIdentity();
 }
 
+/* 探测后端 /api/llm 到底透不透传 function calling（决定 Agent 走原生协议还是文字协议）。
+ * 就发一个最小的 ping_tool：模型要是回了 tool_calls，说明 tools 真的转发到上游了。
+ * 返回 { has:true|false|null, text, error }；null = 这次没测出来（网络/后端问题），不动原有结论。 */
+async function probeToolsPassThrough(){
+  if(!serverLlmOn()) return { has:null, text:'', error:'没登录后端账号或没配后端地址' };
+  try{
+    const r = await apiCall('/api/llm', { method:'POST', timeoutMs:60000, body:{
+      model: state.settings.model, temperature:0.3, max_tokens:64, tool_choice:'auto',
+      tools:[{ type:'function', function:{ name:'ping_tool', description:'测试工具',
+              parameters:{ type:'object', properties:{ ok:{ type:'boolean' } }, required:['ok'] } } }],
+      messages:[{ role:'user', content:'必须调用 ping_tool 工具，参数 ok=true，不要直接回答。' }]
+    }});
+    const has = !!(r.tool_calls && r.tool_calls.length);
+    state.server.llmTools = has;
+    state.server.checkedAt = Date.now();
+    saveSettings();
+    return { has, text:String(r.text || ''), error:'' };
+  }catch(e){
+    return { has:null, text:'', error:(e && e.message) || String(e) };
+  }
+}
+
+/* Agent 开跑前把通道摸清楚：走后端代理时，协议结论"没测过 / 超过 6 小时"就顺手测一次。
+ * 队友哪天把 tools 透传补上了（或者又改回去），用户不用手动点自检，下一次推荐就自动切对协议。 */
+const TOOLS_PROBE_TTL = 6 * 3600 * 1000;
+async function ensureAgentChannel(){
+  if(!serverLlmOn()) return;
+  const stale = !state.server.checkedAt || (Date.now() - state.server.checkedAt) > TOOLS_PROBE_TTL;
+  if(!stale) return;                       // 6 小时内已经测过，按既有结论走
+  const probe = await probeToolsPassThrough();
+  if(probe.has !== null) renderServerUI();
+}
+
 /* 后端自检：一次把三件事测清楚——账号、大模型代理、高德代理，
  * 顺带测出 /api/llm 到不到底透传 function calling（决定 Agent 用原生还是文字协议）。 */
 async function serverSelfCheck(){
@@ -2238,20 +2271,17 @@ async function serverSelfCheck(){
       out.push('✅ 大模型代理可用（' + (r.model || '?') + '，' + (r.ms || '?') + 'ms）');
     }catch(e){ out.push('❌ 大模型代理失败：' + e.message); }
 
-    try{
-      const r = await apiCall('/api/llm', { method:'POST', timeoutMs:90000, body:{
-        model: state.settings.model, temperature:0.3, max_tokens:128, tool_choice:'auto',
-        tools:[{ type:'function', function:{ name:'ping_tool', description:'测试工具',
-                parameters:{ type:'object', properties:{ ok:{ type:'boolean' } }, required:['ok'] } } }],
-        messages:[{ role:'user', content:'必须调用 ping_tool 工具，参数 ok=true，不要直接回答。' }]
-      }});
-      const has = !!(r.tool_calls && r.tool_calls.length);
-      state.server.llmTools = has;
-      out.push(has
+    const probe = await probeToolsPassThrough();
+    if(probe.has === null){
+      state.server.llmTools = null;
+      out.push('⚠️ tools 探测失败：' + probe.error);
+    }else{
+      state.server.checkedAt = Date.now();
+      out.push(probe.has
         ? '✅ 后端透传 function calling → Agent 用原生工具协议'
-        : '⚠️ 后端把 tools 丢了（只回 ' + JSON.stringify(String(r.text || '').slice(0, 40)) +
+        : '⚠️ 后端把 tools 丢了（只回 ' + JSON.stringify(probe.text.slice(0, 40)) +
           '）→ Agent 自动改用文字工具协议（还是大模型决策，只是工具调用走 JSON 文本）');
-    }catch(e){ state.server.llmTools = null; out.push('⚠️ tools 探测失败：' + e.message); }
+    }
   }
 
   // ② 高德代理
@@ -6229,12 +6259,29 @@ function parseTextToolCall(text){
   return calls.length ? calls : null;
 }
 
+/* Agent 入口：先把通道摸清（ensureAgentChannel），再按协议跑。
+ * 万一"原生协议"下模型第一步就没动静——说明这个通道其实还是把 tools 吞了（比如后端又改回去），
+ * 那就把结论记下来、换文字协议重跑一次。用户视角只是"它自己换了条路"，不用点任何按钮。 */
 async function agentRun(opts){
+  await ensureAgentChannel();
+  const mode = agentProtocol();
+  const r = await agentRunWith(opts, mode);
+  if(mode === 'native' && r && r.needTextProtocol){
+    state.server.llmTools = false;
+    state.server.checkedAt = Date.now();
+    try{ saveSettings(); }catch(e){}
+    const r2 = await agentRunWith(opts, 'text');
+    r2.protocolAutoSwitched = true;
+    return r2;
+  }
+  return r;
+}
+
+async function agentRunWith(opts, mode){
   const o = opts || {};
   const emit = o.onStep || function(){};
   agentResetCtx();
   const ctx = agentCtx();
-  const mode = agentProtocol();
   const messages = [
     { role:'system', content: mode === 'text'
         ? (AGENT_SYSTEM_PROMPT + '\n\n【可用工具】\n' + agentToolCatalogText() + AGENT_TEXT_CONTRACT)
@@ -6265,6 +6312,17 @@ async function agentRun(opts){
     if(mode === 'text' && !r.toolCalls.length){
       const parsed = parseTextToolCall(r.text);
       if(parsed) r.toolCalls = parsed;
+    }
+    /* 走后端代理 + 原生协议，模型第一步就没调工具：这个通道八成还是把 tools 吞了。
+     * 立刻认输，让外层换成文字协议重跑（否则会一路 nudge 到把 12 步白烧完）。
+     * 只管代理这条路：本机直连是实测支持 function calling 的，那边保持原来的 nudge 行为。 */
+    if(mode === 'native' && serverLlmOn() && step === 1 && !r.toolCalls.length){
+      const parsed = parseTextToolCall(r.text);      // 模型也可能自己用 JSON 文本把工具调用写出来
+      if(parsed) r.toolCalls = parsed;
+      else{
+        push({ type:'error', step, message:'这个通道没有把 tools 传给模型' });
+        return { ok:false, needTextProtocol:true, error:'这个通道没有把 tools 传给模型', log, usage, ctx };
+      }
     }
 
     // 模型没调工具：要么已经拿到方案，要么在裸聊——逼它走 finalize

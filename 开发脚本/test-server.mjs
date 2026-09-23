@@ -30,6 +30,7 @@ const localStorage = { getItem:k => (store.has(k) ? store.get(k) : null),
 // 假 fetch：记录每次请求，按 URL 返回预置响应
 const calls = [];
 let amapServerMode = 'ok';       // ok | badkey
+let llmMode = 'normal';          // normal | tools-ok（透传 tools）| swallow（把 tools 吞掉）
 const fakeFetch = async (url, init) => {
   const u = String(url);
   calls.push({ url:u, body: init && init.body ? JSON.parse(init.body) : null,
@@ -41,12 +42,28 @@ const fakeFetch = async (url, init) => {
       : json({ status:'0', info:'SERVICE_NOT_AVAILABLE', infocode:'10002' });
   }
   if(u.indexOf('restapi.amap.com') !== -1) return json({ status:'1', info:'OK', geocodes:[{ location:'115.5,38.9' }] });
-  if(u.indexOf('/api/llm') !== -1) return json({ text:'收到', reasoning:'', model:'deepseek-flash', ms:120, usage:{ prompt:5, completion:1 } });
+  if(u.indexOf('/api/llm') !== -1){
+    const body = init && init.body ? JSON.parse(init.body) : {};
+    /* swallow：模拟"后端把 tools 吞了"——模型只能顺着话往下聊，不会回 tool_calls */
+    if(llmMode === 'swallow'){
+      return json({ text:'我觉得搜火锅挺好的，不过我没法直接调工具。', reasoning:'', model:'deepseek-flash', ms:120,
+                    usage:{ prompt:5, completion:12 } });
+    }
+    /* tools-ok：模拟"后端真的透传了 tools"——带 tools 的请求会回 tool_calls */
+    if(llmMode === 'tools-ok' && Array.isArray(body.tools) && body.tools.length){
+      const nm = ((body.tools[0] || {}).function || {}).name || 'ping_tool';
+      return json({ text:'', reasoning:'', model:'deepseek-flash', ms:150, usage:{ prompt:5, completion:2 },
+                    tool_calls:[{ index:0, id:'call_probe_1', type:'function',
+                                  function:{ name:nm, arguments: nm === 'ping_tool' ? '{"ok":true}' : '{}' } }] });
+    }
+    return json({ text:'收到', reasoning:'', model:'deepseek-flash', ms:120, usage:{ prompt:5, completion:1 } });
+  }
   return json({ ok:true });
 };
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__S={state,parseTextToolCall,agentProtocol,serverLlmOn,serverAmapOn,amapFetch,llmChat,setToken,getToken,renderServerUI,DEFAULT_AMAP_KEY,flushAllergyIfDirty,saveProfileNow,pushProfileNow,renderAllergyState};')
+  code + '\nglobalThis.__S={state,parseTextToolCall,agentProtocol,serverLlmOn,serverAmapOn,amapFetch,llmChat,setToken,getToken,renderServerUI,DEFAULT_AMAP_KEY,flushAllergyIfDirty,saveProfileNow,pushProfileNow,renderAllergyState,' +
+         'probeToolsPassThrough,ensureAgentChannel,agentRun};')
   (document, localStorage, f => setTimeout(f, 0), fakeFetch);
 const S = globalThis.__S;
 
@@ -116,7 +133,50 @@ ok(calls[0].url.indexOf('/api/llm') !== -1, 'llmChat 登录后走 /api/llm');
 ok(calls[0].auth.indexOf('Bearer') === 0, '带上了登录令牌');
 ok(r && r.text === '收到' && r.via === 'server', '返回值被归一化成内部结构（Agent 不用改）');
 
-console.log('\n=== 五、忌口「保存」与"跟着账号走"的逻辑（离线）===');
+console.log('\n=== 五、工具协议的自动识别与自动切换 ===');
+S.setToken('fake.jwt.token');
+S.state.settings.useServerLlm = 'auto';
+S.state.server.amapOk = true;
+
+// ① 队友把 /api/llm 的透传打开了 → 探测应当发现，并自动切到原生协议
+S.state.server.llmTools = null; S.state.server.checkedAt = 0;
+llmMode = 'tools-ok';
+calls.length = 0;
+const p1 = await S.probeToolsPassThrough();
+ok(p1.has === true, '探测到后端真的透传 tools（回了 tool_calls）');
+ok(S.state.server.llmTools === true && S.agentProtocol() === 'native', '结论被记住 → Agent 改用原生协议');
+ok(calls.some(c => c.url.indexOf('/api/llm') !== -1 && c.body && c.body.tools), '探测请求确实把 tools 发出去了');
+
+// ② 结论还新鲜 → 开跑前不该重复打请求
+calls.length = 0;
+await S.ensureAgentChannel();
+ok(calls.length === 0, '6 小时内测过 → 不再重复探测');
+
+// ③ 后端要是又改回"吞 tools" → 探测能发现，结论回到文字协议
+S.state.server.llmTools = null; S.state.server.checkedAt = 0;
+llmMode = 'swallow';
+const p2 = await S.probeToolsPassThrough();
+ok(p2.has === false && S.agentProtocol() === 'text', '探测到 tools 被吞 → 回到文字协议');
+
+// ④ 结论过期（>6 小时）→ 下一次开跑自动重测，不需要用户手动点自检
+llmMode = 'tools-ok';
+S.state.server.checkedAt = Date.now() - 7 * 3600 * 1000;
+calls.length = 0;
+await S.ensureAgentChannel();
+ok(S.state.server.llmTools === true, '结论过期后自动重测 → 又切回原生协议');
+
+// ⑤ 万一结论是错的（先按原生跑，模型第一步没动静）→ 自动换文字协议重跑，并把结论改回来
+S.state.server.llmTools = true;
+S.state.server.checkedAt = Date.now();       // 新鲜的结论，不会再探测
+llmMode = 'swallow';
+calls.length = 0;
+const res = await S.agentRun({ brief:'{}', onStep(){} });
+ok(res && res.protocolAutoSwitched === true, '原生跑不动 → 自动改成文字协议重跑了一次');
+ok(S.state.server.llmTools === false, '并把"这个通道吞 tools"记进设置（下次直接走文字协议）');
+ok(calls.filter(c => c.url.indexOf('/api/llm') !== -1).length >= 2, '两次尝试都真的发了请求（' + calls.length + ' 次）');
+llmMode = 'normal';
+
+console.log('\n=== 六、忌口「保存」与"跟着账号走"的逻辑（离线）===');
 S.setToken('');
 S.state.identity = { type:'guest' };
 S.state.profile.allergies = [];
