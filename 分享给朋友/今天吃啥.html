@@ -5095,6 +5095,31 @@ function providerLabel(){
 }
 
 // 把 state.settings 渲染到设置区的表单控件
+/* 设置区那两行状态字（大模型 / 高德）。
+ * 单独抽出来是为了让它们"改完立刻反映"：以前只有点「保存设置」或「测试连通性」才会重画，
+ * 用户改完 Key/模型根本看不出到底生没生效。 */
+function renderSettingsStatus(){
+  const s = state.settings;
+  const p = PROVIDERS[s.provider] || PROVIDERS.custom;
+  const via = serverLlmOn()
+    ? '｜实际：走后端代理（用服务端的 Key）'
+    : '｜实际：本机直连（用这台设备上的 Key）';
+  $('#llmStatus').textContent = (s.key
+    ? '当前：' + p.label + ' · ' + s.model + ' · 密钥已填写（' + s.key.slice(0,5) + '…' + s.key.slice(-4) + '）'
+    : '当前：' + p.label + ' · ' + s.model + ' · 还没有填密钥') + via;
+  const amapKey = (s.amapKey || '').trim();
+  const amapBuiltIn = !!DEFAULT_AMAP_KEY && amapKey === DEFAULT_AMAP_KEY;
+  const usedToday = amapCallsToday();
+  const downTxt = (Date.now() < (state.amapDownUntil || 0))
+    ? '｜⚠️ 高德暂时不可用：' + (state.amapDownReason || '调用失败') + '，已自动改用 OpenStreetMap'
+    : '';
+  $('#amapStatus').textContent = (amapKey
+    ? '联网搜索：高德已配置' + (amapBuiltIn ? '（内置 Key，无需填写）' : '（自己填的）') +
+      '（' + amapKey.slice(0,6) + '…' + amapKey.slice(-4) + '），会搜到' + CITY.name + '的真实店铺'
+    : '联网搜索：还没填高德 Key，只能用 OpenStreetMap（国内节点常超时，建议填一个）') +
+    '｜今天这台设备已用 ' + usedToday + ' 次高德请求（结果有缓存，重复点不会重复请求）' + downTxt;
+}
+
 function renderSettingsUI(){
   const s = state.settings;
   const p = PROVIDERS[s.provider] || PROVIDERS.custom;
@@ -5125,22 +5150,9 @@ function renderSettingsUI(){
 
   $('#llmBase').value = s.base;
   $('#llmKey').value = s.key;
-  $('#llmStatus').textContent = s.key
-    ? '当前：' + p.label + ' · ' + s.model + ' · 密钥已填写（' + s.key.slice(0,5) + '…' + s.key.slice(-4) + '）'
-    : '当前：' + p.label + ' · ' + s.model + ' · 还没有填密钥';
   $('#onlineEnabled').value = s.online || 'on';
   $('#amapKey').value = s.amapKey || '';
-  const amapKey = (s.amapKey || '').trim();
-  const amapBuiltIn = !!DEFAULT_AMAP_KEY && amapKey === DEFAULT_AMAP_KEY;
-  const usedToday = amapCallsToday();
-  const downTxt = (Date.now() < (state.amapDownUntil || 0))
-    ? '｜⚠️ 高德暂时不可用：' + (state.amapDownReason || '调用失败') + '，已自动改用 OpenStreetMap'
-    : '';
-  $('#amapStatus').textContent = (amapKey
-    ? '联网搜索：高德已配置' + (amapBuiltIn ? '（内置 Key，无需填写）' : '（自己填的）') +
-      '（' + amapKey.slice(0,6) + '…' + amapKey.slice(-4) + '），会搜到' + CITY.name + '的真实店铺'
-    : '联网搜索：还没填高德 Key，只能用 OpenStreetMap（国内节点常超时，建议填一个）') +
-    '｜今天这台设备已用 ' + usedToday + ' 次高德请求（结果有缓存，重复点不会重复请求）' + downTxt;
+  renderSettingsStatus();
 
   // 决策模式
   const agentSel = $('#agentMode');
@@ -6745,7 +6757,6 @@ function init(){
     state.settings.agent = (agentModeSel.value === 'agent') ? 'agent' : 'off';
     renderSettingsUI();
   });
-  $('#llmModelCustom').addEventListener('input', e => { state.settings.model = e.target.value.trim(); });
   $('#llmEnabled').addEventListener('change', e => {
     state.settings.enabled = e.target.value;
     saveSettings();
@@ -6760,12 +6771,30 @@ function init(){
     toast('已清除本机保存的密钥（页面源码里的预填值仍在）');
   });
 
+  /* 设置改成「改完即存」——
+   * 以前只有「启用大模型 / 联网搜索」两个开关会自己存：服务商、模型、API Key、高德 Key、后端地址
+   * 改完不点「保存设置」就悄悄丢了（例如粘完 Key 直接去推荐、切到算法引擎又刷新了页面）。
+   * 现在这几个控件一改就落盘，下面那两行状态字也跟着立刻刷新。
+   * 「保存设置」按钮保留，当作"我确认过"的手动兜底。 */
+  const autoSave = (sel, ev, after) => {
+    const el = $(sel); if(!el) return;
+    el.addEventListener(ev, () => { readSettingsUI(); renderSettingsStatus(); if(after) after(); });
+  };
+  autoSave('#llmKey', 'input');              // 粘贴自己的 Key
+  autoSave('#llmBase', 'input');             // 换接口地址
+  autoSave('#llmModelCustom', 'input');      // 自定义模型名
+  autoSave('#amapKey', 'input');             // 粘贴高德 Key
+  autoSave('#apiBase', 'input');             // 后端地址
+  autoSave('#apiBase', 'change', renderServerUI);   // 失焦时把「后端与账号」那行状态也刷新
+  autoSave('#llmProvider', 'change');        // 换服务商（上面已经改过 state，这里负责存）
+  autoSave('#llmModelSelect', 'change');     // 换模型
+  autoSave('#agentMode', 'change');          // 切 Agent / 算法引擎
+
   $('#onlineEnabled').addEventListener('change', e => {
     state.settings.online = e.target.value;
     saveSettings();
     toast(e.target.value === 'on' ? '联网搜索已开启' : '联网搜索已关闭：关掉之后搜不到饭店，只会推荐菜品');
   });
-  $('#amapKey').addEventListener('input', e => { state.settings.amapKey = e.target.value.trim(); });
   const clearCacheBtn = $('#clearCache');
   if(clearCacheBtn) clearCacheBtn.addEventListener('click', () => {
     const n = clearAmapCache();

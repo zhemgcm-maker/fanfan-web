@@ -397,7 +397,7 @@
     <div class="badges">
       <span class="badge" id="cityBadge">📍 请选择城市</span>
       <span class="badge">🌐 联网搜索真实饭店</span>
-      <span class="badge">🧠 DeepSeek 已接入</span>
+      <span class="badge">🧠 大模型 / 智能体 Demo（本地引擎离线可用）</span>
       <span class="badge" id="kbBadge">📚 本地知识库</span>
     </div>
 
@@ -678,9 +678,9 @@
 
   <!-- 大模型接入 -->
   <details id="llmCard">
-    <summary>🔌 大模型接入（DeepSeek 已配置）</summary>
+    <summary>🔌 大模型接入（选填：填自己的 DeepSeek 密钥）</summary>
     <div class="body">
-      <p class="note" style="margin-top:0">推荐逻辑跑在页面内置的「本地推理引擎」上（不联网也能用），大模型负责最后一层：读本地算好的候选、价格、距离、评分和你的忌口，写出自然语言的推荐理由。DeepSeek 的接口地址、模型和密钥已经预填好，直接可用。</p>
+      <p class="note" style="margin-top:0">推荐逻辑跑在页面内置的「本地推理引擎」上，不联网、不需要密钥就能用。想让大模型再写一段更自然的推荐理由，就在下面填自己的 DeepSeek 密钥（接口地址和模型已经预填好），然后把"启用大模型"切成开启。</p>
 
       <div style="border-top:1px dashed var(--line);margin:14px 0 4px"></div>
       <label class="field" for="onlineEnabled">🌐 联网搜索真实饭店</label>
@@ -739,7 +739,7 @@
         <button class="btn ghost small" id="clearKey">清除 Key</button>
       </div>
       <p class="note" id="llmStatus">—</p>
-      <p class="note">🔐 密钥只保存在这台设备的浏览器里（localStorage），请求由浏览器直接发往 api.deepseek.com（已实测支持跨域）。但这个 HTML 文件本身也带着一份预填密钥，<b>公开发布或发给别人之前，记得先点「清除 Key」</b>，或者去 DeepSeek 后台重新生成一个。</p>
+      <p class="note">🔐 这个分享版没有内置任何密钥。你填的密钥只保存在自己这台设备的浏览器里，请求由浏览器直接发往 api.deepseek.com（已实测支持跨域）。不填密钥也能正常使用，只是少一段大模型写的推荐语。</p>
     </div>
   </details>
 
@@ -1965,11 +1965,11 @@ const PROVIDERS = {
  *     填在这里之后，用它的人就不用自己填 Key 了（页面设置里也能看到"内置 Key"）
  *     格式示例：const DEFAULT_AMAP_KEY = 'a1b2c3d4e5f6...';   ← 引号别丢
  */
-const DEFAULT_AMAP_KEY = '';                                   // ← ① 高德 Key 填这里
+const DEFAULT_AMAP_KEY = 'f54ea5a57d96f171cfd3a01451a16f30';                                   // ← ① 高德 Key 填这里
 
 //  ② DeepSeek Key —— 让大模型写推荐语用（不填也能用，只是少一段点评）
 //     注：这个文件会被分享给别人，Key 也会跟着一起被看到，别放太贵重的额度
-const DEFAULT_KEY = '';      // ← ② DeepSeek Key 填这里
+const DEFAULT_KEY = '';   // 分享版：不预填任何密钥，使用者填自己的      // ← ② DeepSeek Key 填这里
 
 //  ③ 城市：在页面上用下拉框切换即可；要增删城市改下面的 CITIES 表
 //     （每个城市的 landmarks 快捷地址 / coords 粗略坐标 / areas 商圈关键词都在那张表里）
@@ -1999,7 +1999,7 @@ const state = {
              * { id, kind:'preference'|'allergy'|'habit'|'event', text, evidence, ts, hits, pinned } */
             memory:[],
             spiceMax:3, defaultTier:null, savedAddresses:[] },
-  settings:{ v:SETTINGS_VERSION, enabled:'on', provider:'deepseek', model:'deepseek-chat', base:PROVIDERS.deepseek.base, key:DEFAULT_KEY,
+  settings:{ v:SETTINGS_VERSION, enabled:'off', provider:'deepseek', model:'deepseek-chat', base:PROVIDERS.deepseek.base, key:DEFAULT_KEY,
              online:'on', amapKey: DEFAULT_AMAP_KEY,
              /* 决策模式：
                 'agent' = Agent 模式（默认）：大模型自己调工具——读记忆、搜菜、反复搜店、查菜单，最后 finalize
@@ -5095,6 +5095,31 @@ function providerLabel(){
 }
 
 // 把 state.settings 渲染到设置区的表单控件
+/* 设置区那两行状态字（大模型 / 高德）。
+ * 单独抽出来是为了让它们"改完立刻反映"：以前只有点「保存设置」或「测试连通性」才会重画，
+ * 用户改完 Key/模型根本看不出到底生没生效。 */
+function renderSettingsStatus(){
+  const s = state.settings;
+  const p = PROVIDERS[s.provider] || PROVIDERS.custom;
+  const via = serverLlmOn()
+    ? '｜实际：走后端代理（用服务端的 Key）'
+    : '｜实际：本机直连（用这台设备上的 Key）';
+  $('#llmStatus').textContent = (s.key
+    ? '当前：' + p.label + ' · ' + s.model + ' · 密钥已填写（' + s.key.slice(0,5) + '…' + s.key.slice(-4) + '）'
+    : '当前：' + p.label + ' · ' + s.model + ' · 还没有填密钥') + via;
+  const amapKey = (s.amapKey || '').trim();
+  const amapBuiltIn = !!DEFAULT_AMAP_KEY && amapKey === DEFAULT_AMAP_KEY;
+  const usedToday = amapCallsToday();
+  const downTxt = (Date.now() < (state.amapDownUntil || 0))
+    ? '｜⚠️ 高德暂时不可用：' + (state.amapDownReason || '调用失败') + '，已自动改用 OpenStreetMap'
+    : '';
+  $('#amapStatus').textContent = (amapKey
+    ? '联网搜索：高德已配置' + (amapBuiltIn ? '（内置 Key，无需填写）' : '（自己填的）') +
+      '（' + amapKey.slice(0,6) + '…' + amapKey.slice(-4) + '），会搜到' + CITY.name + '的真实店铺'
+    : '联网搜索：还没填高德 Key，只能用 OpenStreetMap（国内节点常超时，建议填一个）') +
+    '｜今天这台设备已用 ' + usedToday + ' 次高德请求（结果有缓存，重复点不会重复请求）' + downTxt;
+}
+
 function renderSettingsUI(){
   const s = state.settings;
   const p = PROVIDERS[s.provider] || PROVIDERS.custom;
@@ -5125,22 +5150,9 @@ function renderSettingsUI(){
 
   $('#llmBase').value = s.base;
   $('#llmKey').value = s.key;
-  $('#llmStatus').textContent = s.key
-    ? '当前：' + p.label + ' · ' + s.model + ' · 密钥已填写（' + s.key.slice(0,5) + '…' + s.key.slice(-4) + '）'
-    : '当前：' + p.label + ' · ' + s.model + ' · 还没有填密钥';
   $('#onlineEnabled').value = s.online || 'on';
   $('#amapKey').value = s.amapKey || '';
-  const amapKey = (s.amapKey || '').trim();
-  const amapBuiltIn = !!DEFAULT_AMAP_KEY && amapKey === DEFAULT_AMAP_KEY;
-  const usedToday = amapCallsToday();
-  const downTxt = (Date.now() < (state.amapDownUntil || 0))
-    ? '｜⚠️ 高德暂时不可用：' + (state.amapDownReason || '调用失败') + '，已自动改用 OpenStreetMap'
-    : '';
-  $('#amapStatus').textContent = (amapKey
-    ? '联网搜索：高德已配置' + (amapBuiltIn ? '（内置 Key，无需填写）' : '（自己填的）') +
-      '（' + amapKey.slice(0,6) + '…' + amapKey.slice(-4) + '），会搜到' + CITY.name + '的真实店铺'
-    : '联网搜索：还没填高德 Key，只能用 OpenStreetMap（国内节点常超时，建议填一个）') +
-    '｜今天这台设备已用 ' + usedToday + ' 次高德请求（结果有缓存，重复点不会重复请求）' + downTxt;
+  renderSettingsStatus();
 
   // 决策模式
   const agentSel = $('#agentMode');
@@ -6745,7 +6757,6 @@ function init(){
     state.settings.agent = (agentModeSel.value === 'agent') ? 'agent' : 'off';
     renderSettingsUI();
   });
-  $('#llmModelCustom').addEventListener('input', e => { state.settings.model = e.target.value.trim(); });
   $('#llmEnabled').addEventListener('change', e => {
     state.settings.enabled = e.target.value;
     saveSettings();
@@ -6760,12 +6771,30 @@ function init(){
     toast('已清除本机保存的密钥（页面源码里的预填值仍在）');
   });
 
+  /* 设置改成「改完即存」——
+   * 以前只有「启用大模型 / 联网搜索」两个开关会自己存：服务商、模型、API Key、高德 Key、后端地址
+   * 改完不点「保存设置」就悄悄丢了（例如粘完 Key 直接去推荐、切到算法引擎又刷新了页面）。
+   * 现在这几个控件一改就落盘，下面那两行状态字也跟着立刻刷新。
+   * 「保存设置」按钮保留，当作"我确认过"的手动兜底。 */
+  const autoSave = (sel, ev, after) => {
+    const el = $(sel); if(!el) return;
+    el.addEventListener(ev, () => { readSettingsUI(); renderSettingsStatus(); if(after) after(); });
+  };
+  autoSave('#llmKey', 'input');              // 粘贴自己的 Key
+  autoSave('#llmBase', 'input');             // 换接口地址
+  autoSave('#llmModelCustom', 'input');      // 自定义模型名
+  autoSave('#amapKey', 'input');             // 粘贴高德 Key
+  autoSave('#apiBase', 'input');             // 后端地址
+  autoSave('#apiBase', 'change', renderServerUI);   // 失焦时把「后端与账号」那行状态也刷新
+  autoSave('#llmProvider', 'change');        // 换服务商（上面已经改过 state，这里负责存）
+  autoSave('#llmModelSelect', 'change');     // 换模型
+  autoSave('#agentMode', 'change');          // 切 Agent / 算法引擎
+
   $('#onlineEnabled').addEventListener('change', e => {
     state.settings.online = e.target.value;
     saveSettings();
     toast(e.target.value === 'on' ? '联网搜索已开启' : '联网搜索已关闭：关掉之后搜不到饭店，只会推荐菜品');
   });
-  $('#amapKey').addEventListener('input', e => { state.settings.amapKey = e.target.value.trim(); });
   const clearCacheBtn = $('#clearCache');
   if(clearCacheBtn) clearCacheBtn.addEventListener('click', () => {
     const n = clearAmapCache();
