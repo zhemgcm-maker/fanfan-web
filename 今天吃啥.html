@@ -478,11 +478,11 @@
     <p class="note" id="addrStatus">📍 —</p>
     <div class="loc-panel hidden" id="locPanel">
       <div class="loc-search">
-        <input type="text" id="locQuery" placeholder="打几个字就联想：华电 / 万博 / 小区，留空看附近" autocomplete="off">
+        <input type="text" id="locQuery" placeholder="请输入地点" autocomplete="off">
         <button class="btn small" id="locSearchBtn" type="button">搜索</button>
       </div>
       <div class="loc-list" id="locList"></div>
-      <p class="note" id="locNote">边打字边给候选（认识"华电 → 华北电力大学"这种简称）；点一个就用它当你的位置</p>
+      <p class="note" id="locNote">点一个地点，就用它当你的位置</p>
     </div>
     <p class="note" id="homeCityLine">📍 —</p>
     <label class="field" for="mode">用餐方式</label>
@@ -4327,7 +4327,7 @@ async function locTypeahead(q){
   const say = m => { if(noteEl) noteEl.textContent = m; };
   const seq = ++_locSeq;
   _locHi = kw;
-  if(!kw){ say('留空就看附近；打几个字试试「华电」「万博」'); searchPlaces(''); return; }
+  if(!kw){ say('留空就看附近的地点'); searchPlaces(''); return; }
 
   const origin = await locOriginRef();
   if(seq !== _locSeq) return;
