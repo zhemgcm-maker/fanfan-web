@@ -655,11 +655,19 @@
       <p class="note" style="margin-top:0">后端是朋友搭的阿里云函数计算：<b>大模型 Key 和高德 Key 都留在服务端</b>，页面里不再明文带 Key；登录后口味、忌口、设置还能跨设备同步。
       后端连不上或登录态过期时，会自动回退成本机直连（下面那张卡里填的 Key），不影响使用。</p>
 
-      <label class="field" for="apiBase">后端地址</label>
-      <input type="text" id="apiBase" placeholder="留空 = 纯本机模式">
+      <label class="field" for="backendPreset">用哪个后端（可以随时换，改完立刻生效）</label>
+      <select id="backendPreset">
+        <option value="default">默认后端（作者搭的，Key 不落前端 · 推荐）</option>
+        <option value="custom">我自己搭的后端（下面填地址）</option>
+        <option value="none">不用后端（纯本机直连，用我自己填的 Key）</option>
+      </select>
+      <div id="apiBaseRow" class="hidden">
+        <label class="field" for="apiBase">后端地址</label>
+        <input type="text" id="apiBase" placeholder="https://你的域名（要支持 /api/llm、/api/amap、/api/register、/api/login、/api/profile、/api/settings）">
+      </div>
       <p class="note" id="serverStatus">正在检查…</p>
 
-      <p class="note">登录/注册在上面「我的账号」那张卡里；这里只放技术参数。</p>
+      <p class="note">选「不用后端」时，登录和跨设备同步会失效，但推荐照常跑（大模型用这张文件里内置或你自己填的 Key，直连 api.deepseek.com）。登录/注册在上面「我的账号」那张卡里。</p>
 
       <label class="field" for="useServerLlm" style="margin-top:14px">大模型走哪条路</label>
       <select id="useServerLlm">
@@ -5437,6 +5445,12 @@ function renderServerUI(){
   const baseEl = $('#apiBase');
   if(!baseEl) return;
   baseEl.value = s.apiBase || '';
+  /* 三个预设：默认后端 / 自己搭的后端 / 不用后端。地址栏只在"自己搭"时才露出来，
+   * 免得让人对着一串 URL 发愣。 */
+  const preset = !s.apiBase ? 'none' : ((DEFAULT_API_BASE && s.apiBase === DEFAULT_API_BASE) ? 'default' : 'custom');
+  if($('#backendPreset')) $('#backendPreset').value = preset;
+  const baseRow = $('#apiBaseRow');
+  if(baseRow) baseRow.classList.toggle('hidden', preset !== 'custom');
   if($('#useServerLlm')) $('#useServerLlm').value = s.useServerLlm || 'auto';
   if($('#useServerAmap')) $('#useServerAmap').value = s.useServerAmap || 'auto';
   const on = state.identity.type === 'user';
@@ -5493,7 +5507,15 @@ function readSettingsUI(){
   s.base = $('#llmBase').value.trim() || (PROVIDERS[s.provider] ? PROVIDERS[s.provider].base : '');
   s.key = $('#llmKey').value.trim();
   s.online = $('#onlineEnabled').value;
-  if($('#apiBase')) s.apiBase = $('#apiBase').value.trim().replace(/\/+$/, '');
+  /* 后端地址怎么取，取决于上面那个预设：
+   *   default → 用代码里的默认后端；none → 清空（纯本机）；custom → 读输入框。 */
+  if($('#apiBase')){
+    // 预设控件不存在或没值（老页面/测试桩）时按 custom 处理，保持"直接读输入框"的老行为
+    const preset = ($('#backendPreset') && $('#backendPreset').value) ? $('#backendPreset').value : 'custom';
+    if(preset === 'default') s.apiBase = DEFAULT_API_BASE || '';
+    else if(preset === 'none') s.apiBase = '';
+    else s.apiBase = $('#apiBase').value.trim().replace(/\/+$/, '');
+  }
   if($('#useServerLlm')) s.useServerLlm = $('#useServerLlm').value;
   if($('#useServerAmap')) s.useServerAmap = $('#useServerAmap').value;
   // 输入框留空时，回退到代码里内置的 Key（别把内置 Key 存成空）
@@ -7163,6 +7185,17 @@ function init(){
   });
   if($('#useServerLlm')) $('#useServerLlm').addEventListener('change', () => { readSettingsUI(); renderServerUI(); });
   if($('#useServerAmap')) $('#useServerAmap').addEventListener('change', () => { readSettingsUI(); renderServerUI(); });
+  /* 「用哪个后端」预设：默认后端 / 自己搭的后端 / 不用后端。
+   * 换后端不需要重新登录（令牌还是本机那个），换完立刻生效——下次推荐就走新的那条路。 */
+  if($('#backendPreset')) $('#backendPreset').addEventListener('change', () => {
+    const v = $('#backendPreset').value;
+    if(v === 'custom' && $('#apiBase') && !$('#apiBase').value.trim()) $('#apiBase').value = state.settings.apiBase || '';
+    readSettingsUI();
+    renderSettingsUI();
+    toast(v === 'default' ? '已切回默认后端'
+      : (v === 'none' ? '已切成本机直连：不需要后端，用这张文件里填的 Key'
+                      : '填上你自己后端的地址，改完立刻生效'));
+  });
   // Agent 自检：真发一次带工具定义的请求，看模型会不会自己调工具
   const testAgentBtn = $('#testAgent');
   if(testAgentBtn) testAgentBtn.addEventListener('click', async () => {
