@@ -37,7 +37,7 @@ const localStorage = { getItem:k => (store.has(k) ? store.get(k) : null), setIte
 async function mockFetch(){ return { ok:false, status:404, json: async () => ({}), text: async () => '' }; }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__M={state,renderProfile,openMemPage,closeMemPage,renderMemPage,deleteMemEntry,clearBannedList,onMemoryClick,fmtMoment,fmtBigDate,relDay,histKey,sortedHistory,mealGroups,mealKeyOf,toggleMeal,acceptCombo,DISHES,dishById,saveProfile};')
+  code + '\nglobalThis.__M={state,renderProfile,openMemPage,closeMemPage,renderMemPage,deleteMemEntry,clearBannedList,onMemoryClick,fmtMoment,fmtBigDate,relDay,histKey,sortedHistory,mealGroups,mealKeyOf,toggleMeal,acceptCombo,blessHome,backToPick,DISHES,dishById,saveProfile};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch);
 const M = globalThis.__M;
 const $ = s => document.querySelector(s);
@@ -185,6 +185,16 @@ const fresh = M.state.profile.history;
 ok(fresh.length === 2 && fresh[0].meal === fresh[1].meal, '同一桌菜共用同一个 meal 标识');
 ok(fresh[0].ts === fresh[1].ts, '同一桌菜的时间戳也一样');
 ok(fresh[0].shop === '川香苑' && fresh[0].shopId === 'B0NEW', '记下了饭店名和高德 ID');
+
+console.log('\n--- 点完「就吃这一桌」：放小特效 + 自动回首页 ---');
+ok(html.includes('祝你用餐愉快'), '页面上有「祝你用餐愉快」这句');
+ok($('#bless').classList.contains('show'), '点完弹出小特效，不是干杵在结果页');
+ok($('#blessEmoji').textContent.length > 0, '特效中间是道菜的表情：' + $('#blessEmoji').textContent);
+M.backToPick();
+ok($('#bless').classList.contains('show') === false, '回首页时特效收起来');
+ok(!$('#pageHome').classList.contains('hidden'), '回到「今天吃什么」那一屏');
+ok(!document.body.classList.contains('result-mode'), '结果页模式已退出（三段选择回来了）');
+
 M.renderProfile();
 M.openMemPage('history');
 ok($('#memPageBody').innerHTML.includes('川香苑'), '新记的这顿在卡上显示「川香苑」');

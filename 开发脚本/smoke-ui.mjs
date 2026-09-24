@@ -180,10 +180,15 @@ for (const s of scenarios) {
     const resultHtml = document.querySelector('#result').innerHTML;
     assert(resultHtml.includes('card-head') && resultHtml.includes('就吃这一桌'), s.key + ' 组合卡片已渲染');
     assert(resultHtml.includes('combo-item'), s.key + ' 卡片里是一桌菜（多道菜条目）');
-    // 走真实交互：点结果卡上的「就吃这一桌」，看有没有记进历史
+    // 走真实交互：点结果卡上的「就吃这一桌」→ 记进历史 + 放小特效 + 自动回「今天吃什么」
     const acceptBtn = document.querySelector('#acceptBtn');
     if (acceptBtn && acceptBtn.onclick) acceptBtn.onclick();
     assert(api.state.profile.history.length > 0, s.key + ' 点「就吃这一桌」后记忆写入成功');
+    assert(document.querySelector('#bless').classList.contains('show'), s.key + ' 点完弹出「祝你用餐愉快」小特效');
+    await new Promise(r => setTimeout(r, 2300));       // 等特效自己放完
+    assert(document.querySelector('#bless').classList.contains('show') === false, s.key + ' 特效自己收起来，不挡人');
+    assert(document.body.classList.contains('result-mode') === false, s.key + ' 特效之后自动退出结果页');
+    assert(document.querySelector('#pageHome').classList.contains('hidden') === false, s.key + ' 回到「今天吃什么」那一屏');
   } catch (err) {
     assert(false, s.key + ' 抛异常：' + err.message);
   }
