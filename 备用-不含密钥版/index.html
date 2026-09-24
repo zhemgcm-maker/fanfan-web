@@ -311,7 +311,8 @@
   .mem-bar{display:flex;align-items:center;gap:10px;margin-bottom:9px}
   .mem-bar .mem-bar-note{flex:1;min-width:0;font-size:11.5px;color:var(--muted);line-height:1.45}
   .mem-bar .btn{flex:0 0 auto}
-  .mini.del{cursor:pointer;font-family:inherit;border:1px solid #f0dccf}
+  /* 编辑态的胶囊要拿手指点，比只读时放大一圈（22px → 28px），免得点不准 */
+  .mini.del{cursor:pointer;font-family:inherit;border:1px solid #f0dccf;padding:5px 10px;font-size:12px;line-height:1.5}
   .mini.del.red{border-color:#f2cfca}
   .mini.del .x{opacity:.7;margin-left:4px;font-weight:700}
   /* 最近吃过：点开的那条高亮，下面跟一张日期小卡 */
@@ -397,6 +398,8 @@
     opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;max-width:88vw;text-align:center
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* 带「撤销」的提示条要能点，普通提示条仍然不拦点击 */
+  .toast.actionable{pointer-events:auto;cursor:pointer}
   .note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
   .hidden{display:none !important}
   @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
@@ -2563,10 +2566,33 @@ function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '
 
 function toast(msg){
   const el = $('#toast');
+  // 上一条提示可能是"可撤销"的，普通提示来了就先把那个入口撤掉，免得不小心点到旧操作
+  el.onclick = null;
+  if(el.classList) el.classList.remove('actionable');
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toast._t);
   toast._t = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+/* 删记忆这种操作要能反悔：提示条上直接给一个「点这里撤销」，5 秒内可点。
+ * 不用 confirm 弹窗——这个 App 通篇没有原生弹窗，突然弹一个太突兀。 */
+function toastUndo(msg, undoFn, seconds){
+  const el = $('#toast');
+  el.onclick = null;
+  el.textContent = msg + ' · 点这里撤销';
+  el.classList.add('show');
+  if(el.classList) el.classList.add('actionable');
+  clearTimeout(toast._t);
+  const close = () => {
+    el.classList.remove('show');
+    if(el.classList) el.classList.remove('actionable');
+    el.onclick = null;
+    el.textContent = '';
+    toast._t = null;
+  };
+  toast._t = setTimeout(close, (seconds || 6) * 1000);
+  el.onclick = () => { el.onclick = null; clearTimeout(toast._t); close(); undoFn(); };
 }
 
 // 稳定哈希：同一地址永远得到同一结果，方便演示与复现
@@ -4623,8 +4649,9 @@ function renderProfile(){
       (bs.length ? '<span class="mini grey">＋ ' + bs.length + ' 家店</span>' : '')
     : '<span class="mini grey">还没有</span>';
 
-  // 最近吃过：只渲染最后 8 条，点哪条就在下面展开哪条的日期
-  const hist = state.profile.history.slice(-8).reverse();
+  /* 最近吃过：按时间倒序取最近 8 条（不直接 slice(-8) 反转——记忆可能从别处同步过来，
+   * 顺序不保证；按时间排才敢说"最近"）。点哪条就在下面展开哪条的日期。 */
+  const hist = state.profile.history.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8);
   const pHist = $('#pHistory');
   if(pHist){
     const openAt = hist.findIndex(h => histKey(h) === state.memHistOpen);
@@ -4662,7 +4689,7 @@ function toggleMemEdit(){
 
 /* 点开一条「最近吃过」的日期详情（再点一次收起） */
 function openHistDetail(idx){
-  const hist = state.profile.history.slice(-8).reverse();
+  const hist = state.profile.history.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8);
   const h = hist[idx];
   if(!h) return;
   const key = histKey(h);
@@ -4670,19 +4697,39 @@ function openHistDetail(idx){
   renderProfile();
 }
 
+// 删之前先把这条的值记下来（撤销要原样放回，连次数一起，不能只放回个 1）
+function memEntryValue(kind, key){
+  if(kind === 'like') return state.profile.likes[key];
+  if(kind === 'dislike') return state.profile.dislikes[key];
+  if(kind === 'banDish') return ((state.profile.banned || {}).dishes || {})[key];
+  return undefined;
+}
+function restoreMemEntry(kind, key, value){
+  if(kind === 'like') state.profile.likes[key] = value;
+  else if(kind === 'dislike') state.profile.dislikes[key] = value;
+  else if(kind === 'banDish'){
+    if(!state.profile.banned) state.profile.banned = { dishes:{}, shops:{} };
+    state.profile.banned.dishes[key] = value;
+  }
+}
+
 /* 删掉一条 AI 记忆：喜欢 / 不喜欢 / 被屏蔽的菜。
- * 只删这一条，别的不动；被屏蔽的菜删掉后重新参与推荐。 */
+ * 只删这一条，别的不动；被屏蔽的菜删掉后重新参与推荐。删完给 6 秒撤销窗口。 */
 function deleteMemEntry(kind, key){
+  if(kind !== 'like' && kind !== 'dislike' && kind !== 'banDish') return;
+  const value = memEntryValue(kind, key);
+  if(value === undefined) return;                       // 本来就没有这条，别弹提示
   if(kind === 'like') delete state.profile.likes[key];
   else if(kind === 'dislike') delete state.profile.dislikes[key];
-  else if(kind === 'banDish'){
-    if(state.profile.banned && state.profile.banned.dishes) delete state.profile.banned.dishes[key];
-    state.shownDishIds = [];
-  } else return;
+  else { delete state.profile.banned.dishes[key]; state.shownDishIds = []; }
   state.memHistOpen = null;
   saveProfile(); renderProfile();
   const d = kind === 'banDish' ? dishById(key) : null;
-  toast('已删掉「' + (d ? d.name : key) + '」，以后不再按它推荐');
+  toastUndo('已删掉「' + (d ? d.name : key) + '」', () => {
+    restoreMemEntry(kind, key, value);
+    saveProfile(); renderProfile();
+    toast('已撤销，这条记忆回来了');
+  });
 }
 
 // 记忆卡上的点击都走这一个入口（胶囊是 innerHTML 渲染的，绑不到单个元素上）

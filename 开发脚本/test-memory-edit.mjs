@@ -72,11 +72,23 @@ const saved = profKey ? JSON.parse(store.get(profKey)) : {};
 ok(!('家常' in (saved.likes || {})), '存进去的那份里也没有「家常」了（刷新后不会复活）');
 ok(saved.likes && saved.likes['川'] === 2, '存进去的那份里「川」还在');
 
+console.log('\n--- 误删要能撤销 ---');
+ok(typeof $('#toast').onclick === 'function' && $('#toast').textContent.includes('撤销'), '删完的提示条上带撤销入口：' + $('#toast').textContent);
+$('#toast').onclick();
+ok(M.state.profile.likes['家常'] === 3, '点一下撤销：这条连同原来的次数一起回来了（不是只放回 1 次）');
+ok(M.state.profile.likes['川'] === 2, '撤销不会顺手改动别的条目');
+ok(typeof $('#toast').onclick !== 'function', '撤销完入口就关掉，不会重复撤销');
+M.deleteMemEntry('like', '家常');                    // 再删一次，接着测别的
+ok(!('家常' in M.state.profile.likes), '撤销之后还能再删掉');
+
 M.deleteMemEntry('dislike', '香菜');
 ok(!('香菜' in M.state.profile.dislikes), '删掉的不喜欢已经不在记忆里');
 ok(M.state.profile.dislikes['内脏'] === 1, '别的不喜欢没被牵连');
 M.deleteMemEntry('banDish', d2.id);
 ok(!(d2.id in M.state.profile.banned.dishes), '删掉的屏蔽菜已经解封');
+$('#toast').textContent = '';
+M.deleteMemEntry('like', '本来就没有的口味');
+ok($('#toast').textContent === '', '删一条本来就不存在的记忆时不会白弹提示');
 ok($('#pLikes').innerHTML.includes('川 ×2'), '删完重渲染，剩下的喜欢还在');
 
 console.log('\n=== 三、最近吃过：点一条看具体哪天 ===');
@@ -87,6 +99,12 @@ M.renderProfile();
 ok($('#pHistory').innerHTML.includes('data-hist="0"'), '最近吃过每条都能点');
 ok(!$('#pHistory').innerHTML.includes('hist-detail'), '没点开时不显示日期卡');
 ok($('#pHistory').innerHTML.includes('今天') && $('#pHistory').innerHTML.includes('昨天'), '列表上仍有「今天 / 昨天」的粗粒度提示');
+// 记忆可能从别的设备同步过来，数组顺序不保证 —— 展示必须按时间排
+const oldTs = yesterday - 5 * DAY;                   // 共 6 天前，故意追加在数组末尾
+M.state.profile.history.push({ id:d0.id, ts:oldTs, price:15 });
+M.renderProfile();
+const listHTML = $('#pHistory').innerHTML;
+ok(listHTML.lastIndexOf(M.relDay(oldTs)) > listHTML.lastIndexOf('今天'), '存进去时顺序乱了也不会看错：展示按时间排，"最近吃过"永远是最近的在最前');
 
 // 列表是倒序的：下标 0 是最新那条（今天 10:00），1 是昨天，2 是昨天同一顿的前一道
 M.openHistDetail(0);
