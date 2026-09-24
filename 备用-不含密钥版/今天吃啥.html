@@ -306,24 +306,40 @@
   .mini{font-size:11.5px;color:#b0461f;background:#fff2e7;border-radius:999px;padding:2px 8px;display:inline-block;margin:2px 4px 2px 0}
   .mini.grey{color:#7b6a5c;background:#f6f0ea}
   .mini.red{color:#b3271c;background:#fdeceb}
-  /* AI 记忆：编辑态。记忆条目平时是只读胶囊，点「编辑」后变成可删的按钮，
-   * 免得用户想删一条却找不到入口。 */
-  .mem-bar{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-  .mem-bar .mem-bar-note{flex:1;min-width:0;font-size:11.5px;color:var(--muted);line-height:1.45}
-  .mem-bar .btn{flex:0 0 auto}
-  /* 编辑态的胶囊要拿手指点，比只读时放大一圈（22px → 28px），免得点不准 */
-  .mini.del{cursor:pointer;font-family:inherit;border:1px solid #f0dccf;padding:5px 10px;font-size:12px;line-height:1.5}
-  .mini.del.red{border-color:#f2cfca}
-  .mini.del .x{opacity:.7;margin-left:4px;font-weight:700}
-  /* 最近吃过：点开的那条高亮，下面跟一张日期小卡 */
-  .mini.hist{cursor:pointer;font-family:inherit;border:1px solid #ece2d8}
-  .mini.hist.open{border-color:#ffc4a8;background:#fff2e7;color:#b0461f}
-  .hist-detail{
-    margin-top:9px;background:#fffdfb;border:1px solid #f0e4d9;border-radius:12px;padding:9px 11px;
-    font-size:12px;color:#4a3b30;line-height:1.6
+  /* AI 记忆：卡片里只放摘要，整块可点，点进 #pageMem 看全记录 */
+  .mem-box{
+    background:#fffdfb;border:1px solid var(--line);border-radius:13px;padding:10px 11px;
+    transition:border-color .15s,background .15s
   }
-  .hist-detail .hd-date{font-weight:700;color:#b0461f}
-  .hist-detail .hd-line{color:#7b6a5c}
+  .mem-box + .mem-box{margin-top:10px}
+  .mem-box.tap{cursor:pointer}
+  .mem-box.tap:active{transform:scale(.99);background:#fff7f1;border-color:#ffcbb4}
+  .mem-box .mem-box-head{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#4a3b30}
+  .mem-box .mem-box-head > span:first-child{flex:1;min-width:0}
+  .mem-box .mem-more{flex:0 0 auto;font-size:11.5px;font-weight:400;color:var(--brand)}
+  .mem-box .mem-box-sub{font-size:11.5px;color:var(--muted);margin:4px 0 6px;line-height:1.45}
+  .mem-box .profile-grid{margin-top:8px}
+
+  /* 全记录页 */
+  .mem-top{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .mem-top .btn{flex:0 0 auto;padding:9px 13px}
+  .mem-top .mem-top-title{flex:1;min-width:0;font-size:15px;font-weight:700;color:#4a3b30}
+  .mem-list{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:10px;overflow:hidden}
+  .mem-list .row{
+    display:flex;align-items:center;gap:10px;padding:11px 13px
+  }
+  .mem-list .row + .row{border-top:1px solid #f8f0e8}
+  .mem-list .r-main{flex:1;min-width:0}
+  .mem-list .r-name{font-size:14px;color:#3f3128;word-break:break-word}
+  .mem-list .r-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .mem-list .r-del{
+    flex:0 0 auto;font-family:inherit;font-size:13px;color:#b3271c;background:#fdeceb;
+    border:1px solid #f2cfca;border-radius:999px;padding:10px 14px;cursor:pointer
+  }
+  .mem-list .r-del:active{transform:scale(.96)}
+  .mem-sec{font-size:12.5px;color:var(--muted);font-weight:600;margin:16px 4px 0;letter-spacing:.3px}
+  .mem-empty{font-size:12.5px;color:var(--muted);text-align:center;padding:20px 10px}
+  .mem-footbtn{margin-top:12px}
 
   pre.code{
     background:#2b2118;color:#ffe6cf;border-radius:12px;padding:11px;font-size:11px;line-height:1.5;
@@ -642,31 +658,41 @@
   <div class="me-title">AI 记忆</div>
   <div class="me-card" id="memoryCard">
     <div class="me-block">
-      <div class="mem-bar">
-        <span class="mem-bar-note" id="memEditNote">它在你这儿学到的口味，记错了可以点「编辑」删掉</span>
-        <button class="btn ghost small" id="memEditBtn" aria-pressed="false">编辑</button>
-      </div>
-      <div class="profile-grid">
-        <div class="p-box">
-          <div class="p-title">AI 记住的喜欢</div>
-          <div class="p-val" id="pLikes"><span class="mini grey">还没有</span></div>
+      <!-- 三块记忆都是"点进去看全记录"的入口：卡片里只放摘要，完整列表在 #pageMem -->
+      <div class="mem-box tap" id="memGoTaste" data-gomem="taste" role="button" tabindex="0">
+        <div class="mem-box-head">
+          <span>AI 记住的喜欢 / 不喜欢</span>
+          <span class="mem-more" id="memTasteMore">查看全部 ›</span>
         </div>
-        <div class="p-box">
-          <div class="p-title">AI 记住的不喜欢</div>
-          <div class="p-val" id="pDislikes"><span class="mini grey">还没有</span></div>
+        <div class="profile-grid">
+          <div class="p-box">
+            <div class="p-title">喜欢</div>
+            <div class="p-val" id="pLikes"><span class="mini grey">还没有</span></div>
+          </div>
+          <div class="p-box">
+            <div class="p-title">不喜欢</div>
+            <div class="p-val" id="pDislikes"><span class="mini grey">还没有</span></div>
+          </div>
         </div>
       </div>
-      <div class="p-box" style="margin-top:10px">
-        <div class="p-title">被屏蔽的推荐（点「不喜欢」会加到这儿，24 小时后自动恢复）</div>
+      <div class="mem-box tap" id="memGoBanned" data-gomem="banned" role="button" tabindex="0">
+        <div class="mem-box-head">
+          <span>被屏蔽的推荐</span>
+          <span class="mem-more" id="memBannedMore">查看全部 ›</span>
+        </div>
+        <div class="mem-box-sub">点过「不喜欢」的菜和店，24 小时后自动恢复</div>
         <div class="p-val" id="pBanned"><span class="mini grey">还没有</span></div>
-        <button class="btn ghost small" id="clearBanned" style="margin-top:8px">清空屏蔽记录</button>
       </div>
-      <div class="p-box" style="margin-top:10px">
-        <div class="p-title">最近吃过（点一条看具体哪天吃的；7 天内会相应降权，避免重复）</div>
+      <div class="mem-box tap" id="memGoHistory" data-gomem="history" role="button" tabindex="0">
+        <div class="mem-box-head">
+          <span>最近吃过</span>
+          <span class="mem-more" id="memHistoryMore">查看全部 ›</span>
+        </div>
+        <div class="mem-box-sub">点进去看每一顿具体是哪天吃的；7 天内会相应降权，避免重复</div>
         <div class="p-val" id="pHistory"><span class="mini grey">还没有记录</span></div>
       </div>
       <button class="btn ghost small" style="margin-top:12px" id="clearMemory">清空记忆</button>
-      <p class="note">每次你在结果页点「就吃这个」或「不喜欢」，这里都会自动学习；数据只存在这台设备的浏览器里。</p>
+      <p class="note">每次你在结果页点「就吃这个」或「不喜欢」，这里都会自动学习；数据只存在这台设备的浏览器里。点上面任意一块看全记录，记错了可以在里面删掉。</p>
     </div>
   </div>
 
@@ -819,6 +845,15 @@
   </div>
 
 </div><!-- /pageMe -->
+
+<!-- AI 记忆全记录（从「我的 → AI 记忆」三块点进来） -->
+<div id="pageMem" class="hidden">
+  <div class="mem-top">
+    <button class="btn ghost small" id="memBack">‹ 返回</button>
+    <span class="mem-top-title" id="memPageTitle">AI 记忆</span>
+  </div>
+  <div id="memPageBody"></div>
+</div><!-- /pageMem -->
 </div><!-- /wrap -->
 
 <!-- 底部操作栏 -->
@@ -2055,8 +2090,7 @@ const state = {
   lastShopId:'',       // 刚才主推的店（轮完一轮后用它兜底避开）
   lastSig:'',          // 上一次结果的指纹，用来判断"换了一批还是老样子"
   questionSig:'',      // 当前这个问题的指纹：换了类型/口味/地址就重置轮换状态
-  memEdit:false,       // 「我的」→ AI 记忆：是否处于编辑态（内存态，不落盘）
-  memHistOpen:null,    // 当前点开的「最近吃过」那条的 key（同上）
+  memPage:null,        // 「我的」→ AI 记忆：当前正在看的全记录页（null / taste / banned / history）
   running:false
 };
 
@@ -2077,7 +2111,11 @@ function loadStore(){
       const ban = (p.banned && typeof p.banned === 'object') ? p.banned : {};
       const keepFresh = obj => { const out = {}; const now = Date.now();
         Object.keys(obj || {}).forEach(k => { if(now - Number(obj[k] || 0) < BAN_TTL) out[k] = obj[k]; }); return out; };
-      state.profile.banned = { dishes: keepFresh(ban.dishes), shops: keepFresh(ban.shops) };
+      // shopNames 是"店名备忘"，只跟着还在屏蔽期内的店留（全记录页要显示店名）
+      const keepNames = {};
+      const freshShops = keepFresh(ban.shops);
+      Object.keys(freshShops).forEach(k => { if((ban.shopNames || {})[k]) keepNames[k] = ban.shopNames[k]; });
+      state.profile.banned = { dishes: keepFresh(ban.dishes), shops: freshShops, shopNames: keepNames };
       state.profile.spiceMax = (typeof p.spiceMax === 'number') ? p.spiceMax : state.spiceMax;
       state.profile.defaultTier = p.defaultTier || null;
     }
@@ -4586,10 +4624,12 @@ function changeCity(key){
   toast('已切换到 ' + CITY.name + '（搜店需要联网）');
 }
 
-/* ---------- 「我的」→ AI 记忆：查看与编辑 ----------
- * 这里展示的都是它在用户身上学到的口味。以前只能整块清空，想删一条得把整份记忆丢掉，
- * 所以做成：默认只读，点「编辑」后才出现 ✕ 按钮，逐条删。
- * 点击统一在卡片上做事件委托 —— 这些胶囊是 innerHTML 渲染的，重渲染就会丢监听。 */
+/* ---------- 「我的」→ AI 记忆：摘要 + 全记录页 ----------
+ * 卡片里只放摘要（每块最多 8 条），整块可点，点进去是 #pageMem 上的全记录：
+ *   喜欢 / 不喜欢   → 全部口味，逐条可删
+ *   被屏蔽的推荐     → 被屏蔽的菜和店，逐条可删 + 一键清空
+ *   最近吃过        → 全部用餐历史，每条写明具体哪天吃的，可删
+ * 点击统一做事件委托 —— 列表是 innerHTML 渲染的，重渲染就会丢监听。 */
 
 const WEEKDAYS_CN = ['周日','周一','周二','周三','周四','周五','周六'];
 
@@ -4614,87 +4654,158 @@ function relDay(ts){
   return days <= 0 ? '今天' : (days === 1 ? '昨天' : days + '天前');
 }
 
-/* 记忆里的一个条目：只读态是胶囊，编辑态是可点的删除按钮（带 ✕）。 */
-function memChip(kind, key, text, cls){
-  if(!state.memEdit) return '<span class="mini ' + cls + '">' + text + '</span>';
-  return '<button type="button" class="mini del ' + cls + '" data-memdel="' + kind + '" data-memkey="' + esc(key) + '">' +
-    text + '<span class="x">✕</span></button>';
-}
-
-// 点开一条「最近吃过」后的详情：具体哪天、哪一顿、当时记的价
-function histDetailHTML(entry){
-  const d = dishById(entry.id);
-  const name = d ? d.name : entry.id;
-  // 同一顿：把这一桌里别的菜也列出来（前后 45 分钟内记的算一顿）
-  const sibs = state.profile.history
-    .filter(x => x !== entry && histKey(x) !== histKey(entry) && Math.abs(x.ts - entry.ts) < 45*60*1000)
-    .map(x => (dishById(x.id) || {}).name || x.id);
-  return '<div class="hist-detail">' +
-    '<div class="hd-date">' + fmtMoment(entry.ts) + '（' + relDay(entry.ts) + '）</div>' +
-    '<div class="hd-line">' + esc(name) + (entry.price ? ' · 当时记的价 ¥' + esc(entry.price) : '') + '</div>' +
-    (sibs.length ? '<div class="hd-line">同一顿还记了：' + sibs.map(esc).join('、') + '</div>' : '') +
+// 全记录里的一行：左边是内容，右边是删除按钮；extra 是额外一行（调用方自己转义）
+function memRow(kind, key, name, sub, extra){
+  return '<div class="row">' +
+    '<div class="r-main"><div class="r-name">' + esc(name) + '</div>' +
+      (sub ? '<div class="r-sub">' + esc(sub) + '</div>' : '') + (extra || '') + '</div>' +
+    '<button type="button" class="r-del" data-memdel="' + kind + '" data-memkey="' + esc(key) + '">✕ 删掉</button>' +
   '</div>';
 }
 
 function renderProfile(){
   const likes = Object.entries(state.profile.likes).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const dislikes = Object.entries(state.profile.dislikes).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  $('#pLikes').innerHTML = likes.length ? likes.map(([k,v])=>memChip('like', k, esc(k) + ' ×' + v, '')).join('') : '<span class="mini grey">还没有</span>';
-  $('#pDislikes').innerHTML = dislikes.length ? dislikes.map(([k,v])=>memChip('dislike', k, esc(k) + ' ×' + v, 'red')).join('') : '<span class="mini grey">还没有</span>';
+  $('#pLikes').innerHTML = likes.length ? likes.map(([k,v])=>'<span class="mini">'+esc(k)+' ×'+v+'</span>').join('') : '<span class="mini grey">还没有</span>';
+  $('#pDislikes').innerHTML = dislikes.length ? dislikes.map(([k,v])=>'<span class="mini red">'+esc(k)+' ×'+v+'</span>').join('') : '<span class="mini grey">还没有</span>';
   const bd = bannedDishIds(), bs = bannedShopIds();
   const bdNames = bd.map(id => ({ id, name:(dishById(id) || {}).name || id })).slice(0, 6);
   const pBanned = $('#pBanned');
   if(pBanned) pBanned.innerHTML = (bd.length || bs.length)
-    ? bdNames.map(x => memChip('banDish', x.id, esc(x.name), 'red')).join('') +
+    ? bdNames.map(x => '<span class="mini red">' + esc(x.name) + '</span>').join('') +
       (bs.length ? '<span class="mini grey">＋ ' + bs.length + ' 家店</span>' : '')
     : '<span class="mini grey">还没有</span>';
 
   /* 最近吃过：按时间倒序取最近 8 条（不直接 slice(-8) 反转——记忆可能从别处同步过来，
-   * 顺序不保证；按时间排才敢说"最近"）。点哪条就在下面展开哪条的日期。 */
-  const hist = state.profile.history.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8);
+   * 顺序不保证；按时间排才敢说"最近"）。 */
+  const hist = sortedHistory().slice(0,8);
   const pHist = $('#pHistory');
-  if(pHist){
-    const openAt = hist.findIndex(h => histKey(h) === state.memHistOpen);
-    pHist.innerHTML = hist.length
-      ? hist.map((h,i) => {
-          const d = dishById(h.id);
-          return '<button type="button" class="mini grey hist' + (i===openAt?' open':'') + '" data-hist="' + i + '">' +
-            esc(d ? d.name : h.id) + ' · ' + relDay(h.ts) + '</button>';
-        }).join('') + (openAt >= 0 ? histDetailHTML(hist[openAt]) : '')
-      : '<span class="mini grey">还没有记录</span>';
-  }
+  if(pHist) pHist.innerHTML = hist.length
+    ? hist.map(h => {
+        const d = dishById(h.id);
+        return '<span class="mini grey">' + esc(d ? d.name : h.id) + ' · ' + relDay(h.ts) + '</span>';
+      }).join('')
+    : '<span class="mini grey">还没有记录</span>';
 
-  // 编辑按钮 / 提示语跟着状态走
-  const editBtn = $('#memEditBtn'), editNote = $('#memEditNote');
-  if(editBtn){
-    editBtn.textContent = state.memEdit ? '完成' : '编辑';
-    editBtn.setAttribute('aria-pressed', String(!!state.memEdit));
-  }
-  if(editNote) editNote.textContent = state.memEdit
-    ? '点条目后面的 ✕ 删掉这条，删掉的口味以后就不再算进去'
-    : '它在你这儿学到的口味，记错了可以点「编辑」删掉';
+  // 三个入口右侧写清各有几条，点进去看全部
+  const more = $('#memTasteMore'), moreB = $('#memBannedMore'), moreH = $('#memHistoryMore');
+  if(more) more.textContent = '查看全部 ›';
+  if(moreB) moreB.textContent = (bd.length + bs.length) ? '查看全部（' + (bd.length + bs.length) + '）›' : '查看全部 ›';
+  if(moreH) moreH.textContent = state.profile.history.length ? '查看全部（' + state.profile.history.length + '）›' : '查看全部 ›';
 
   $('#devMemory').textContent = JSON.stringify(state.profile, null, 2);
   renderMeHeader();
   renderHomePref();
+  if(state.memPage) renderMemPage();          // 正在看全记录时，删完要跟着刷新
 }
 
-/* 进入 / 退出记忆编辑态 */
-function toggleMemEdit(){
-  state.memEdit = !state.memEdit;
-  if(!state.memEdit) state.memHistOpen = null;
-  renderProfile();
-  if(state.memEdit) toast('点条目后面的 ✕ 就能删掉');
+// 用餐历史：按时间倒序（顺序不保证，得自己排）
+function sortedHistory(){
+  return state.profile.history.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
 }
 
-/* 点开一条「最近吃过」的日期详情（再点一次收起） */
-function openHistDetail(idx){
-  const hist = state.profile.history.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8);
-  const h = hist[idx];
-  if(!h) return;
-  const key = histKey(h);
-  state.memHistOpen = (state.memHistOpen === key) ? null : key;
+/* ---------- 三种全记录页 ---------- */
+
+const MEM_PAGES = {
+  taste:   { title:'AI 记住的喜欢 / 不喜欢' },
+  banned:  { title:'被屏蔽的推荐' },
+  history: { title:'最近吃过' }
+};
+
+// 喜欢 / 不喜欢：全部条目，按记住的次数排
+function memTasteHTML(){
+  const seg = (title, map, kind) => {
+    const list = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+    return '<div class="mem-sec">' + title + '（' + list.length + ' 条）</div>' +
+      (list.length
+        ? '<div class="mem-list">' + list.map(([k,v]) => memRow(kind, k, k, '被记了 ' + v + ' 次')).join('') + '</div>'
+        : '<div class="mem-list"><div class="mem-empty">还没有</div></div>');
+  };
+  return seg('AI 记住的喜欢', state.profile.likes, 'like') +
+    seg('AI 记住的不喜欢', state.profile.dislikes, 'dislike') +
+    '<p class="note">删掉一条，它就不再按这条口味推荐；删错了 6 秒内点下面的提示条能撤销。</p>';
+}
+
+// 被屏蔽的菜和店：24 小时后会自己恢复，也可以现在删
+function memBannedHTML(){
+  const b = state.profile.banned || { dishes:{}, shops:{} };
+  const dishes = bannedDishIds();
+  const shops = bannedShopIds();
+  const names = (b.shopNames || {});
+  let html = '';
+  html += '<div class="mem-sec">被屏蔽的菜（' + dishes.length + ' 道）</div>' +
+    (dishes.length
+      ? '<div class="mem-list">' + dishes.map(id => memRow('banDish', id, (dishById(id) || {}).name || id, '点了「不喜欢」后屏蔽，24 小时内不再推荐')).join('') + '</div>'
+      : '<div class="mem-list"><div class="mem-empty">还没有</div></div>');
+  html += '<div class="mem-sec">被屏蔽的店（' + shops.length + ' 家）</div>' +
+    (shops.length
+      ? '<div class="mem-list">' + shops.map(id => memRow('banShop', id, names[id] || id, '24 小时内不再推荐这家的菜')).join('') + '</div>'
+      : '<div class="mem-list"><div class="mem-empty">还没有</div></div>');
+  if(dishes.length || shops.length){
+    html += '<button class="btn ghost small mem-footbtn" data-memclear="banned">清空屏蔽记录</button>';
+  }
+  html += '<p class="note">这些是最近点过「不喜欢」的菜和店，24 小时后会自动恢复正常推荐。</p>';
+  return html;
+}
+
+// 最近吃过：每条写明具体哪天吃的（年月日 + 星期 + 时刻）
+function memHistoryHTML(){
+  const hist = sortedHistory();
+  if(!hist.length) return '<div class="mem-list"><div class="mem-empty">还没有记录</div></div>';
+
+  const seen = new Set();
+  const rows = hist.map(h => {
+    const d = dishById(h.id);
+    const name = d ? d.name : h.id;
+    let sub = fmtMoment(h.ts) + '（' + relDay(h.ts) + '）';
+    if(h.price) sub += ' · 当时记的价 ¥' + h.price;
+    /* 同一顿：同一时间前后 45 分钟内记的菜算一顿，在第一道菜下面把整桌列出来
+     * （不然一桌三道菜占三行，看着像吃了三顿）。 */
+    const key0 = Math.round((h.ts || 0) / (45*60*1000));
+    let extra = '';
+    if(!seen.has(key0)){
+      seen.add(key0);
+      const sibs = hist.filter(x => Math.round((x.ts || 0) / (45*60*1000)) === key0 && histKey(x) !== histKey(h))
+        .map(x => (dishById(x.id) || {}).name || x.id);
+      if(sibs.length) extra = '<div class="r-sub">同一顿还记了：' + sibs.map(esc).join('、') + '</div>';
+    }
+    return memRow('hist', histKey(h), name, sub, extra);
+  }).join('');
+  return '<div class="mem-list">' + rows + '</div>' +
+    '<p class="note">按时间从新到旧排。7 天内吃过的菜会在推荐里降权，避免连着吃同一道。</p>';
+}
+
+function renderMemPage(){
+  const kind = state.memPage;
+  const meta = MEM_PAGES[kind] || MEM_PAGES.taste;
+  const titleEl = $('#memPageTitle');
+  if(titleEl) titleEl.textContent = meta.title;
+  const body = $('#memPageBody');
+  if(!body) return;
+  body.innerHTML = kind === 'banned' ? memBannedHTML()
+    : kind === 'history' ? memHistoryHTML()
+    : memTasteHTML();
+}
+
+/* 打开 / 关闭全记录页：整页切走，底部 Tab 也收起来，靠「返回」回来 */
+function openMemPage(kind){
+  if(!MEM_PAGES[kind]) return;
+  state.memPage = kind;
+  const me = $('#pageMe'), page = $('#pageMem'), tabs = $('.tabbar');
+  if(me) me.classList.add('hidden');
+  if(page) page.classList.remove('hidden');
+  if(tabs) tabs.classList.add('hidden');
+  renderMemPage();
+  try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
+}
+function closeMemPage(){
+  state.memPage = null;
+  const me = $('#pageMe'), page = $('#pageMem'), tabs = $('.tabbar');
+  if(page) page.classList.add('hidden');
+  if(tabs) tabs.classList.remove('hidden');
+  if(me) me.classList.remove('hidden');
   renderProfile();
+  try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
 }
 
 // 删之前先把这条的值记下来（撤销要原样放回，连次数一起，不能只放回个 1）
@@ -4702,6 +4813,11 @@ function memEntryValue(kind, key){
   if(kind === 'like') return state.profile.likes[key];
   if(kind === 'dislike') return state.profile.dislikes[key];
   if(kind === 'banDish') return ((state.profile.banned || {}).dishes || {})[key];
+  if(kind === 'banShop') return ((state.profile.banned || {}).shops || {})[key];
+  if(kind === 'hist'){
+    const i = state.profile.history.findIndex(h => histKey(h) === key);
+    return i >= 0 ? { at:i, entry:state.profile.history[i] } : undefined;
+  }
   return undefined;
 }
 function restoreMemEntry(kind, key, value){
@@ -4711,35 +4827,56 @@ function restoreMemEntry(kind, key, value){
     if(!state.profile.banned) state.profile.banned = { dishes:{}, shops:{} };
     state.profile.banned.dishes[key] = value;
   }
+  else if(kind === 'banShop'){
+    if(!state.profile.banned) state.profile.banned = { dishes:{}, shops:{} };
+    state.profile.banned.shops[key] = value;
+  }
+  else if(kind === 'hist'){
+    // 放回原来的位置，历史顺序不乱
+    state.profile.history.splice(Math.min(value.at, state.profile.history.length), 0, value.entry);
+  }
 }
 
-/* 删掉一条 AI 记忆：喜欢 / 不喜欢 / 被屏蔽的菜。
- * 只删这一条，别的不动；被屏蔽的菜删掉后重新参与推荐。删完给 6 秒撤销窗口。 */
+/* 删掉一条 AI 记忆：喜欢 / 不喜欢 / 被屏蔽的菜 / 被屏蔽的店 / 一条用餐记录。
+ * 只删这一条，别的不动；删完给 6 秒撤销窗口。 */
 function deleteMemEntry(kind, key){
-  if(kind !== 'like' && kind !== 'dislike' && kind !== 'banDish') return;
+  if(['like','dislike','banDish','banShop','hist'].indexOf(kind) === -1) return;
   const value = memEntryValue(kind, key);
   if(value === undefined) return;                       // 本来就没有这条，别弹提示
   if(kind === 'like') delete state.profile.likes[key];
   else if(kind === 'dislike') delete state.profile.dislikes[key];
-  else { delete state.profile.banned.dishes[key]; state.shownDishIds = []; }
-  state.memHistOpen = null;
+  else if(kind === 'banDish'){ delete state.profile.banned.dishes[key]; state.shownDishIds = []; }
+  else if(kind === 'banShop'){ delete state.profile.banned.shops[key]; state.shownShopIds = []; }
+  else state.profile.history.splice(value.at, 1);
   saveProfile(); renderProfile();
-  const d = kind === 'banDish' ? dishById(key) : null;
-  toastUndo('已删掉「' + (d ? d.name : key) + '」', () => {
+  const label = kind === 'hist' ? ((dishById(value.entry.id) || {}).name || value.entry.id)
+    : kind === 'banShop' ? (((state.profile.banned || {}).shopNames || {})[key] || '这家店')
+    : (dishById(key) || {}).name || key;
+  toastUndo('已删掉「' + label + '」', () => {
     restoreMemEntry(kind, key, value);
     saveProfile(); renderProfile();
     toast('已撤销，这条记忆回来了');
   });
 }
 
-// 记忆卡上的点击都走这一个入口（胶囊是 innerHTML 渲染的，绑不到单个元素上）
-function onMemoryCardClick(e){
+// 清空屏蔽记录（全记录页里的按钮）
+function clearBannedList(){
+  state.profile.banned = { dishes:{}, shops:{}, shopNames:{} };
+  state.shownShopIds = []; state.shownDishIds = []; state.reroll = 0;
+  saveProfile(); renderProfile();
+  toast('已清空屏蔽记录，之前屏蔽的菜和店都会重新参与推荐');
+}
+
+/* 记忆相关区域的点击都走这一个入口（列表是 innerHTML 渲染的，绑不到单个元素上）：
+ * 卡片上是"点进去看全记录"，全记录页里是"删掉这条"。 */
+function onMemoryClick(e){
   const t = e && e.target;
   if(!t || !t.closest) return;
   const del = t.closest('[data-memdel]');
   if(del){ deleteMemEntry(del.getAttribute('data-memdel'), del.getAttribute('data-memkey')); return; }
-  const item = t.closest('[data-hist]');
-  if(item) openHistDetail(parseInt(item.getAttribute('data-hist'), 10));
+  if(t.closest('[data-memclear]')){ clearBannedList(); return; }
+  const go = t.closest('[data-gomem]');
+  if(go) openMemPage(go.getAttribute('data-gomem'));
 }
 
 /* ------------------------------ 7b. 「我的」页面 ------------------------------ */
@@ -4747,6 +4884,7 @@ function onMemoryCardClick(e){
 const SPICE_NAMES = ['完全不吃辣', '微辣可以', '中辣没问题', '无辣不欢'];
 
 function switchTab(name){
+  if(state.memPage) closeMemPage();       // 从全记录页直接切 Tab 时，先把那一页收起来
   if(name !== 'me') flushAllergyIfDirty();
   $('#pageHome').classList.toggle('hidden', name !== 'home');
   $('#pageMe').classList.toggle('hidden', name !== 'me');
@@ -5239,9 +5377,13 @@ function acceptCombo(combo){
 
 function dislikeDish(dish, restaurant){
   dish.tags.forEach(t => bump(state.profile.dislikes, t, 1));   // 长期口味画像（慢慢学）
-  if(!state.profile.banned) state.profile.banned = { dishes:{}, shops:{} };
+  if(!state.profile.banned) state.profile.banned = { dishes:{}, shops:{}, shopNames:{} };
+  if(!state.profile.banned.shopNames) state.profile.banned.shopNames = {};
   state.profile.banned.dishes[dish.id] = Date.now();            // 硬屏蔽：这道菜 24 小时内不再出现
-  if(restaurant && restaurant.id) state.profile.banned.shops[restaurant.id] = Date.now();
+  if(restaurant && restaurant.id){
+    state.profile.banned.shops[restaurant.id] = Date.now();
+    state.profile.banned.shopNames[restaurant.id] = restaurant.name;   // 全记录页要写出店名，不能只有高德 ID
+  }
   saveProfile(); renderProfile();
   toast('已记下：不再推荐「' + dish.name + '」' + (restaurant ? '和「' + restaurant.name + '」' : '') + '，重新挑一桌');
   state.reroll++; state.seed++;
@@ -7070,19 +7212,14 @@ function init(){
   $('#tabHome').addEventListener('click', () => switchTab('home'));
   $('#tabMe').addEventListener('click', () => switchTab('me'));
   $('#goMeCard').addEventListener('click', () => switchTab('me'));
-  // 「我的」里清空屏蔽记录：被"不喜欢"屏蔽的菜和店重新参与推荐
-  const clearBan = $('#clearBanned');
-  if(clearBan) clearBan.addEventListener('click', () => {
-    state.profile.banned = { dishes:{}, shops:{} };
-    state.shownShopIds = []; state.shownDishIds = []; state.reroll = 0;
-    saveProfile(); renderProfile();
-    toast('已清空屏蔽记录，之前屏蔽的菜和店都会重新参与推荐');
-  });
-  // AI 记忆：编辑态开关 + 胶囊上的点击（删除 / 看日期）
-  const memEditBtn = $('#memEditBtn');
-  if(memEditBtn) memEditBtn.addEventListener('click', toggleMemEdit);
+  /* AI 记忆：卡片上点哪一块就进哪一张全记录页（事件委托），
+   * 全记录页里的「删掉 / 清空屏蔽记录」也走同一个入口。 */
   const memCard = $('#memoryCard');
-  if(memCard) memCard.addEventListener('click', onMemoryCardClick);
+  if(memCard) memCard.addEventListener('click', onMemoryClick);
+  const memPage = $('#pageMem');
+  if(memPage) memPage.addEventListener('click', onMemoryClick);
+  const memBack = $('#memBack');
+  if(memBack) memBack.addEventListener('click', closeMemPage);
 
   // 城市切换
   $('#citySelect').addEventListener('change', e => changeCity(e.target.value));
