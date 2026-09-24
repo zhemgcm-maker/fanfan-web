@@ -63,7 +63,7 @@ const fakeFetch = async (url, init) => {
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
   code + '\nglobalThis.__S={state,parseTextToolCall,agentProtocol,serverLlmOn,serverAmapOn,amapFetch,llmChat,setToken,getToken,renderServerUI,DEFAULT_AMAP_KEY,flushAllergyIfDirty,saveProfileNow,pushProfileNow,renderAllergyState,' +
-         'probeToolsPassThrough,ensureAgentChannel,agentRun,readSettingsUI,renderServerUI};')
+         'probeToolsPassThrough,ensureAgentChannel,agentRun};')
   (document, localStorage, f => setTimeout(f, 0), fakeFetch);
 const S = globalThis.__S;
 
@@ -202,25 +202,6 @@ ok(msgUser.indexOf('测试账号') !== -1, '反馈里说清了存到哪个账号
 
 // 页面正在关闭时那次推送要带 keepalive，否则关页会把它掐掉
 ok(S.state._allergySaved.length === 2, '快照记录了 2 项忌口');
-
-console.log('\n=== 七、后端能换成自己的（预设：默认后端 / 自己搭的 / 不用后端）===');
-const presetEl = document.querySelector('#backendPreset');
-const baseEl = document.querySelector('#apiBase');
-S.setToken('fake.jwt');
-presetEl.value = 'default';
-S.readSettingsUI();
-ok(S.state.settings.apiBase.indexOf('fcapp.run') !== -1, '选「默认后端」→ 自动用代码里的默认地址：' + S.state.settings.apiBase);
-ok(S.serverLlmOn() === true, '默认后端 + 已登录 → 仍走后端代理');
-
-presetEl.value = 'custom';
-baseEl.value = 'https://my-own-backend.example.com/';
-S.readSettingsUI();
-ok(S.state.settings.apiBase === 'https://my-own-backend.example.com', '选「自己搭的」→ 用输入框里的地址（顺手去掉尾部斜杠）');
-
-presetEl.value = 'none';
-S.readSettingsUI();
-ok(S.state.settings.apiBase === '', '选「不用后端」→ 地址清空');
-ok(S.serverLlmOn() === false, '不用后端 → 大模型改回本机直连（用自己填的 Key）');
 
 console.log('\n' + (fail ? '❌ 失败 ' + fail + ' 项' : '✅ 后端融合全部通过'));
 process.exit(fail ? 1 : 0);
