@@ -325,18 +325,32 @@
   .mem-top .btn{flex:0 0 auto;padding:9px 13px}
   .mem-top .mem-top-title{flex:1;min-width:0;font-size:15px;font-weight:700;color:#4a3b30}
   .mem-list{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:10px;overflow:hidden}
-  .mem-list .row{
+  .memrows .row{
     display:flex;align-items:center;gap:10px;padding:11px 13px
   }
-  .mem-list .row + .row{border-top:1px solid #f8f0e8}
-  .mem-list .r-main{flex:1;min-width:0}
-  .mem-list .r-name{font-size:14px;color:#3f3128;word-break:break-word}
-  .mem-list .r-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
-  .mem-list .r-del{
+  .memrows .row + .row{border-top:1px solid #f8f0e8}
+  .memrows .r-main{flex:1;min-width:0}
+  .memrows .r-name{font-size:14px;color:#3f3128;word-break:break-word}
+  .memrows .r-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .memrows .r-del{
     flex:0 0 auto;font-family:inherit;font-size:13px;color:#b3271c;background:#fdeceb;
     border:1px solid #f2cfca;border-radius:999px;padding:10px 14px;cursor:pointer
   }
-  .mem-list .r-del:active{transform:scale(.96)}
+  .memrows .r-del:active{transform:scale(.96)}
+
+  /* 最近吃过：一顿一张卡 —— 日期大字 / 饭店名 / 菜品折叠 */
+  .meal{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:10px;overflow:hidden}
+  .meal .meal-top{display:flex;align-items:baseline;gap:8px;padding:13px 13px 0}
+  .meal .meal-date{font-size:19px;font-weight:800;color:#3f3128;letter-spacing:.2px}
+  .meal .meal-rel{font-size:11.5px;color:var(--muted)}
+  .meal .meal-shop{font-size:13px;color:#5b4a3d;padding:4px 13px 0;word-break:break-word}
+  .meal .meal-toggle{
+    display:block;width:100%;text-align:left;font-family:inherit;font-size:12.5px;color:var(--brand);
+    background:none;border:none;padding:11px 13px 13px;cursor:pointer;line-height:1.4
+  }
+  .meal .meal-toggle:active{opacity:.7}
+  .meal .meal-dishes{border-top:1px solid #f8f0e8;background:#fffdfb}
+  .meal + .meal{margin-top:10px}
   .mem-sec{font-size:12.5px;color:var(--muted);font-weight:600;margin:16px 4px 0;letter-spacing:.3px}
   .mem-empty{font-size:12.5px;color:var(--muted);text-align:center;padding:20px 10px}
   .mem-footbtn{margin-top:12px}
@@ -2091,6 +2105,7 @@ const state = {
   lastSig:'',          // 上一次结果的指纹，用来判断"换了一批还是老样子"
   questionSig:'',      // 当前这个问题的指纹：换了类型/口味/地址就重置轮换状态
   memPage:null,        // 「我的」→ AI 记忆：当前正在看的全记录页（null / taste / banned / history）
+  memOpenMeals:{},     // 「最近吃过」里展开了哪几顿（内存态，不落盘）
   running:false
 };
 
@@ -4636,12 +4651,20 @@ const WEEKDAYS_CN = ['周日','周一','周二','周三','周四','周五','周�
 // 一条历史记录的稳定标识（同一顿里的两道菜时间戳可能相同，所以带上菜品 id）
 function histKey(h){ return h.ts + '#' + h.id; }
 
-// 具体时刻：「2026年9月23日 周三 12:30」
+const pad2 = n => (n < 10 ? '0' : '') + n;
+
+/* 大字日期：「9月23日 周三」。今年的一律不写年份（天天看的都是今年），
+ * 往年的把年份带上，免得把去年的今天看成今天。 */
+function fmtBigDate(ts){
+  const d = new Date(ts), now = new Date();
+  return (d.getFullYear() === now.getFullYear() ? '' : d.getFullYear() + '年') +
+    (d.getMonth()+1) + '月' + d.getDate() + '日 ' + WEEKDAYS_CN[d.getDay()];
+}
+// 具体时刻：「2026年9月23日 周三 12:30」（展开一顿饭时作为精确时间）
 function fmtMoment(ts){
   const d = new Date(ts);
-  const pad = n => (n < 10 ? '0' : '') + n;
   return d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日 ' +
-    WEEKDAYS_CN[d.getDay()] + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    WEEKDAYS_CN[d.getDay()] + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
 }
 
 /* 相对天数按自然日算，不按 24 小时算：
@@ -4718,7 +4741,7 @@ function memTasteHTML(){
     const list = Object.entries(map).sort((a,b)=>b[1]-a[1]);
     return '<div class="mem-sec">' + title + '（' + list.length + ' 条）</div>' +
       (list.length
-        ? '<div class="mem-list">' + list.map(([k,v]) => memRow(kind, k, k, '被记了 ' + v + ' 次')).join('') + '</div>'
+        ? '<div class="mem-list memrows">' + list.map(([k,v]) => memRow(kind, k, k, '被记了 ' + v + ' 次')).join('') + '</div>'
         : '<div class="mem-list"><div class="mem-empty">还没有</div></div>');
   };
   return seg('AI 记住的喜欢', state.profile.likes, 'like') +
@@ -4735,11 +4758,11 @@ function memBannedHTML(){
   let html = '';
   html += '<div class="mem-sec">被屏蔽的菜（' + dishes.length + ' 道）</div>' +
     (dishes.length
-      ? '<div class="mem-list">' + dishes.map(id => memRow('banDish', id, (dishById(id) || {}).name || id, '点了「不喜欢」后屏蔽，24 小时内不再推荐')).join('') + '</div>'
+      ? '<div class="mem-list memrows">' + dishes.map(id => memRow('banDish', id, (dishById(id) || {}).name || id, '点了「不喜欢」后屏蔽，24 小时内不再推荐')).join('') + '</div>'
       : '<div class="mem-list"><div class="mem-empty">还没有</div></div>');
   html += '<div class="mem-sec">被屏蔽的店（' + shops.length + ' 家）</div>' +
     (shops.length
-      ? '<div class="mem-list">' + shops.map(id => memRow('banShop', id, names[id] || id, '24 小时内不再推荐这家的菜')).join('') + '</div>'
+      ? '<div class="mem-list memrows">' + shops.map(id => memRow('banShop', id, names[id] || id, '24 小时内不再推荐这家的菜')).join('') + '</div>'
       : '<div class="mem-list"><div class="mem-empty">还没有</div></div>');
   if(dishes.length || shops.length){
     html += '<button class="btn ghost small mem-footbtn" data-memclear="banned">清空屏蔽记录</button>';
@@ -4748,31 +4771,63 @@ function memBannedHTML(){
   return html;
 }
 
-// 最近吃过：每条写明具体哪天吃的（年月日 + 星期 + 时刻）
-function memHistoryHTML(){
-  const hist = sortedHistory();
-  if(!hist.length) return '<div class="mem-list"><div class="mem-empty">还没有记录</div></div>';
+function dishName(id){ const d = dishById(id); return d ? d.name : id; }
 
-  const seen = new Set();
-  const rows = hist.map(h => {
-    const d = dishById(h.id);
-    const name = d ? d.name : h.id;
-    let sub = fmtMoment(h.ts) + '（' + relDay(h.ts) + '）';
-    if(h.price) sub += ' · 当时记的价 ¥' + h.price;
-    /* 同一顿：同一时间前后 45 分钟内记的菜算一顿，在第一道菜下面把整桌列出来
-     * （不然一桌三道菜占三行，看着像吃了三顿）。 */
-    const key0 = Math.round((h.ts || 0) / (45*60*1000));
-    let extra = '';
-    if(!seen.has(key0)){
-      seen.add(key0);
-      const sibs = hist.filter(x => Math.round((x.ts || 0) / (45*60*1000)) === key0 && histKey(x) !== histKey(h))
-        .map(x => (dishById(x.id) || {}).name || x.id);
-      if(sibs.length) extra = '<div class="r-sub">同一顿还记了：' + sibs.map(esc).join('、') + '</div>';
-    }
-    return memRow('hist', histKey(h), name, sub, extra);
-  }).join('');
-  return '<div class="mem-list">' + rows + '</div>' +
-    '<p class="note">按时间从新到旧排。7 天内吃过的菜会在推荐里降权，避免连着吃同一道。</p>';
+/* 一顿饭的组标识：新记录带 meal（同一桌菜同一个值）；
+ * 老记录没有这个字段，就按 45 分钟一档兜底，免得旧数据散成一堆单菜。 */
+function mealKeyOf(h){ return 'm' + (h.meal || Math.round((h.ts || 0) / (45*60*1000))); }
+
+// 把历史聚成"一顿一顿"：同一桌菜 + 同一家店，新的在前
+function mealGroups(){
+  const seen = new Map(), out = [];
+  sortedHistory().forEach(h => {
+    const key = mealKeyOf(h);
+    let g = seen.get(key);
+    if(!g){ g = { key, ts: h.ts || 0, shop: h.shop || '', items:[] }; seen.set(key, g); out.push(g); }
+    g.items.push(h);
+    if((h.ts || 0) > g.ts) g.ts = h.ts;           // 这一顿算最晚那刻
+    if(!g.shop && h.shop) g.shop = h.shop;        // 老记录里只要有一条带店名就用它
+  });
+  return out.sort((a,b) => b.ts - a.ts);
+}
+
+/* 最近吃过：一顿一张卡 —— 日期大字 / 饭店名 + 时刻 / 菜品折叠
+ * 折叠是默认收起的：一屏能看好多顿，点开才展开这一顿吃了什么。 */
+function mealHTML(g){
+  const open = !!(state.memOpenMeals || {})[g.key];
+  const d = new Date(g.ts);
+  const total = g.items.reduce((n,x) => n + (Number(x.price) || 0), 0);
+  const names = g.items.map(x => dishName(x.id));
+  const preview = names.slice(0,2).join('、') + (names.length > 2 ? ' 等' : '');
+  return '<div class="meal">' +
+    '<div class="meal-top"><span class="meal-date">' + fmtBigDate(g.ts) + '</span>' +
+      '<span class="meal-rel">' + relDay(g.ts) + '</span></div>' +
+    '<div class="meal-shop">' + (g.shop ? '📍 ' + esc(g.shop) + ' · ' : '') +
+      pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + '</div>' +
+    '<button type="button" class="meal-toggle" data-meal="' + esc(g.key) + '">' +
+      (open ? '▴ 收起这一顿（' + fmtMoment(g.ts) + '）'
+            : '▾ ' + g.items.length + ' 道菜 · 共 ¥' + total + '（' + esc(preview) + '）') +
+    '</button>' +
+    (open
+      ? '<div class="meal-dishes memrows">' +
+          g.items.map(h => memRow('hist', histKey(h), dishName(h.id), h.price ? '当时记的价 ¥' + h.price : '')).join('') +
+        '</div>'
+      : '') +
+  '</div>';
+}
+
+function memHistoryHTML(){
+  const groups = mealGroups();
+  if(!groups.length) return '<div class="mem-list"><div class="mem-empty">还没有记录</div></div>';
+  return groups.map(mealHTML).join('') +
+    '<p class="note">按时间从新到旧排，一顿一张卡。点「N 道菜」展开看这一顿吃了什么、可以逐道删；7 天内吃过的菜会在推荐里降权，避免连着吃同一道。</p>';
+}
+
+// 展开 / 收起某一顿
+function toggleMeal(key){
+  if(!state.memOpenMeals) state.memOpenMeals = {};
+  state.memOpenMeals[key] = !state.memOpenMeals[key];
+  renderMemPage();
 }
 
 function renderMemPage(){
@@ -4875,6 +4930,8 @@ function onMemoryClick(e){
   const del = t.closest('[data-memdel]');
   if(del){ deleteMemEntry(del.getAttribute('data-memdel'), del.getAttribute('data-memkey')); return; }
   if(t.closest('[data-memclear]')){ clearBannedList(); return; }
+  const mealBtn = t.closest('[data-meal]');
+  if(mealBtn){ toggleMeal(mealBtn.getAttribute('data-meal')); return; }
   const go = t.closest('[data-gomem]');
   if(go) openMemPage(go.getAttribute('data-gomem'));
 }
@@ -5366,9 +5423,18 @@ function bump(map, key, delta){
 
 // 一桌菜全部记进历史与偏好
 function acceptCombo(combo){
+  /* 一顿饭记成一组：同一桌菜的 ts / meal / 店名都一样。
+   * 「最近吃过」全记录要按"日期 → 饭店 → 菜品"看，没有店名和组标识就凑不出这一顿。 */
+  const ts = Date.now();
+  const shop = combo.restaurant || null;
   combo.items.forEach(it => {
     (it.dish.tags || []).forEach(t => bump(state.profile.likes, t, 1));
-    state.profile.history.push({ id:it.dish.id, ts:Date.now(), price:it.dish.price });
+    state.profile.history.push({
+      id: it.dish.id, ts, price: it.dish.price,
+      meal: ts,                                   // 同一顿的组标识（老记录没有，按 45 分钟兜底分组）
+      shop: shop ? shop.name : '',                // 饭店名
+      shopId: shop ? shop.id : ''
+    });
   });
   if(state.profile.history.length > 60) state.profile.history = state.profile.history.slice(-60);
   saveProfile(); renderProfile();
