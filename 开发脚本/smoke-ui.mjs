@@ -180,6 +180,13 @@ for (const s of scenarios) {
     const resultHtml = document.querySelector('#result').innerHTML;
     assert(resultHtml.includes('card-head') && resultHtml.includes('就吃这一桌'), s.key + ' 组合卡片已渲染');
     assert(resultHtml.includes('combo-item'), s.key + ' 卡片里是一桌菜（多道菜条目）');
+    /* 契合度四条：条长=分数、颜色分三档（绿/橙/红），数字不超过 100 */
+    const barRows = [...resultHtml.matchAll(/<div class="row"><span>([^<]+)<\/span><span class="track"><span class="fill ([a-z-]+)" style="width:(\d+)%"><\/span><\/span><span class="num ([a-z-]+)">(\d+)<\/span><\/div>/g)];
+    assert(barRows.length === 4, s.key + ' 契合度条渲染出 4 条（主菜/预算/搭配/店铺）');
+    assert(barRows.every(r => r[2] === r[4]), s.key + ' 每条的数字颜色和条子颜色是同一档');
+    assert(barRows.every(r => +r[3] <= 100 && +r[5] <= 100), s.key + ' 分数都封顶在 100：' + barRows.map(r => r[5]).join('/'));
+    assert(barRows.every(r => +r[3] === Math.max(4, +r[5])), s.key + ' 条长和分数成比例（满分 100，50 分就填一半）');
+    assert(barRows.every(r => (r[4] === 'lvl-good') === (+r[5] >= 75) && (r[4] === 'lvl-low') === (+r[5] < 50)), s.key + ' 颜色分档和分数对得上：' + barRows.map(r => r[5] + r[4].replace('lvl-', '')).join(' '));
     // 走真实交互：点结果卡上的「就吃这一桌」→ 记进历史 + 放小特效 + 自动回「今天吃什么」
     const acceptBtn = document.querySelector('#acceptBtn');
     if (acceptBtn && acceptBtn.onclick) acceptBtn.onclick();

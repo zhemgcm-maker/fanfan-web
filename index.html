@@ -235,8 +235,18 @@
   .why li{margin:2px 0}
   .scorebar{margin-top:11px}
   .scorebar .row{display:grid;grid-template-columns:64px 1fr 40px;gap:8px;align-items:center;font-size:11.5px;color:var(--muted);margin:5px 0}
-  .scorebar .track{height:7px;background:#f4ece5;border-radius:99px;overflow:hidden}
-  .scorebar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2));width:0;transition:width .6s ease}
+  /* 坑：track / fill 都是 <span>，行内元素的 width 会被忽略 —— 以前条子一直是空的，
+   * 只剩一条灰色底。必须显式 block 化，百分比宽度才生效。 */
+  .scorebar .track{display:block;height:7px;background:#f4ece5;border-radius:99px;overflow:hidden}
+  .scorebar .fill{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2));width:0;transition:width .6s ease}
+  /* 契合度配色：条子长度 = 分数，颜色跟着分数分档（绿=很合适 / 橙=还行 / 红=偏弱） */
+  .scorebar .fill.lvl-good{background:linear-gradient(90deg,#5ecb97,#2f9e6c)}
+  .scorebar .fill.lvl-mid{background:linear-gradient(90deg,#ffb347,#ff8a3d)}
+  .scorebar .fill.lvl-low{background:linear-gradient(90deg,#ff9b8a,#e5544b)}
+  .scorebar .num{text-align:right;font-variant-numeric:tabular-nums}
+  .scorebar .num.lvl-good{color:#2f9e6c;font-weight:700}
+  .scorebar .num.lvl-mid{color:#c9761f;font-weight:700}
+  .scorebar .num.lvl-low{color:#c9342b;font-weight:700}
 
   /* 一桌菜 */
   .combo-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fffdfb}
@@ -5272,6 +5282,11 @@ function menuSourceText(shop){
     (dbScopeOf(db) === 'branch' ? '' : '（价格每家可能不同）');
 }
 
+/* 契合度分档：绿=很合适、橙=还行、红=偏弱。数字和条子用同一个档，一眼能对上。 */
+function fitLevel(v){
+  return v >= 75 ? 'lvl-good' : (v >= 50 ? 'lvl-mid' : 'lvl-low');
+}
+
 function renderResult(combo, meal, extra, online){
   const box = $('#result');
   const r = combo.restaurant;
@@ -5294,12 +5309,16 @@ function renderResult(combo, meal, extra, online){
     .sort((a, b) => (b.can - a.can) || (a.shop.km - b.shop.km))
     .slice(0, 6);
   const anchorName = combo.anchorDish ? combo.anchorDish.name : combo.items[0].dish.name;
+  /* 契合度四条：数字是 0-100 的百分比，条子长度就是数字本身（满分就填满）。
+   * 分母不是各维度的"理论满分"，而是实测能拿到的好成绩（主菜约 80、店约 65、搭配 23/29），
+   * 否则每条都只有一半，用户看不出差别。 */
+  const balanceMax = (pickTier() || {}).id === 'good' ? 29 : 23;
   const bars = [
-    { k:'主菜契合', raw: Math.round((combo.anchorDish ? scoreDish(combo.anchorDish,{ignoreBudget:true}).total : 50) / 90 * 100) },
-    { k:'预算契合', raw: Math.round((combo.budgetScore || 0) / 20 * 100) },
-    { k:'搭配完整', raw: Math.round((combo.balance || 0) / 23 * 100) },
-    { k:'店铺靠谱', raw: Math.round((combo.shopScore || 0) / 100 * 100) }
-  ];
+    { k:'主菜契合', raw: Math.round((combo.anchorDish ? scoreDish(combo.anchorDish,{ignoreBudget:true}).total : 50) / 80 * 100) },
+    { k:'预算契合', raw: Math.round((combo.budgetScore || 0) / 22 * 100) },
+    { k:'搭配完整', raw: Math.round((combo.balance || 0) / balanceMax * 100) },
+    { k:'店铺靠谱', raw: Math.round((combo.shopScore || 0) / 65 * 100) }
+  ].map(b => ({ k:b.k, raw: Math.floor(clamp(b.raw, 0, 100)) }));
 
   box.innerHTML =
     '<div class="card-main">' +
@@ -5342,8 +5361,8 @@ function renderResult(combo, meal, extra, online){
         '</div>' +
         '<div class="scorebar">' + bars.map(b =>
           '<div class="row"><span>' + b.k + '</span>' +
-          '<span class="track"><span class="fill" style="width:' + clamp(b.raw,4,100) + '%"></span></span>' +
-          '<span>' + b.raw + '</span></div>').join('') + '</div>' +
+          '<span class="track"><span class="fill ' + fitLevel(b.raw) + '" style="width:' + Math.max(4, b.raw) + '%"></span></span>' +
+          '<span class="num ' + fitLevel(b.raw) + '">' + b.raw + '</span></div>').join('') + '</div>' +
         '<div class="why hidden" id="llmWrap" style="margin-top:12px"><div class="w-title">🤖 大模型点评</div><div id="llmText">' + (extra || '') + '</div></div>' +
         '<div class="actions">' +
           '<button class="btn" id="acceptBtn">就吃这一桌</button>' +
