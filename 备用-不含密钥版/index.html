@@ -391,6 +391,148 @@
   }
   .tabbar button.has-dot .t-dot{display:block}
 
+  /* ---------- 「饭饭AI」页面 ---------- */
+  /* AI 今日推荐 */
+  .ai-daily{
+    position:relative;overflow:hidden;border-radius:20px;padding:15px 16px 14px;
+    background:linear-gradient(140deg,#fff4ea 0%,#ffe9d8 58%,#ffe2c6 100%);
+    border:1px solid #ffdcc2;box-shadow:var(--shadow)
+  }
+  .ai-daily::after{
+    content:'';position:absolute;right:-38px;top:-42px;width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,106,61,.22),rgba(255,106,61,0) 70%);pointer-events:none
+  }
+  .ai-daily-head{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative}
+  .ai-daily-title{font-size:13px;font-weight:800;color:#c1602f;letter-spacing:.4px}
+  .ai-daily-date{font-size:11.5px;color:var(--muted)}
+  .ai-daily-body{display:flex;align-items:center;gap:12px;margin-top:10px;position:relative}
+  .ai-daily-emoji{font-size:38px;line-height:1;flex:0 0 auto;filter:drop-shadow(0 4px 8px rgba(193,96,47,.16))}
+  .ai-daily-main{flex:1;min-width:0}
+  .ai-daily-name{font-size:19px;font-weight:800;line-height:1.3}
+  .ai-daily-sub{font-size:12.5px;color:#9c7a63;margin-top:3px}
+  .ai-daily-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;position:relative}
+  .ai-daily-tags .tt{
+    font-size:11px;background:rgba(255,255,255,.78);border:1px solid #ffdfc8;color:#a1583a;
+    border-radius:9px;padding:3px 8px
+  }
+  .ai-daily-why{font-size:12.5px;color:#8a5b3f;margin-top:10px;line-height:1.55;position:relative}
+  .ai-daily-more{margin-top:12px;width:100%;position:relative;min-height:46px}
+  .ai-daily-foot{font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center;position:relative}
+
+  /* 聊天 */
+  .ai-msgs{display:flex;flex-direction:column;gap:10px}
+  .ai-msgs:empty::before{
+    content:'还没开始聊。问我什么都行——比如「江西菜为什么这么辣」「两个人 80 块能吃啥」。';
+    display:block;font-size:13px;color:var(--muted);line-height:1.6;padding:4px 2px
+  }
+  .ai-line{display:flex;gap:8px;align-items:flex-start}
+  .ai-line .av{
+    flex:0 0 30px;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:15px;
+    background:var(--brand-soft);border:1px solid #ffdfc8
+  }
+  .ai-line .bub{
+    max-width:calc(100% - 42px);background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:9px 12px;font-size:14px;line-height:1.62;white-space:pre-wrap;word-break:break-word
+  }
+  .ai-line.me{flex-direction:row-reverse}
+  .ai-line.me .av{background:#ffeede;border-color:#ffd9bd}
+  .ai-line.me .bub{background:#fff3e9;border-color:#ffe0c8}
+  .ai-line.note .av{background:#f7f2ee;border-color:var(--line)}
+  .ai-line.note .bub{
+    background:#fbf7f3;border:1px dashed var(--line);color:var(--muted);font-size:12.5px;line-height:1.5
+  }
+  .ai-line .bfoot{font-size:11px;color:var(--muted);margin-top:6px}
+  .ai-typing i{
+    display:inline-block;width:6px;height:6px;margin-right:3px;border-radius:50%;background:#e0b79c;
+    animation:aiBlink 1.1s infinite
+  }
+  .ai-typing i:nth-child(2){animation-delay:.18s}
+  .ai-typing i:nth-child(3){animation-delay:.36s}
+  @keyframes aiBlink{0%,60%,100%{opacity:.22;transform:translateY(0)}30%{opacity:1;transform:translateY(-2px)}}
+
+  /* 聊天里那一桌菜 */
+  .ai-combo{
+    max-width:calc(100% - 42px);background:#fffdfb;border:1px solid #ffdfc8;border-radius:14px;
+    padding:11px 12px;box-shadow:0 6px 18px rgba(255,106,61,.08)
+  }
+  .ai-combo .ac-head{font-size:13.5px;font-weight:800;color:#c1602f}
+  .ai-combo .ac-shop{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .ai-combo .ac-items{margin-top:9px;display:flex;flex-direction:column;gap:6px}
+  .ai-combo .ac-item{display:flex;gap:8px;align-items:baseline;font-size:13.5px}
+  .ai-combo .ac-item .n{flex:1;min-width:0}
+  .ai-combo .ac-item .p{color:#b0461f;font-weight:700}
+  .ai-combo .ac-total{
+    display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:9px;
+    border-top:1px dashed var(--line);font-size:13px
+  }
+  .ai-combo .ac-btns{display:flex;gap:8px;margin-top:11px}
+  /* 手机上点得准比好看重要：这几个按钮都保证 46px 以上的点击高度 */
+  .ai-combo .ac-btns .btn{flex:1;padding:12px 10px;font-size:13.5px;min-height:46px}
+  .ai-combo .ac-done{font-size:12.5px;color:var(--ok);margin-top:10px;text-align:center}
+
+  /* 输入区：贴在底部 Tab 上面，滚长对话时不用一路找到底 */
+  .ai-inputbar{
+    position:sticky;bottom:calc(56px + env(safe-area-inset-bottom));z-index:20;margin-top:14px;
+    display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:16px;
+    background:rgba(255,255,255,.96);backdrop-filter:blur(10px);
+    border:1px solid var(--line);box-shadow:0 -6px 20px rgba(43,33,24,.06)
+  }
+  .ai-makebtn{
+    width:100%;display:flex;align-items:center;justify-content:center;gap:6px;
+    background:linear-gradient(135deg,#ff7a45,#ffb347);color:#fff;border:none;border-radius:12px;
+    padding:12px;min-height:46px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+    box-shadow:0 6px 16px rgba(255,106,61,.22)
+  }
+  .ai-makebtn:disabled{opacity:.55;box-shadow:none}
+  .ai-inputrow{display:flex;gap:8px;align-items:flex-end}
+  .ai-inputrow textarea{
+    flex:1;min-height:44px;max-height:120px;resize:none;border:1px solid var(--line);border-radius:12px;
+    padding:10px 12px;font-family:inherit;font-size:14px;line-height:1.5;background:#fffdfb;color:var(--ink)
+  }
+  .ai-inputrow textarea:focus{outline:none;border-color:#ffc9a8;box-shadow:0 0 0 3px rgba(255,106,61,.10)}
+  .ai-inputrow .btn{flex:0 0 auto;padding:11px 16px;min-height:46px}
+  .ai-hint{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.5}
+
+  /* 菜品详情：从底上来的那张卡（今日推荐点进去看） */
+  .sheet{position:fixed;inset:0;z-index:60;display:none;align-items:flex-end;justify-content:center}
+  .sheet.show{display:flex}
+  .sheet-mask{position:absolute;inset:0;background:rgba(43,33,24,.42)}
+  .sheet-card{
+    position:relative;width:100%;max-width:520px;max-height:86vh;overflow:auto;-webkit-overflow-scrolling:touch;
+    background:#fffdfb;border-radius:20px 20px 0 0;padding:16px 16px calc(22px + env(safe-area-inset-bottom));
+    animation:sheetUp .24s ease both
+  }
+  @keyframes sheetUp{from{transform:translateY(20px);opacity:.55}to{transform:translateY(0);opacity:1}}
+  .sheet-grab{width:38px;height:4px;border-radius:2px;background:#eeddd0;margin:0 auto 12px}
+  .sheet-head{display:flex;align-items:flex-start;gap:10px}
+  .sheet-face{font-size:34px;line-height:1;flex:0 0 auto}
+  .sheet-name{font-size:20px;font-weight:800;line-height:1.3}
+  .sheet-meta{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .sheet-close{
+    position:absolute;right:10px;top:10px;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);
+    background:#fff;color:var(--muted);font-size:15px;line-height:1;cursor:pointer;display:grid;place-items:center
+  }
+  .sheet-sec{margin-top:15px}
+  .sheet-sec .st{
+    font-size:12.5px;font-weight:800;color:#c1602f;margin-bottom:6px;display:flex;align-items:center;gap:5px
+  }
+  .sheet-sec .sc{font-size:13.5px;line-height:1.68;color:#3d3026;white-space:pre-wrap}
+  .sheet-sec .sc.dim{color:var(--muted);font-size:12.5px}
+  .sheet-kv{display:flex;gap:8px;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .sheet-kv:last-child{border-bottom:none}
+  .sheet-kv .k{flex:0 0 62px;color:var(--muted)}
+  .sheet-kv .v{flex:1;min-width:0}
+  .sheet-shop{
+    display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:12px;
+    margin-bottom:7px;font-size:13px;background:#fff
+  }
+  .sheet-shop .sn{flex:1;min-width:0}
+  .sheet-shop .sd{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .sheet-reload{
+    display:inline-block;font-size:11.5px;color:var(--brand);background:none;border:none;
+    font-family:inherit;padding:0;cursor:pointer;text-decoration:underline
+  }
+
   /* ---------- 「我的」页面 ---------- */
   .me-head{
     display:flex;align-items:center;gap:14px;margin-top:4px;padding:18px 16px;border-radius:18px;
@@ -897,6 +1039,42 @@
 
 </div><!-- /pageMe -->
 
+<!-- 饭饭AI：AI 今日推荐 + 聊饮食文化 + 「根据聊天推荐菜」 -->
+<div id="pageAi" class="hidden">
+
+  <header class="top">
+    <div class="brandline">
+      <div class="logo">🤖</div>
+      <h1>饭饭 AI</h1>
+    </div>
+    <p class="sub">陪你聊各地的吃——这道菜什么来头、哪个菜系什么脾气、两个人多少钱够。想让我直接出方案，就按下面那个按钮。</p>
+  </header>
+
+  <!-- 每日一道：按"今天 + 你"挑，同一天同一个人不变 -->
+  <div class="ai-daily" id="aiDaily"></div>
+
+  <div class="me-title" style="margin-top:16px">和饭饭聊聊</div>
+  <div class="me-card">
+    <div class="ai-msgs" id="aiMsgs"></div>
+  </div>
+
+  <div class="ai-inputbar">
+    <button type="button" class="ai-makebtn" id="aiMakeBtn">🍽 根据聊天推荐菜</button>
+    <div class="ai-inputrow">
+      <textarea id="aiInput" rows="1" placeholder="想聊点什么？比如「江西菜为什么这么辣」"></textarea>
+      <button type="button" class="btn" id="aiSendBtn">发送</button>
+    </div>
+    <div class="ai-hint" id="aiHint">平时就是纯聊天；想让我配一桌能点到的菜，再点上面那个按钮</div>
+  </div>
+
+</div><!-- /pageAi -->
+
+<!-- 菜品详情（从「AI 今日推荐」点进来）：菜的来历 / 口味 / 菜系 / 哪里能吃到 -->
+<div class="sheet" id="aiSheet" role="dialog" aria-modal="true">
+  <div class="sheet-mask" id="aiSheetMask"></div>
+  <div class="sheet-card" id="aiSheetCard"></div>
+</div>
+
 <!-- AI 记忆全记录（从「我的 → AI 记忆」三块点进来） -->
 <div id="pageMem" class="hidden">
   <div class="mem-top">
@@ -922,6 +1100,9 @@
 <nav class="tabbar" role="tablist">
   <button type="button" id="tabHome" class="active" role="tab" aria-selected="true">
     <span class="t-icon">🍜</span><span>推荐</span>
+  </button>
+  <button type="button" id="tabAi" role="tab" aria-selected="false">
+    <span class="t-icon">🤖</span><span>饭饭AI</span>
   </button>
   <button type="button" id="tabMe" role="tab" aria-selected="false">
     <span class="t-icon">👤</span><span>我的</span><span class="t-dot" id="meDot"></span>
@@ -5173,15 +5354,20 @@ const SPICE_NAMES = ['完全不吃辣', '微辣可以', '中辣没问题', '无�
 function switchTab(name){
   if(state.memPage) closeMemPage();       // 从全记录页直接切 Tab 时，先把那一页收起来
   if(name !== 'me') flushAllergyIfDirty();
+  if(name !== 'ai') closeAiSheet();       // 离开「饭饭AI」时把菜品详情收起来，别糊在别的页面上
   $('#pageHome').classList.toggle('hidden', name !== 'home');
+  $('#pageAi').classList.toggle('hidden', name !== 'ai');
   $('#pageMe').classList.toggle('hidden', name !== 'me');
-  $('#tabHome').classList.toggle('active', name === 'home');
-  $('#tabMe').classList.toggle('active', name === 'me');
-  $('#tabHome').setAttribute('aria-selected', String(name === 'home'));
-  $('#tabMe').setAttribute('aria-selected', String(name === 'me'));
+  ['home', 'ai', 'me'].forEach(k => {
+    const t = $('#tab' + k.charAt(0).toUpperCase() + k.slice(1));
+    if(!t) return;
+    t.classList.toggle('active', name === k);
+    t.setAttribute('aria-selected', String(name === k));
+  });
   $('.bar').classList.toggle('hide', name !== 'home');   // "开始推荐"只在推荐页出现
   try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
   if(name === 'me'){ renderProfile(); renderSettingsUI(); renderServerUI(); renderSpiceSeg(); renderTierSeg(); renderAddrList(); }
+  if(name === 'ai'){ renderAiPage(); }
 }
 
 function renderSpiceSeg(){
@@ -5652,8 +5838,9 @@ function bump(map, key, delta){
   if(map[key] <= 0) delete map[key];
 }
 
-// 一桌菜全部记进历史与偏好
-function acceptCombo(combo){
+/* 一桌菜记进历史与偏好：只动数据、不碰界面。
+ * 「推荐」页点「就吃这一桌」和「饭饭AI」页点同一句话，走的都是这一个（界面收尾各自做）。 */
+function recordCombo(combo){
   /* 一顿饭记成一组：同一桌菜的 ts / meal / 店名都一样。
    * 「最近吃过」全记录要按"日期 → 饭店 → 菜品"看，没有店名和组标识就凑不出这一顿。 */
   const ts = Date.now();
@@ -5669,6 +5856,10 @@ function acceptCombo(combo){
   });
   if(state.profile.history.length > 60) state.profile.history = state.profile.history.slice(-60);
   saveProfile(); renderProfile();
+}
+// 推荐页的「就吃这一桌」：记完放个小特效，再自动回到选档位那一屏
+function acceptCombo(combo){
+  recordCombo(combo);
   blessHome(combo);
 }
 
@@ -7116,6 +7307,71 @@ async function agentProbe(){
   }
 }
 
+/* 把 Agent 交上来的 plan 组装成一桌可渲染的菜。
+ * 「推荐」页的 runAgentFlow 和「饭饭AI」页的"根据聊天推荐菜"共用这一条，
+ * 免得两处各写一遍预算/搭配/分数——以前那 60 行只存在于 runAgentFlow 里。
+ * 返回 null = plan 用不了（店或菜不在本次检索结果里），两个调用方都按"回退算法引擎"处理。 */
+function comboFromAgentPlan(r, secs){
+  const ctx = r.ctx;
+  const restaurant = ctx.seenShop.get(r.plan.shop_id);
+  if(!restaurant) return null;
+  const anchorId = (r.plan.items.find(i => i.role === 'main') || r.plan.items[0]).dish_id;
+  const items = r.plan.items.map(i => {
+    const d = dishById(i.dish_id);
+    const sc = scoreDish(d, { ignoreBudget:true });
+    return { dish:d, role:i.role, score:sc.total, reasons:(sc.reasons || []), anchor:(i.dish_id === anchorId) };
+  }).filter(x => x.dish);
+  if(!items.length) return null;
+
+  const sum = items.reduce((n, x) => n + x.dish.price, 0);
+  // 档位兜底：Agent 也会从开发者面板被调起来，那边 state.tier 可能是空的
+  const tier = pickTier() || TIERS[1];
+  const cap = Math.min(tier.max, state.budget), floor = tier.min;
+  let budgetScore, budgetReason;
+  if(sum <= cap && sum >= floor){
+    const span = Math.max(1, cap - floor);
+    budgetScore = 14 + 8 * clamp((sum - floor)/span, 0, 1);
+    budgetReason = '整桌 ¥' + sum + '，落在「' + tier.name + '」人均 ¥' + (tier.min === 0 ? '≤' + tier.max : tier.min + '-' + tier.max) + ' 里';
+  }else if(sum < floor){
+    budgetScore = Math.max(2, 12 - (floor - sum) * 0.3);
+    budgetReason = '整桌 ¥' + sum + '，比「' + tier.name + '」档省一些';
+  }else{
+    budgetScore = Math.max(0, 16 - (sum - cap) * 0.6);
+    budgetReason = '整桌 ¥' + sum + '，略超上限 ¥' + cap;
+  }
+  const roles = items.map(x => x.role);
+  let balance = 0; const balanceReasons = [];
+  if((roles.includes('main') || roles.includes('single')) && (roles.includes('staple') || roles.includes('single'))){ balance += 10; balanceReasons.push('主食配上了，不会干吃菜'); }
+  if(roles.includes('side')){ balance += 6; balanceReasons.push('有荤有素，不容易腻'); }
+  if(items.length >= 3){ balance += 4; }
+  if(roles.includes('soup')){ balance += 3; balanceReasons.push('加了汤，收尾舒服'); }
+  if(tier.id === 'good' && roles.includes('main')){ balance += 6; balanceReasons.push('有整份硬菜，像正经吃一顿'); }
+  const shopScore = scoreRestaurant(restaurant, dishById(anchorId), {}).total;
+  const anchorDish = dishById(anchorId);
+  const combo = {
+    restaurant, items, total:sum, perPerson:sum,
+    budgetScore:+budgetScore.toFixed(1), balance,
+    reasons:[budgetReason].concat(balanceReasons),
+    km:(restaurant.km != null ? restaurant.km : 0),
+    eta:(state.mode === 'delivery' ? Math.round(12 + (restaurant.km || 0) * 9) : Math.round((restaurant.km || 0) * 13)),
+    shopScore, source:restaurant.source, anchorDish,
+    agentPlan:r.plan, agentUsage:r.usage, agentSteps:ctx.steps, agentSecs:secs
+  };
+  combo.score = +(items.reduce((n, x) => n + (x.anchor ? x.score * 0.8 : x.score * 0.35), 0) + budgetScore + balance + shopScore * 0.5).toFixed(1);
+
+  // 人在环要用的上下文：把本次见过的菜和店交给后面的"换菜／换店"按钮
+  const seenDishes = [...ctx.seenDish.values()];
+  state.lastRec = { scored: seenDishes.map(d => ({ dish:d, total:scoreDish(d, { ignoreBudget:true }).total, parts:{}, reasons:[], hitTags:[], textHits:[] })), mains:[], pool:[], filtered:[], inBudget:[] };
+  CANDIDATE_DISHES = seenDishes.slice(0, 20);
+  const online = { on:true, origin:ctx.origin, byDish:{}, around:[], shops:[...ctx.seenShop.values()], intents:[], source:restaurant.source, error:null };
+  state.lastOnline = online;
+  state.lastDeadTags = [];
+  state.lastCrossCat = [];
+
+  const meal = { best:combo, list:[combo], source:combo.source };
+  return { combo, meal, online, anchorDish, items, sum, secs };
+}
+
 /* Agent 模式的主流程：跑循环 → 拿 plan → 走和算法引擎同一条渲染路径。
  * 返回 true = 已经出结果了；false = 没跑通（调用方回退算法引擎）。 */
 const AGENT_TOOL_LABEL = {
@@ -7180,65 +7436,15 @@ async function runAgentFlow(){
     traceUpdate(stepLi, '↩️ 回退算法引擎', '智能体这次没跑通（' + (r.error || '没有拿到方案') + '），改用本地规则引擎');
     return false;
   }
-  const ctx = r.ctx;
-  const restaurant = ctx.seenShop.get(r.plan.shop_id);
-  if(!restaurant){
-    traceUpdate(stepLi, '↩️ 回退算法引擎', '智能体给的店不在本次检索结果里，改用本地规则引擎');
+  // 组装这一桌：和「饭饭AI」页共用同一条（见 comboFromAgentPlan）
+  const built = comboFromAgentPlan(r, secs);
+  if(!built){
+    traceUpdate(stepLi, '↩️ 回退算法引擎', '智能体给的店／菜不在本次检索结果里，改用本地规则引擎');
     return false;
   }
-  const anchorId = (r.plan.items.find(i => i.role === 'main') || r.plan.items[0]).dish_id;
-  const items = r.plan.items.map(i => {
-    const d = dishById(i.dish_id);
-    const sc = scoreDish(d, { ignoreBudget:true });
-    return { dish:d, role:i.role, score:sc.total, reasons:(sc.reasons || []), anchor:(i.dish_id === anchorId) };
-  }).filter(x => x.dish);
-  if(!items.length){ traceUpdate(stepLi, '↩️ 回退算法引擎', '智能体给的菜不在知识库里，改用本地规则引擎'); return false; }
-
-  const sum = items.reduce((n, x) => n + x.dish.price, 0);
-  const tier = pickTier();
-  const cap = Math.min(tier.max, state.budget), floor = tier.min;
-  let budgetScore, budgetReason;
-  if(sum <= cap && sum >= floor){
-    const span = Math.max(1, cap - floor);
-    budgetScore = 14 + 8 * clamp((sum - floor)/span, 0, 1);
-    budgetReason = '整桌 ¥' + sum + '，落在「' + tier.name + '」人均 ¥' + (tier.min === 0 ? '≤' + tier.max : tier.min + '-' + tier.max) + ' 里';
-  }else if(sum < floor){
-    budgetScore = Math.max(2, 12 - (floor - sum) * 0.3);
-    budgetReason = '整桌 ¥' + sum + '，比「' + tier.name + '」档省一些';
-  }else{
-    budgetScore = Math.max(0, 16 - (sum - cap) * 0.6);
-    budgetReason = '整桌 ¥' + sum + '，略超上限 ¥' + cap;
-  }
-  const roles = items.map(x => x.role);
-  let balance = 0; const balanceReasons = [];
-  if((roles.includes('main') || roles.includes('single')) && (roles.includes('staple') || roles.includes('single'))){ balance += 10; balanceReasons.push('主食配上了，不会干吃菜'); }
-  if(roles.includes('side')){ balance += 6; balanceReasons.push('有荤有素，不容易腻'); }
-  if(items.length >= 3){ balance += 4; }
-  if(roles.includes('soup')){ balance += 3; balanceReasons.push('加了汤，收尾舒服'); }
-  if(tier.id === 'good' && roles.includes('main')){ balance += 6; balanceReasons.push('有整份硬菜，像正经吃一顿'); }
-  const shopScore = scoreRestaurant(restaurant, dishById(anchorId), {}).total;
-  const anchorDish = dishById(anchorId);
-  const combo = {
-    restaurant, items, total:sum, perPerson:sum,
-    budgetScore:+budgetScore.toFixed(1), balance,
-    reasons:[budgetReason].concat(balanceReasons),
-    km:(restaurant.km != null ? restaurant.km : 0),
-    eta:(state.mode === 'delivery' ? Math.round(12 + (restaurant.km || 0) * 9) : Math.round((restaurant.km || 0) * 13)),
-    shopScore, source:restaurant.source, anchorDish,
-    agentPlan:r.plan, agentUsage:r.usage, agentSteps:ctx.steps, agentSecs:secs
-  };
-  combo.score = +(items.reduce((n, x) => n + (x.anchor ? x.score * 0.8 : x.score * 0.35), 0) + budgetScore + balance + shopScore * 0.5).toFixed(1);
-
-  // 人在环要用的上下文：把本次见过的菜和店交给后面的"换菜／换店"按钮
-  const seenDishes = [...ctx.seenDish.values()];
-  state.lastRec = { scored: seenDishes.map(d => ({ dish:d, total:scoreDish(d, { ignoreBudget:true }).total, parts:{}, reasons:[], hitTags:[], textHits:[] })), mains:[], pool:[], filtered:[], inBudget:[] };
-  CANDIDATE_DISHES = seenDishes.slice(0, 20);
-  const online = { on:true, origin:ctx.origin, byDish:{}, around:[], shops:[...ctx.seenShop.values()], intents:[], source:restaurant.source, error:null };
-  state.lastOnline = online;
-  state.lastDeadTags = [];
-  state.lastCrossCat = [];
-
-  const meal = { best:combo, list:[combo], source:combo.source };
+  // 这轮用到的店／菜／步数都在 built 里，不用再从 state 里绕一圈
+  const combo = built.combo, meal = built.meal, online = built.online;
+  const restaurant = combo.restaurant, items = built.items, sum = built.sum, ctx = r.ctx;
   /* 就这一行：决策中显示静态提示，定案后原地变成结果。
    * 界面上总共只留一行，用户不用看工具调用，也看不到模型那些半截 JSON。 */
   traceUpdate(stepLi, '🎯 定案：' + restaurant.name,
@@ -7548,11 +7754,628 @@ async function run(){
   }
 }
 
+/* ------------------------------ 12. 「饭饭AI」页面 ------------------------------
+ * 这一页三件事：
+ *   ① AI 今日推荐：每天一道、按人不同；点进去看这道菜的来历／口味／菜系／哪能吃到
+ *   ② 纯聊天：只聊吃的（各地饮食文化、怎么点、怎么搭）——不调工具、不花决策的 token
+ *   ③ 「根据聊天推荐菜」：用户真按下去，才把聊天读成需求、走真实决策链出一桌能点到的菜
+ * ③ 不自动触发是刻意的：自动决策既费 token，又会在用户只是随口聊两句时乱出方案。 */
+
+const LS_AI = 'eatAgent.ai.v1';              // 聊天记录 + 今日推荐 + 菜品讲解缓存
+const LS_AI_DEVICE = 'eatAgent.aidevice.v1'; // 没登录时用来区分"每个用户"
+const AI_KEEP_MSGS = 40;                     // 聊天记录最多留 40 条（手机上看不完，也省 localStorage）
+const AI_CTX_MSGS = 10;                      // 每次发给模型的历史最多 10 条
+const AI_KEEP_STORY = 60;                    // 菜品讲解最多缓存 60 道
+const AI_SPICY = ['不辣', '微辣', '中辣', '特辣'];
+const AI_CAT_HINT = { rice:'配米饭吃', noodle:'配面／粉吃', other:'整份菜／小吃' };
+const AI_ROLE_NAME = { single:'一人食', main:'主菜', side:'配菜', staple:'主食', soup:'汤', drink:'饮品' };
+
+/* 页面状态：msgs 落盘，busy 是临时的"正在想"，hist 是最近推过的菜（别短期内重复） */
+let aiState = { msgs:[], hist:[], day:'', dishId:'', key:'', stories:{}, busy:null, seq:0, sending:false, sheetDish:'' };
+
+function aiLoad(){
+  try{
+    const o = JSON.parse(localStorage.getItem(LS_AI) || 'null');
+    if(!o || typeof o !== 'object') return;
+    aiState.msgs = Array.isArray(o.msgs) ? o.msgs.filter(m => m && m.id && (m.kind === 'combo' || typeof m.text === 'string')) : [];
+    aiState.hist = Array.isArray(o.hist) ? o.hist : [];
+    aiState.day = o.day || '';
+    aiState.dishId = o.dishId || '';
+    aiState.key = o.key || '';
+    aiState.stories = (o.stories && typeof o.stories === 'object') ? o.stories : {};
+    // 消息 id 从已经用到的最大值接着往下发，避免刷新后撞号
+    aiState.msgs.forEach(m => { const n = parseInt(String(m.id || '').replace(/^\D+/, ''), 10); if(n > aiState.seq) aiState.seq = n; });
+  }catch(e){ /* 数据坏了就当没聊过，不影响其它功能 */ }
+}
+function aiSave(){
+  try{
+    localStorage.setItem(LS_AI, JSON.stringify({
+      msgs: aiState.msgs.slice(-AI_KEEP_MSGS),
+      hist: aiState.hist.slice(-24),
+      day: aiState.day, dishId: aiState.dishId, key: aiState.key,
+      stories: aiState.stories
+    }));
+  }catch(e){}
+}
+function aiTrimStories(){
+  const keys = Object.keys(aiState.stories);
+  if(keys.length <= AI_KEEP_STORY) return;
+  keys.sort((a, b) => (aiState.stories[a].ts || 0) - (aiState.stories[b].ts || 0));
+  keys.slice(0, keys.length - AI_KEEP_STORY).forEach(k => delete aiState.stories[k]);
+}
+
+/* ---------- 今日推荐的"随机"：要每天每人不同，又不能刷新一次换一道 ---------- */
+function aiDeviceId(){
+  try{
+    let v = localStorage.getItem(LS_AI_DEVICE);
+    if(!v){ v = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem(LS_AI_DEVICE, v); }
+    return v;
+  }catch(e){ return 'nosave'; }
+}
+function aiHash(str){
+  let h = 2166136261;
+  const s = String(str);
+  for(let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+// 0~1 的确定性伪随机：同样的种子永远同样的结果
+function aiRnd(seed){
+  let x = aiHash(seed);
+  x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0;
+  return x / 4294967296;
+}
+function aiDayKey(d){
+  const t = d ? new Date(d) : new Date();
+  const p = n => (n < 10 ? '0' : '') + n;
+  return t.getFullYear() + '-' + p(t.getMonth() + 1) + '-' + p(t.getDate());
+}
+// "这个用户"是谁：登录了用账号，没登录用这台设备的随机串
+function aiUserKey(){
+  return (state.identity && state.identity.type === 'user' && state.identity.id)
+    ? ('u:' + state.identity.id) : ('d:' + aiDeviceId());
+}
+function aiDateText(ts){
+  const d = new Date(ts);
+  const a = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const n = new Date();
+  const t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  const days = Math.round((t - a) / 86400000);
+  if(days <= 0) return '今天';
+  if(days === 1) return '昨天';
+  if(days < 30) return days + ' 天前';
+  return (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日';
+}
+
+/* 挑今天这道菜：忌口／辣度／刚屏蔽的先排除，再按个人口味打分 + 确定性抖动 */
+function aiPickDailyDish(){
+  const pool = DISHES.filter(d => (!d.role || d.role === 'single' || d.role === 'main') && hardFilter(d).ok);
+  if(!pool.length) return null;
+  const seed = aiUserKey() + '|' + aiDayKey();
+  const likes = state.profile.likes || {}, dislikes = state.profile.dislikes || {};
+  const scored = pool.map(d => {
+    let s = scoreDish(d, { ignoreBudget:true }).total;   // 不看档位：今日推荐和"这一顿吃多大一口"无关
+    (d.tags || []).forEach(t => {
+      s += Math.min(6, likes[t] || 0) * 1.2;
+      s -= Math.min(6, dislikes[t] || 0) * 1.6;
+    });
+    const idx = (aiState.hist || []).indexOf(d.id);
+    if(idx !== -1) s -= 42 - idx * 1.6;                  // 最近推过的先让开
+    s += aiRnd(seed + '|' + d.id) * 18;                  // 同一天同一个人固定，换人／换天就变
+    return { d, s };
+  }).sort((a, b) => b.s - a.s);
+  return scored[0].d;
+}
+function aiDailyReasons(dish){
+  const bits = [];
+  const liked = (dish.tags || []).filter(t => (state.profile.likes || {})[t]);
+  if(liked.length) bits.push('你以前喜欢「' + liked.slice(0, 2).join('、') + '」');
+  const eaten = (state.profile.history || []).filter(h => h.id === dish.id);
+  bits.push(eaten.length ? ('你吃过 ' + eaten.length + ' 次，最近 ' + aiDateText(eaten[eaten.length - 1].ts)) : '你还没吃过这道');
+  const shops = aiShopsForDish(dish);
+  if(shops.length) bits.push('本地有 ' + shops.length + ' 家店能做');
+  return bits.join(' · ');
+}
+// 菜单库里能做这道菜的店（四层作用域都算），只认同城的
+function aiShopsForDish(dish){
+  if(!SHOP_DB.loaded || !dish) return [];
+  return (SHOP_DB.shops || []).filter(s => {
+    if(s.city && normCityName(s.city) !== normCityName(CITY.name)) return false;
+    return shopCanMake(s, dish);
+  });
+}
+
+/* ---------- 渲染 ---------- */
+function renderAiPage(){
+  renderAiDaily();
+  renderAiChat();
+}
+function renderAiDaily(){
+  const box = $('#aiDaily');
+  if(!box) return;
+  const day = aiDayKey(), key = aiUserKey();
+  const cached = aiState.dishId ? dishById(aiState.dishId) : null;
+  // 换天、换人（登录/退出）、菜被删了、或者新的忌口让这道菜不能吃了 → 重挑
+  let dish = (cached && aiState.day === day && aiState.key === key && hardFilter(cached).ok) ? cached : null;
+  if(!dish){
+    dish = aiPickDailyDish();
+    aiState.day = day; aiState.key = key;
+    aiState.dishId = dish ? dish.id : '';
+    if(dish) aiState.hist = aiState.hist.concat([dish.id]).slice(-24);
+    aiSave();
+  }
+  if(!dish){
+    box.innerHTML = '<div class="ai-daily-head"><span class="ai-daily-title">✨ AI 今日推荐</span></div>' +
+      '<div class="ai-daily-why">按你现在的忌口，库里挑不出能推荐的菜了。去「我的 › 我的口味」放宽一下再看。</div>';
+    return;
+  }
+  box.innerHTML =
+    '<div class="ai-daily-head">' +
+      '<span class="ai-daily-title">✨ AI 今日推荐</span>' +
+      '<span class="ai-daily-date">' + day.slice(5).replace('-', ' 月 ') + ' 日</span>' +
+    '</div>' +
+    '<div class="ai-daily-body">' +
+      '<span class="ai-daily-emoji">' + dishEmoji(dish) + '</span>' +
+      '<span class="ai-daily-main">' +
+        '<span class="ai-daily-name">' + esc(dish.name) + '</span>' +
+        '<span class="ai-daily-sub">' + esc(dish.cui || '家常') + '菜系 ｜ 参考价 ¥' + dish.price + ' ｜ ' + AI_SPICY[dish.spicy] + '</span>' +
+      '</span>' +
+    '</div>' +
+    '<div class="ai-daily-tags">' + (dish.tags || []).slice(0, 6).map(t => '<span class="tt">' + esc(t) + '</span>').join('') + '</div>' +
+    '<div class="ai-daily-why">' + esc(aiDailyReasons(dish)) + '</div>' +
+    '<button type="button" class="btn ghost ai-daily-more" id="aiDailyOpen">看看这道菜的来历 ›</button>' +
+    '<div class="ai-daily-foot">每天一道、按你挑的，同一天里不会变</div>';
+  const btn = $('#aiDailyOpen');
+  if(btn) btn.addEventListener('click', () => openAiSheet(dish));
+}
+
+function aiKv(k, v){ return '<div class="sheet-kv"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
+function aiLocalStory(dish){
+  return (dish.desc ? (dish.desc + '。') : '') + '这道菜属于「' + (dish.cui || '家常') + '」菜系。' +
+    '更详细的来历和讲究要连上大模型才取得回来，点下面的「重新讲解」再试一次。';
+}
+function aiSheetHTML(dish, info, loading){
+  const hist = (state.profile.history || []).filter(h => h.id === dish.id);
+  const shops = aiShopsForDish(dish);
+  const dbCount = (SHOP_DB.shops || []).length;
+  return '' +
+    '<div class="sheet-grab"></div>' +
+    '<button type="button" class="sheet-close" id="aiSheetClose" aria-label="关闭">✕</button>' +
+    '<div class="sheet-head">' +
+      '<span class="sheet-face">' + dishEmoji(dish) + '</span>' +
+      '<span style="flex:1;min-width:0">' +
+        '<span class="sheet-name">' + esc(dish.name) + '</span>' +
+        '<span class="sheet-meta">' + esc(dish.cui || '家常') + '菜系 ｜ 参考价 ¥' + dish.price + ' ｜ ' + AI_SPICY[dish.spicy] + '</span>' +
+      '</span>' +
+    '</div>' +
+    '<div class="sheet-sec"><div class="st">📖 这道菜的来历</div>' +
+      '<div class="sc" id="aiStoryBox">' + (loading ? '正在取…' : esc((info && info.story) || aiLocalStory(dish))) + '</div>' +
+      ((info && info.src === 'llm') ? '' : '<div style="margin-top:7px"><button type="button" class="sheet-reload" id="aiStoryRetry">重新讲解</button></div>') +
+    '</div>' +
+    '<div class="sheet-sec' + ((info && info.cui) ? '' : ' hidden') + '" id="aiCuiSec"><div class="st">🍲 这个菜系</div>' +
+      '<div class="sc" id="aiCuiBox">' + esc((info && info.cui) || '') + '</div></div>' +
+    '<div class="sheet-sec"><div class="st">🍽 口味和属性</div>' +
+      '<div class="ai-daily-tags">' + (dish.tags || []).map(t => '<span class="tt">' + esc(t) + '</span>').join('') + '</div>' +
+      '<div style="margin-top:10px">' +
+        aiKv('菜系', esc(dish.cui || '家常')) +
+        aiKv('辣度', AI_SPICY[dish.spicy]) +
+        aiKv('参考价', '¥' + dish.price) +
+        aiKv('配什么', catName(dish.cat) + '（' + (AI_CAT_HINT[dish.cat] || '') + '）') +
+        (dish.desc ? aiKv('一句话', esc(dish.desc)) : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="sheet-sec"><div class="st">🕘 你的记录</div>' +
+      '<div class="sc' + (hist.length ? '' : ' dim') + '">' + (hist.length
+        ? ('吃过 ' + hist.length + ' 次，最近一次是 ' + aiDateText(hist[hist.length - 1].ts) + '。')
+        : '还没吃过这道菜。') + '</div></div>' +
+    '<div class="sheet-sec"><div class="st">📍 哪里能吃到</div>' + (shops.length
+      ? shops.slice(0, 6).map(s => '<div class="sheet-shop"><span>🏠</span><span class="sn"><span>' + esc(s.name) + '</span>' +
+          '<div class="sd">' + esc(s.area || '') + (s.amapId ? ' · 已绑定高德' : ' · 品牌参照') + '</div></span></div>').join('')
+      : '<div class="sc dim">本地菜单库（' + dbCount + ' 家店）里还没有店确认能做这道菜，所以这里不给店名——应用不编店。</div>') +
+    '</div>';
+}
+const AI_DISH_PROMPT =
+  '你在给一个"今天吃什么"的手机应用写菜品介绍，读者是普通干饭人。\n' +
+  '只输出一个 JSON，不要解释、不要 markdown 代码块：{"story":"...","cui":"..."}\n' +
+  '· story：这道菜的来历、名字怎么来的、做法上有什么讲究，70~120 字。\n' +
+  '· cui：它所属菜系的性格特点（口味倾向、适宜场合），50~90 字。\n' +
+  '规矩：\n' +
+  '1) 只写把握得住的事实。拿不准的典故宁可不写，不要编"相传""据说某位皇帝"这类查不到的说法。\n' +
+  '2) 像跟朋友聊天，口语、平实。不要"舌尖上的""不容错过"这类广告腔，也不要提"作为AI""根据资料"。\n' +
+  '3) 写不细就更概括一些，但两个字段都要有内容。';
+
+async function aiDishInfo(dish, force){
+  const cached = aiState.stories[dish.id];
+  if(!force && cached && cached.story) return cached;
+  if(!aiLlmReady()) return { story: aiLocalStory(dish), cui:'', src:'local' };
+  try{
+    const r = await llmChat(null, null, {
+      messages: [ { role:'system', content:AI_DISH_PROMPT },
+                 { role:'user', content:'菜名：' + dish.name + '\n菜系：' + (dish.cui || '家常') +
+                   '\n一句话描述：' + (dish.desc || '无') + '\n标签：' + (dish.tags || []).join('、') +
+                   '\n参考价：¥' + dish.price + ' ｜ 辣度：' + AI_SPICY[dish.spicy] } ],
+      temperature:0.6, maxTokens:700, timeoutMs:45000
+    });
+    const j = extractJsonBlock(r.text);
+    if(j && j.story){
+      const info = { story:String(j.story).trim(), cui:String(j.cui || '').trim(), src:'llm', ts:Date.now() };
+      aiState.stories[dish.id] = info; aiTrimStories(); aiSave();
+      return info;
+    }
+  }catch(e){ /* 取不到就用本地那句；点「重新讲解」还能再试 */ }
+  return { story: aiLocalStory(dish), cui:'', src:'local' };
+}
+function fillAiSheet(dish, force){
+  aiDishInfo(dish, force).then(info => {
+    if(aiState.sheetDish !== dish.id) return;      // 用户已经点开别的菜了，别往里写
+    const card = $('#aiSheetCard');
+    if(!card) return;
+    card.innerHTML = aiSheetHTML(dish, info, false);
+  });
+}
+function openAiSheet(dish){
+  if(!dish) return;
+  const sheet = $('#aiSheet'), card = $('#aiSheetCard');
+  if(!sheet || !card) return;
+  aiState.sheetDish = dish.id;
+  card.innerHTML = aiSheetHTML(dish, null, true);
+  sheet.classList.add('show');
+  document.body.style.overflow = 'hidden';        // 详情打开时别让底下的页面跟着滚
+  fillAiSheet(dish, false);
+}
+function closeAiSheet(){
+  const sheet = $('#aiSheet');
+  if(sheet) sheet.classList.remove('show');
+  aiState.sheetDish = '';
+  document.body.style.overflow = '';
+}
+
+/* ---------- 聊天 ---------- */
+function aiLlmReady(){
+  if(state.settings.enabled !== 'on') return false;
+  return serverLlmOn() || !!String(state.settings.key || '').trim();
+}
+function aiChannelLabel(){
+  if(serverLlmOn()) return '后端代理（' + (state.identity.type === 'user' ? '账号已登录' : '已连接') + '）';
+  return '本机直连';
+}
+function aiPush(m){
+  const msg = Object.assign({ id:'m' + (++aiState.seq), ts:Date.now() }, m);
+  aiState.msgs.push(msg);
+  // 只留最近 N 条：手机上翻不到那么久以前，留着白占 localStorage
+  if(aiState.msgs.length > AI_KEEP_MSGS) aiState.msgs = aiState.msgs.slice(-AI_KEEP_MSGS);
+  return msg;
+}
+function aiLastComboMsg(){
+  for(let i = aiState.msgs.length - 1; i >= 0; i--) if(aiState.msgs[i].kind === 'combo') return aiState.msgs[i];
+  return null;
+}
+function aiMsgHTML(m){
+  if(m.kind === 'combo') return '<div class="ai-line" data-msg="' + m.id + '"><span class="av">🤖</span>' + aiComboHTML(m.combo) + '</div>';
+  const me = m.role === 'me';
+  const cls = me ? 'ai-line me' : (m.kind === 'note' ? 'ai-line note' : 'ai-line');
+  const av = me ? '🙋' : (m.kind === 'note' ? '🍽' : '🍚');
+  const foot = m.foot ? '<div class="bfoot">' + esc(m.foot) + '</div>' : '';
+  return '<div class="' + cls + '" data-msg="' + m.id + '"><span class="av">' + av + '</span>' +
+    '<div class="bub">' + esc(m.text || '') + foot + '</div></div>';
+}
+function aiComboHTML(c){
+  if(!c) return '';
+  const shop = c.shop || {};
+  return '<div class="ai-combo" data-combo="' + esc(c.id) + '">' +
+    '<div class="ac-head">🍽 ' + esc(c.title || '按咱们聊的配了这一桌') + '</div>' +
+    '<div class="ac-shop">' + esc(shop.name || '还没定店') + (shop.area ? '（' + esc(shop.area) + '）' : '') +
+      (shop.km != null ? ' · ' + shop.km + ' km' : '') + (shop.rating ? ' · 评分 ' + shop.rating : '') + '</div>' +
+    '<div class="ac-items">' + (c.items || []).map(i => '<div class="ac-item">' +
+      '<span class="n">' + esc(i.name) + (AI_ROLE_NAME[i.role] ? '<span class="bfoot" style="display:inline;margin-left:6px">' + AI_ROLE_NAME[i.role] + '</span>' : '') + '</span>' +
+      '<span class="p">¥' + i.price + '</span></div>').join('') + '</div>' +
+    '<div class="ac-total"><span>合计 <b>¥' + c.total + '</b>' + ((c.items || []).length > 1 ? '（' + c.items.length + ' 道）' : '') + '</span>' +
+      '<span>' + (c.perPerson ? '人均 ¥' + c.perPerson : '') + '</span></div>' +
+    (c.reason ? '<div class="ai-daily-why">' + esc(c.reason) + '</div>' : '') +
+    (c.foot ? '<div class="bfoot">' + esc(c.foot) + '</div>' : '') +
+    (c.accepted
+      ? '<div class="ac-done">✓ 这一桌已经记进「最近吃过」了</div>'
+      : '<div class="ac-btns">' +
+          '<button type="button" class="btn" data-aicombo="accept">就吃这一桌</button>' +
+          '<button type="button" class="btn ghost" data-aicombo="more">换一桌</button>' +
+        '</div>') +
+  '</div>';
+}
+function renderAiChat(){
+  const box = $('#aiMsgs');
+  if(!box) return;
+  const busy = aiState.busy
+    ? '<div class="ai-line"><span class="av">🍚</span><div class="bub ai-typing">' +
+        '<i></i><i></i><i></i><span style="margin-left:6px;font-size:12.5px;color:var(--muted)">' +
+        esc(aiState.busy === 'combo' ? '正在按咱们聊的配一桌…' : '饭饭在想…') + '</span></div></div>'
+    : '';
+  box.innerHTML = aiState.msgs.map(aiMsgHTML).join('') + busy;
+  syncAiButtons();
+  syncAiHint();
+}
+function aiScrollBottom(){
+  const box = $('#aiMsgs');
+  const last = box && box.lastElementChild;
+  if(last && last.scrollIntoView){ try{ last.scrollIntoView({ behavior:'smooth', block:'end' }); }catch(e){} }
+}
+function syncAiButtons(){
+  const busy = aiState.sending || state.running;
+  const btn = $('#aiMakeBtn'), send = $('#aiSendBtn');
+  if(btn){
+    btn.disabled = busy;
+    btn.textContent = (aiState.busy === 'combo') ? '🍽 正在配这一桌…' : '🍽 根据聊天推荐菜';
+  }
+  if(send){ send.disabled = busy; send.textContent = aiState.sending ? '…' : '发送'; }
+}
+function syncAiHint(){
+  const el = $('#aiHint');
+  if(!el) return;
+  const n = aiState.msgs.filter(m => m.role === 'me').length;
+  el.textContent = !aiLlmReady()
+    ? '还没接上大模型：去「我的 › 联网与模型设置」打开它，这里就能聊了'
+    : (aiChannelLabel() + (n ? ' · 已经聊了 ' + n + ' 句' : ' · 想到什么就问，聊完点上面那个按钮出方案'));
+}
+
+// 聊天上下文：系统提示 + 最近几轮（组合卡片不进上下文，它不是"话"）
+function aiSystemPrompt(){
+  const p = state.profile || {};
+  const recent = (p.history || []).slice(-6).map(h => { const d = dishById(h.id); return d ? d.name : ''; }).filter(Boolean);
+  return '你是「饭饭」，一个只聊吃的中文助手，用户在手机上一句一句地跟你聊。\n' +
+    '【你负责两件事】\n' +
+    '1) 聊各地饮食文化：菜系的性格、一道菜的来历和吃法、南北差异、点餐和搭配的常识。\n' +
+    '2) 给吃饭建议：怎么点、怎么搭、什么时段吃什么、两个人多少钱够。\n' +
+    '【用户的情况（可以自然地用上，别生硬复述）】\n' +
+    '· 城市：' + (CITY ? CITY.name : '未知') + '\n' +
+    '· 常去位置：' + (state.address || '没填') + '\n' +
+    '· 吃辣程度：' + (SPICE_NAMES[state.spiceMax] || '不限') + '\n' +
+    '· 忌口：' + ((p.allergies || []).length ? p.allergies.join('、') : '没有') + '\n' +
+    '· 口味偏好：' + ((p.tastes || []).length ? p.tastes.join('、') : '没特别说') + '\n' +
+    '· 最近吃过：' + (recent.length ? recent.join('、') : '还没有记录') + '\n' +
+    '【规矩】\n' +
+    '1) 只说吃的。用户聊别的（天气、写代码、解闷）一句话带过，把话题拉回吃饭。\n' +
+    '2) 不提"我是AI""根据资料"这类话。不确定的就说不确定——不要编店名、价格、营业时间、具体地址。\n' +
+    '3) 手机屏小：默认 120 字以内，最多分 2~3 个短段。不要 markdown 表格、标题、代码块，别堆 emoji。\n' +
+    '4) 用户要是想看"具体到哪家店吃什么"，告诉他点上面的「🍽 根据聊天推荐菜」，那边会配一桌本地真能点到的菜。\n' +
+    '5) 语气像熟人聊天，不要"亲""宝子"，也不要广告腔。';
+}
+function aiChatMessages(){
+  const out = [ { role:'system', content: aiSystemPrompt() } ];
+  aiState.msgs.filter(m => m.kind === 'text' && m.text).slice(-AI_CTX_MSGS).forEach(m => {
+    out.push({ role:(m.role === 'me' ? 'user' : 'assistant'), content:String(m.text) });
+  });
+  return out;
+}
+async function aiSend(){
+  if(aiState.sending || state.running) return;
+  const el = $('#aiInput');
+  if(!el) return;
+  const text = String(el.value || '').trim();
+  if(!text) return;
+  if(!aiLlmReady()){ toast('先在「我的 › 联网与模型设置」里打开大模型，或者登录后端账号'); return; }
+  el.value = ''; el.style.height = 'auto';
+  aiPush({ role:'me', kind:'text', text });
+  aiState.sending = true; aiState.busy = 'chat';
+  renderAiChat(); aiScrollBottom();
+  try{
+    const r = await llmChat(null, null, { messages: aiChatMessages(), temperature:0.8, maxTokens:1400, timeoutMs:60000 });
+    const t = String(r.text || '').trim();
+    aiPush({ role:'ai', kind:'text', text: t || '（这次没说出什么，再问一遍试试）' });
+  }catch(e){
+    aiPush({ role:'ai', kind:'note', text:'这次没接上大模型：' + (e && e.message ? e.message : String(e)) + '\n可以先看看上面的「AI 今日推荐」，或者去设置里检查一下 Key。' });
+  }finally{
+    aiState.sending = false; aiState.busy = null;
+    aiSave(); renderAiChat(); aiScrollBottom();
+  }
+}
+
+/* ---------- 「根据聊天推荐菜」：按下才真的走决策链 ---------- */
+function aiIntentPrompt(){
+  const vocab = Object.keys(CAT_CRAVE_TAGS).map(c => catName(c) + '（' + c + '）：' + CAT_CRAVE_TAGS[c].join('、')).join('\n');
+  return '你在帮一个"今天吃什么"的应用读用户意图。下面是一段用户和助手的聊天记录。\n' +
+    '请从中提炼出"这一顿想吃什么"，只输出一个 JSON，不要解释、不要 markdown 代码块：\n' +
+    '{"cat":"rice|noodle|other","tier":"small|mid|good","budget":数字,"tags":["标签"],"keywords":["关键词"],"note":"一句话概括"}\n' +
+    '规则：\n' +
+    '1) cat：rice＝配米饭吃的一餐，noodle＝配面／粉吃的一餐，other＝整份菜／小吃／火锅；拿不准给 other。\n' +
+    '2) tier 是这一顿的档位：small＝人均不超过 25 元，mid＝26~60 元，good＝61 元以上；拿不准给 mid。\n' +
+    '3) budget 填整桌能接受的最高金额（含饮料）；聊天里没说就填 tier 的上限（25 / 60 / 200）。\n' +
+    '4) tags 只能从下面这份词表里原样选，最多 3 个。词表里确实没有对得上的就给空数组，绝对不要硬凑：\n' + vocab + '\n' +
+    '5) keywords 放词表以外、语义具体的东西：菜名、菜系、食材、做法（比如"江西菜""瓦罐汤""藜蒿"），最多 5 个、每个 2~6 个字。\n' +
+    '6) 用户明确说的忌口／不要的东西，不要放进 keywords。\n' +
+    '7) note 用一句 15 字以内的话概括你怎么理解的。';
+}
+// 没模型时的兜底：拿聊天里的字去对标签词表和菜系词，能对上多少算多少
+function aiLocalIntent(){
+  const text = aiState.msgs.filter(m => m.role === 'me').slice(-6).map(m => m.text).join(' ');
+  const tags = CRAVE_TAGS.filter(t => text.indexOf(t) !== -1).slice(0, 3);
+  const keywords = Object.keys(CUI_SHOP_WORDS || {}).filter(k => text.indexOf(k) !== -1).slice(0, 5);
+  const cat = /面|粉|米线|拉面|饺子|馄饨/.test(text) ? 'noodle' : (/饭|盖饭|炒饭|煲仔/.test(text) ? 'rice' : 'other');
+  const bm = text.match(/(\d{2,3})\s*(块|元|块钱)/);
+  const budget = bm ? Number(bm[1]) : 0;
+  const tier = budget ? (budget <= 25 ? 'small' : (budget <= 60 ? 'mid' : 'good')) : 'mid';
+  return { cat, tier, budget, tags, keywords, note:'按聊天里的字面意思理解' };
+}
+function aiNormalizeIntent(raw, src, text, ms){
+  const r = raw || {};
+  const cat = ['rice', 'noodle', 'other'].indexOf(r.cat) !== -1 ? r.cat : 'other';
+  const allowed = CAT_CRAVE_TAGS[cat] || CRAVE_TAGS;
+  const clean = normalizeParsed(r, allowed);     // 复用"用一句话说说"那套校验：标签只在词表内
+  const tier = ['small', 'mid', 'good'].indexOf(r.tier) !== -1 ? r.tier : 'mid';
+  const b = Number(r.budget);
+  return {
+    cat, tier,
+    budget:(isFinite(b) && b > 0) ? Math.round(b) : (TIERS.find(t => t.id === tier) || TIERS[1]).max,
+    tags:clean.tags, keywords:clean.keywords,
+    note:String(r.note || clean.note || '').slice(0, 30),
+    src, text, ms:ms || 0
+  };
+}
+async function aiParseIntent(){
+  const convo = aiState.msgs.filter(m => m.kind === 'text' && m.text)
+    .slice(-8).map(m => (m.role === 'me' ? '用户：' : '饭饭：') + m.text).join('\n');
+  try{
+    const r = await llmChat(null, null, {
+      messages: [ { role:'system', content:aiIntentPrompt() }, { role:'user', content:convo } ],
+      temperature:0.2, maxTokens:500, timeoutMs:45000
+    });
+    const j = extractJsonBlock(r.text);
+    if(j) return aiNormalizeIntent(j, 'llm', convo, r.ms);
+  }catch(e){ /* 解析失败走本地兜底，不能让这一趟白按 */ }
+  return aiNormalizeIntent(aiLocalIntent(), 'rules', convo, 0);
+}
+
+/* 决策链是从 state 里读需求的，所以聊天这边要先把它写进去——写完必须还原，
+ * 否则用户在「推荐」页选好的档位／类型会被这次解析悄悄覆盖掉。 */
+const AI_SNAP_FIELDS = ['tier','budget','cat','craveTags','craveText','craveAuto','craveAutoInfo',
+                        'reroll','shownShopIds','shownDishIds','lastRec','lastOnline','lastDeadTags','lastCrossCat','lastSig'];
+function aiSnapshotState(){
+  const s = {};
+  AI_SNAP_FIELDS.forEach(k => { s[k] = state[k]; });
+  s._cand = CANDIDATE_DISHES;
+  return s;
+}
+function aiRestoreState(s){
+  AI_SNAP_FIELDS.forEach(k => { state[k] = s[k]; });
+  CANDIDATE_DISHES = s._cand;
+}
+function aiApplyIntent(it){
+  state.cat = it.cat;
+  state.tier = it.tier;
+  state.budget = it.budget;
+  state.craveTags = it.tags.slice();
+  state.craveAuto = it.tags.slice();
+  state.craveText = it.keywords.join(' ');
+  state.craveAutoInfo = { src:it.src, model:state.settings.model, text:it.text, tags:it.tags, keywords:it.keywords, note:it.note, ms:it.ms };
+}
+// 算法引擎这一路：和「推荐」页用的是同一套 recommend / onlineSearch / planMeal
+async function aiAlgorithmCombo(){
+  const rec = recommend();
+  if(!rec.scored.length) return null;
+  const online = await onlineSearch(pickAnchors(rec).map(s => s.dish), rec);
+  const meal = planMeal(rec, online);
+  if(!meal.best) return null;
+  return { combo:meal.best, meal, online };
+}
+async function aiDecideWithIntent(it, opts){
+  const avoid = (opts && opts.avoid) ? opts.avoid.slice(0, 8) : [];
+  const snap = aiSnapshotState();
+  aiApplyIntent(it);
+  state.reroll = aiState.reroll || 0;
+  if(avoid.length){ state.shownDishIds = avoid.slice(); state.shownShopIds = []; }
+  const t0 = Date.now();
+  let built = null, how = '';
+  const offline = (typeof navigator !== 'undefined' && navigator.onLine === false);
+  const llmChannel = serverLlmOn() ? 'server' : (String(state.settings.key || '').trim() ? 'direct' : '');
+  const agentReady = state.settings.agent === 'agent' && state.settings.enabled === 'on' && !!llmChannel && !offline;
+  if(agentReady){
+    try{
+      let brief = {};
+      try{ brief = JSON.parse(agentUserBrief()); }catch(e){ brief = {}; }
+      brief.chat_context = aiState.msgs.filter(m => m.kind === 'text' && m.text).slice(-6)
+        .map(m => (m.role === 'me' ? '用户：' : '饭饭：') + m.text).join('\n');
+      brief.note_this_round = '这段需求是从聊天里读出来的，请照它配一桌' + (avoid.length ? '；用户点了「换一桌」，别和上一桌重复' : '');
+      if(avoid.length) brief.avoid_dish_ids = avoid;
+      if(!SHOP_DB.loaded){ try{ await loadShopDb(); }catch(e){} }
+      const r = await agentRun({ brief: JSON.stringify(brief, null, 1) });
+      if(r && r.ok && r.plan){
+        const b = comboFromAgentPlan(r, (Date.now() - t0) / 1000);
+        if(b){ built = b; how = 'Agent 模式（' + state.settings.model + ' 自己调工具）'; }
+      }
+    }catch(e){ /* 出错就落到下面的算法引擎 */ }
+  }
+  if(!built){
+    try{ built = await aiAlgorithmCombo(); }catch(e){ built = null; }
+    if(built) how = '算法引擎（本地规则，不花 token）';
+  }
+  aiRestoreState(snap);
+  return (built && built.combo) ? { built, how, ms:(Date.now() - t0) } : null;
+}
+function aiComboCard(built, note){
+  const c = built.combo;
+  const reason = (c.agentPlan && c.agentPlan.reason) ? c.agentPlan.reason : (c.reasons || []).slice(0, 2).join('；');
+  return {
+    id:'c' + (++aiState.seq),
+    title:'按咱们聊的配了这一桌',
+    shop:{ id:c.restaurant.id, name:c.restaurant.name, area:c.restaurant.area || '', km:c.km, rating:c.restaurant.rating || '', avg:c.restaurant.avg || '' },
+    items:c.items.map(i => ({ dishId:i.dish.id, name:i.dish.name, price:i.dish.price, role:i.role })),
+    total:c.total, perPerson:c.perPerson,
+    reason:String(reason || '').slice(0, 180),
+    foot:note || '', accepted:false
+  };
+}
+function aiComboToCombo(c){
+  return {
+    restaurant:c.shop || null,
+    items:(c.items || []).map(i => ({ dish: dishById(i.dishId) || { id:i.dishId, name:i.name, price:i.price, tags:[] }, role:i.role })),
+    total:c.total, perPerson:c.perPerson
+  };
+}
+async function aiMakeCombo(opts){
+  if(aiState.sending || state.running) return;
+  if(!aiLlmReady()){ toast('先在「我的 › 联网与模型设置」里打开大模型，或者登录后端账号'); return; }
+  const said = aiState.msgs.some(m => m.role === 'me' && m.kind === 'text' && m.text);
+  if(!said){
+    toast('先跟我说两句想吃什么（比如「想吃辣的，两个人 80 块」），再点这个按钮');
+    const el = $('#aiInput');
+    if(el && el.focus) el.focus();
+    return;
+  }
+  if(!state.profile.city){ toast('请先在「我的」里选择城市，再让我出方案'); switchTab('me'); return; }
+  const reroll = !!(opts && opts.reroll);
+  const t0 = Date.now();
+  const tip = aiPush({ role:'ai', kind:'note', text: reroll ? '换一桌，重新读一遍咱们聊的…' : '正在读咱们聊的…' });
+  state.running = true; aiState.busy = 'combo';
+  renderAiChat(); aiScrollBottom();
+  try{
+    const intent = await aiParseIntent();
+    tip.text = '读到的需求：' + (intent.note || (catName(intent.cat) + ' · ' + ((TIERS.find(t => t.id === intent.tier) || {}).name || ''))) + '，正在找能做这桌菜的店…';
+    renderAiChat();
+    const prev = aiLastComboMsg();
+    const avoid = reroll && prev && prev.combo ? (prev.combo.items || []).map(i => i.dishId) : [];
+    const res = await aiDecideWithIntent(intent, { avoid });
+    const idx = aiState.msgs.indexOf(tip);
+    if(idx !== -1) aiState.msgs.splice(idx, 1);
+    if(!res){
+      aiPush({ role:'ai', kind:'note', text:'这一轮没配出合适的店。换个说法再聊两句，或者去「我的」放宽一下预算／忌口。' });
+    }else{
+      aiState.reroll = (aiState.reroll || 0) + 1;
+      const ids = res.built.combo.items.map(i => i.dish.id);
+      aiState.hist = aiState.hist.concat(ids).slice(-24);
+      state.shownDishIds = ids;         // 让紧接着的「换一桌」能避开这一桌
+      aiPush({ role:'ai', kind:'combo', combo:aiComboCard(res.built, res.how + ' · 用了 ' + ((Date.now() - t0) / 1000).toFixed(1) + ' 秒') });
+    }
+  }catch(e){
+    const idx = aiState.msgs.indexOf(tip);
+    if(idx !== -1) aiState.msgs.splice(idx, 1);
+    aiPush({ role:'ai', kind:'note', text:'这次出了点问题：' + (e && e.message ? e.message : String(e)) });
+  }finally{
+    state.running = false; aiState.busy = null;
+    aiSave(); renderAiChat(); aiScrollBottom();
+  }
+}
+function aiAccept(cid){
+  const m = aiState.msgs.find(x => x.kind === 'combo' && x.combo && x.combo.id === cid);
+  if(!m || m.combo.accepted) return;
+  m.combo.accepted = true;
+  recordCombo(aiComboToCombo(m.combo));
+  aiSave(); renderAiChat();
+  toast('这一桌已经记进「最近吃过」');
+}
+function onAiMsgsClick(e){
+  const btn = e.target && e.target.closest ? e.target.closest('[data-aicombo]') : null;
+  if(!btn) return;
+  const card = btn.closest('.ai-combo');
+  const cid = card && card.getAttribute('data-combo');
+  if(!cid) return;
+  const what = btn.getAttribute('data-aicombo');
+  if(what === 'accept') aiAccept(cid);
+  else if(what === 'more') aiMakeCombo({ reroll:true });
+}
+
 /* ------------------------------ 11. 事件绑定与初始化 ------------------------------ */
 
 function init(){
   loadIdentity();
   loadStore();
+  aiLoad();          // 「饭饭AI」的聊天记录与今日推荐（本地，不联网）
 
   // 应用「我的」里保存的偏好
   if(state.profile.city && CITIES[state.profile.city]) applyCity(state.profile.city);
@@ -7574,8 +8397,41 @@ function init(){
 
   // 底部 Tab
   $('#tabHome').addEventListener('click', () => switchTab('home'));
+  $('#tabAi').addEventListener('click', () => switchTab('ai'));
   $('#tabMe').addEventListener('click', () => switchTab('me'));
   $('#goMeCard').addEventListener('click', () => switchTab('me'));
+
+  /* 饭饭AI：聊饮食文化 + 「根据聊天推荐菜」（按下才走决策链） */
+  const aiSendBtn = $('#aiSendBtn');
+  if(aiSendBtn) aiSendBtn.addEventListener('click', aiSend);
+  const aiInput = $('#aiInput');
+  if(aiInput){
+    aiInput.addEventListener('keydown', e => {
+      // 手机上回车是换行，只有电脑（且不是输入法选词时）回车才当发送
+      if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); aiSend(); }
+    });
+    aiInput.addEventListener('input', () => {
+      aiInput.style.height = 'auto';
+      aiInput.style.height = Math.min(120, aiInput.scrollHeight) + 'px';
+    });
+  }
+  const aiMake = $('#aiMakeBtn');
+  if(aiMake) aiMake.addEventListener('click', () => aiMakeCombo({}));
+  const aiMsgs = $('#aiMsgs');
+  if(aiMsgs) aiMsgs.addEventListener('click', onAiMsgsClick);
+  const aiSheetMask = $('#aiSheetMask');
+  if(aiSheetMask) aiSheetMask.addEventListener('click', closeAiSheet);
+  const aiSheetCard = $('#aiSheetCard');
+  if(aiSheetCard) aiSheetCard.addEventListener('click', e => {
+    const id = e.target && e.target.id;
+    if(id === 'aiSheetClose') closeAiSheet();
+    else if(id === 'aiStoryRetry'){
+      const d = dishById(aiState.sheetDish);
+      const box = $('#aiStoryBox');
+      if(box) box.textContent = '正在取…';
+      if(d) fillAiSheet(d, true);
+    }
+  });
   /* AI 记忆：卡片上点哪一块就进哪一张全记录页（事件委托），
    * 全记录页里的「删掉 / 清空屏蔽记录」也走同一个入口。 */
   const memCard = $('#memoryCard');
