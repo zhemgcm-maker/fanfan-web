@@ -73,7 +73,7 @@ new Function('document','localStorage','requestAnimationFrame','fetch','navigato
          'aiUserKey,aiDeviceId,aiDayKey,aiRnd,aiLoad,aiSave,aiState,aiSend,aiMakeCombo,aiAccept,aiParseIntent,' +
          'aiNormalizeIntent,aiLocalIntent,onAiMsgsClick,openAiSheet,closeAiSheet,aiSheetHTML,aiMsgHTML,aiComboHTML,' +
          'aiComboToCombo,recordCombo,hardFilter,dishById,DISHES,RESTAURANTS,applyCity,AI_SPICY,AI_KEEP_MSGS,' +
-         'geolocate,geolocateMe,aiAskGeo,aiGeoNote,hasPreciseLoc,get CITY(){return CITY}};')
+         'geolocate,geolocateMe,aiAskGeo,aiGeoNote,hasPreciseLoc,aiNewChat,renderAiChat,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch, navigator);
 const M = globalThis.__a;
 const $ = s => document.querySelector(s);
@@ -335,6 +335,51 @@ console.log('\n=== 七、意图解析的校验与兜底 ===');
   M.state.budget = 999;
   const off = M.aiLocalIntent();
   ok(off.cat === 'other' && off.tier === 'mid', '没模型时的本地兜底也能给出一个合理档位');
+}
+
+console.log('\n=== 八、「新对话」：只清聊天，长期记忆一根汗毛都不动 ===');
+{
+  // 先造一份"长期记忆"，再聊两句
+  M.state.profile.likes = { '辣':3, '下饭':2 };
+  M.state.profile.allergies = ['海鲜/虾蟹'];
+  M.state.profile.history = [ { id:M.DISHES[0].id, ts:Date.now(), price:20, meal:Date.now(), shop:'老味道面馆' } ];
+  M.aiState.msgs = []; M.aiState.seq = 0; M.aiState.reroll = 3;
+  M.aiState.msgs.push({ id:'m1', role:'me', kind:'text', text:'想吃辣的' });
+  M.aiState.msgs.push({ id:'m2', role:'ai', kind:'text', text:'好，辣的安排上' });
+  M.state.running = false; M.aiState.sending = false;
+  M.renderAiChat();
+  ok($('#aiMsgs').innerHTML.indexOf('想吃辣的') !== -1, '清空之前，聊天记录在页面上');
+
+  M.aiNewChat();
+  ok(M.aiState.msgs.length === 0, '点「新对话」后聊天记录清空');
+  ok($('#aiMsgs').innerHTML.indexOf('想吃辣的') === -1, '页面上也不再显示');
+  ok(M.aiState.reroll === 0, '「换一桌」的计数归零（新对话就是新的一轮）');
+  ok(M.state.profile.likes['辣'] === 3 && M.state.profile.likes['下饭'] === 2, '长期记忆没被动：喜欢的标签还在');
+  ok(M.state.profile.allergies.length === 1 && M.state.profile.allergies[0] === '海鲜/虾蟹', '忌口没被动');
+  ok(M.state.profile.history.length === 1, '吃过的记录没被动');
+  ok(store.has('eatAgent.ai.v1') && JSON.parse(store.get('eatAgent.ai.v1')).msgs.length === 0,
+     '清空立刻落盘（刷新不会复活）');
+  ok(typeof $('#toast').onclick === 'function' && $('#toast').textContent.indexOf('撤销') !== -1,
+     '给了撤销入口：' + $('#toast').textContent);
+  $('#toast').onclick();
+  ok(M.aiState.msgs.length === 2 && M.aiState.msgs[0].text === '想吃辣的' && M.aiState.msgs[1].text === '好，辣的安排上',
+     '点撤销把整段对话原样找回来（顺序也对）');
+  ok(M.aiState.reroll === 3, '撤销连「换一桌」的计数一起还原');
+}
+{
+  M.aiState.msgs = [];
+  M.aiNewChat();
+  ok($('#toast').textContent.indexOf('还没有聊天记录') !== -1, '没有记录时只给一句提示，不会误清');
+  ok(M.state.profile.likes['辣'] === 3, '顺手也不会碰到长期记忆');
+}
+{
+  // 一轮没跑完时不许清：不然回复会落进已经被清空的对话里
+  M.aiState.msgs = [ { id:'m1', role:'me', kind:'text', text:'正在跑' } ];
+  M.state.running = true;
+  M.aiNewChat();
+  ok(M.aiState.msgs.length === 1, '一轮没跑完时点「新对话」不生效');
+  ok($('#toast').textContent.indexOf('等这一轮') !== -1, '并且说清为什么不动：' + $('#toast').textContent);
+  M.state.running = false;
 }
 
 console.log('\n' + (fail ? '❌ 共 ' + fail + ' 条断言失败' : '✅ 饭饭AI 页面全部通过'));

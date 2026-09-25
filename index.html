@@ -431,6 +431,16 @@
   .ai-daily-foot{font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center;position:relative}
 
   /* 聊天 */
+  /* 「和饭饭聊聊」这一行：左边标题、右边「新对话」 */
+  .ai-chat-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .ai-newchat{
+    font-family:inherit;font-size:12px;font-weight:600;color:var(--brand);
+    background:#fff;border:1.5px solid #ffcbb4;border-radius:999px;
+    padding:8px 14px;min-height:44px;cursor:pointer;white-space:nowrap;letter-spacing:.2px
+  }
+  .ai-newchat:active{transform:scale(.97)}
+  .ai-newchat:disabled{opacity:.45}
+
   .ai-msgs{display:flex;flex-direction:column;gap:10px}
   .ai-msgs:empty::before{
     content:'还没开始聊。问我什么都行——比如「江西菜为什么这么辣」「两个人 80 块能吃啥」。';
@@ -1065,7 +1075,10 @@
   <!-- 每日一道：按"今天 + 你"挑，同一天同一个人不变 -->
   <div class="ai-daily" id="aiDaily"></div>
 
-  <div class="me-title" style="margin-top:16px">和饭饭聊聊</div>
+  <div class="me-title ai-chat-head" style="margin-top:16px">
+    <span>和饭饭聊聊</span>
+    <button type="button" class="ai-newchat" id="aiNewChatBtn" title="清空聊天记录，重新开始聊（口味、忌口和吃过的记录都不受影响）">🆕 新对话</button>
+  </div>
   <div class="me-card">
     <div class="ai-msgs" id="aiMsgs"></div>
   </div>
@@ -8156,6 +8169,9 @@ function syncAiButtons(){
     btn.textContent = (aiState.busy === 'combo') ? '🍽 正在配这一桌…' : '🍽 根据聊天推荐菜';
   }
   if(send){ send.disabled = busy; send.textContent = aiState.sending ? '…' : '发送'; }
+  // 「新对话」在一轮没跑完时也锁上：不然回复会落进已经被清空的对话里
+  const nc = $('#aiNewChatBtn');
+  if(nc) nc.disabled = busy;
 }
 function syncAiHint(){
   const el = $('#aiHint');
@@ -8458,6 +8474,24 @@ function aiAccept(cid){
   aiSave(); renderAiChat();
   toast('这一桌已经记进「最近吃过」');
 }
+/* 开一段新对话：只清聊天记录，别的一律不动。
+ * 「我的 › AI 记忆」里的口味、忌口、喜欢的标签、吃过的记录都是长期档案，跟"聊完这一段"没关系，
+ * 所以这里绝不碰它们（真要清那些，去「AI 记忆」里逐条删）。
+ * 不弹确认框、直接清 + 6 秒可撤销：这个按钮挨着标题，手滑点到的概率不低，撤销比确认顺手。 */
+function aiNewChat(){
+  if(aiState.sending || state.running){ toast('等这一轮说完再开新对话'); return; }
+  if(!aiState.msgs.length){ toast('还没有聊天记录'); return; }
+  const backupMsgs = aiState.msgs.slice();
+  const backupReroll = aiState.reroll;
+  aiState.msgs = [];
+  aiState.reroll = 0;                     // 新对话就是新的一轮，别带着上一段的"换一桌"计数
+  aiSave(); renderAiChat(); aiScrollBottom();
+  toastUndo('已开始新对话（口味／忌口／吃过的记录都还在）', () => {
+    aiState.msgs = backupMsgs;
+    aiState.reroll = backupReroll;
+    aiSave(); renderAiChat();
+  }, 6);
+}
 function onAiMsgsClick(e){
   const btn = e.target && e.target.closest ? e.target.closest('[data-aicombo]') : null;
   if(!btn) return;
@@ -8508,6 +8542,8 @@ function init(){
   if(aiFaceTab) aiFaceTab.innerHTML = FF_FACE;
   const aiSendBtn = $('#aiSendBtn');
   if(aiSendBtn) aiSendBtn.addEventListener('click', aiSend);
+  const aiNewChatBtn = $('#aiNewChatBtn');
+  if(aiNewChatBtn) aiNewChatBtn.addEventListener('click', aiNewChat);
   const aiInput = $('#aiInput');
   if(aiInput){
     aiInput.addEventListener('keydown', e => {
