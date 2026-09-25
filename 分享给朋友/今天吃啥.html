@@ -506,6 +506,26 @@
     box-shadow:0 6px 16px rgba(255,106,61,.22)
   }
   .ai-makebtn:disabled{opacity:.55;box-shadow:none}
+  /* 定位开关：一行小药丸，左边图标中间说明右边小开关 */
+  .ai-locbtn{
+    display:flex;align-items:center;gap:8px;width:100%;min-height:44px;
+    background:#fffaf5;border:1px solid var(--line);border-radius:12px;
+    padding:8px 12px;font-family:inherit;font-size:12.5px;color:var(--muted);
+    cursor:pointer;text-align:left;transition:background .18s,border-color .18s,color .18s
+  }
+  .ai-locbtn.on{background:#f1fbf7;border-color:#c9ecdd;color:#0b7a58}
+  .ai-locbtn:disabled{opacity:.5}
+  .ai-loc-ico{flex:0 0 auto;font-size:14px}
+  .ai-loc-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ai-loc-sw{
+    flex:0 0 auto;width:34px;height:20px;border-radius:999px;background:#e8dcd2;position:relative;transition:background .18s
+  }
+  .ai-loc-sw::after{
+    content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .18s
+  }
+  .ai-locbtn.on .ai-loc-sw{background:#12b886}
+  .ai-locbtn.on .ai-loc-sw::after{transform:translateX(14px)}
   .ai-inputrow{display:flex;gap:8px;align-items:flex-end}
   .ai-inputrow textarea{
     flex:1;min-height:44px;max-height:120px;resize:none;border:1px solid var(--line);border-radius:12px;
@@ -1084,6 +1104,12 @@
   </div>
 
   <div class="ai-inputbar">
+    <!-- 定位是可选的：默认不申请，用户想要才打开（打开那一下正好是手势，可以申请授权） -->
+    <button type="button" class="ai-locbtn" id="aiLocBtn" aria-pressed="false">
+      <span class="ai-loc-ico">📍</span>
+      <span class="ai-loc-txt" id="aiLocText">用我的位置找店</span>
+      <span class="ai-loc-sw"></span>
+    </button>
     <button type="button" class="ai-makebtn" id="aiMakeBtn">🍽 根据聊天推荐菜</button>
     <div class="ai-inputrow">
       <textarea id="aiInput" rows="1" placeholder="想聊点什么？比如「江西菜为什么这么辣」"></textarea>
@@ -7833,7 +7859,9 @@ const FF_FACE =
   '</svg>';
 
 /* 页面状态：msgs 落盘，busy 是临时的"正在想"，hist 是最近推过的菜（别短期内重复） */
-let aiState = { msgs:[], hist:[], day:'', dishId:'', key:'', stories:{}, busy:null, seq:0, sending:false, sheetDish:'', geoDenied:false };
+/* useGeo = 用户有没有允许"用我的位置找店"。默认 false：饭饭不主动申请定位授权，
+ * 也不会弹权限框——用户想要就在输入框上面那个开关打开（打开的那一下就是手势，正好用来申请）。 */
+let aiState = { msgs:[], hist:[], day:'', dishId:'', key:'', stories:{}, busy:null, seq:0, sending:false, sheetDish:'', useGeo:false };
 
 function aiLoad(){
   try{
@@ -7844,6 +7872,7 @@ function aiLoad(){
     aiState.day = o.day || '';
     aiState.dishId = o.dishId || '';
     aiState.key = o.key || '';
+    aiState.useGeo = !!o.useGeo;
     aiState.stories = (o.stories && typeof o.stories === 'object') ? o.stories : {};
     // 消息 id 从已经用到的最大值接着往下发，避免刷新后撞号
     aiState.msgs.forEach(m => { const n = parseInt(String(m.id || '').replace(/^\D+/, ''), 10); if(n > aiState.seq) aiState.seq = n; });
@@ -7855,6 +7884,7 @@ function aiSave(){
       msgs: aiState.msgs.slice(-AI_KEEP_MSGS),
       hist: aiState.hist.slice(-24),
       day: aiState.day, dishId: aiState.dishId, key: aiState.key,
+      useGeo: !!aiState.useGeo,
       stories: aiState.stories
     }));
   }catch(e){}
@@ -7950,6 +7980,7 @@ function aiShopsForDish(dish){
 function renderAiPage(){
   renderAiDaily();
   renderAiChat();
+  renderAiLoc();
 }
 function renderAiDaily(){
   const box = $('#aiDaily');
@@ -8172,6 +8203,8 @@ function syncAiButtons(){
   // 「新对话」在一轮没跑完时也锁上：不然回复会落进已经被清空的对话里
   const nc = $('#aiNewChatBtn');
   if(nc) nc.disabled = busy;
+  const loc = $('#aiLocBtn');
+  if(loc) loc.disabled = busy;
 }
 function syncAiHint(){
   const el = $('#aiHint');
@@ -8382,27 +8415,75 @@ function aiComboToCombo(c){
  *   已有精确坐标（本会话里刚定位/选过点）→ 不打扰，直接用；
  *   这次会话里刚被拒过 → 不再反复弹，安静地按填的地址走；
  *   其余 → 申请一次，答应就用，拒绝/超时也照旧出方案。 */
+/* 出方案时到底用什么位置来搜店。定位是"可选"的，所以这里先看用户有没有开那个开关：
+ *   已经有精确坐标（「定位我」或「选地点」留下的）→ 直接用，不打扰；
+ *   没开开关 → 什么都不申请，按填的地址走（skipped，不是失败，别写成"没拿到定位"）；
+ *   开了开关但这次还没坐标 → 申请一次（用户此前明确允许过），失败也照旧按地址出方案。 */
 function hasPreciseLoc(){ return !!(state.origin && typeof state.origin.lng === 'number'); }
 function aiAskGeo(){
   if(hasPreciseLoc()){
-    return Promise.resolve({ asked:false, ok:true, label:state.origin.label || state.address || '' });
+    return Promise.resolve({ asked:false, ok:true, label:state.origin.label || state.address || '', source:state.origin.source || '' });
   }
-  if(aiState.geoDenied){
-    return Promise.resolve({ asked:false, ok:false, denied:true, reason:'定位权限被拒绝' });
-  }
+  if(!aiState.useGeo) return Promise.resolve({ asked:false, ok:false, skipped:true });
   return geolocate().then(r => {
-    if(!r.ok && r.code === 1) aiState.geoDenied = true;   // 明确被拒才记住；超时/不可用下次还值得再试
-    return { asked:true, ok:!!r.ok, label:r.label || '', reason:r.reason || '', unsupported:!!r.unsupported };
+    // 申请失败就顺手把开关关掉，免得下一轮又弹一次权限框
+    if(!r.ok){ aiState.useGeo = false; aiSave(); renderAiLoc(); }
+    return { asked:true, ok:!!r.ok, label:r.label || '', reason:r.reason || '', source:(r.ok ? 'gps' : ''), unsupported:!!r.unsupported };
   });
 }
 function aiGeoLine(geo){
   if(geo && geo.ok) return '📍 用你的位置（' + (geo.label || '已定位') + '）找店，正在读咱们聊的…';
+  if(geo && geo.skipped) return '正在读咱们聊的…';       // 用户没开定位开关，不用特意提位置
   return '📍 ' + ((geo && geo.reason) || '没拿到定位') + '，先按你填的位置找店，正在读咱们聊的…';
 }
 // 这一桌是"按哪儿"配出来的，直接写在方案卡上——定位成了没有，用户看一眼就知道
 function aiGeoNote(geo){
-  if(geo && geo.ok) return '📍 按你的真实位置（' + (geo.label || '已定位') + '）找的店';
-  return '📍 没拿到定位（' + ((geo && geo.reason) || '未授权') + '），按你填的位置找的店';
+  if(geo && geo.ok){
+    const how = (geo.source === 'picked') ? '按你选的地点' : '按你的真实位置';
+    return '📍 ' + how + '（' + (geo.label || '已定位') + '）找的店';
+  }
+  if(geo && geo.skipped) return '📍 按你填的地址找的店';
+  return '📍 没拿到定位（' + ((geo && geo.reason) || '未授权') + '），按你填的地址找的店';
+}
+
+/* 输入框上面那个定位开关：
+ *   默认关 → 一直按你填的地址找店，饭饭不会弹任何权限框；
+ *   打开那一瞬间就申请授权（点开关本身就是手势），成功就记住、失败就自动弹回去；
+ *   开着的时候再点一下 = 不用了（连这次拿到的 GPS 坐标一起清掉）。
+ * 「在「我的」里自己选的地点」不归这个开关管，那种地点一直有效。 */
+function renderAiLoc(){
+  const btn = $('#aiLocBtn'), txt = $('#aiLocText');
+  if(!btn || !txt) return;
+  const gps = hasPreciseLoc() && state.origin.source === 'gps';
+  let on = false, label = '';
+  if(gps){ on = true; label = state.origin.label || state.address || '已定位'; }
+  else if(hasPreciseLoc()){ on = false; label = state.origin.label || state.address || ''; }
+  else if(aiState.useGeo){ on = true; }
+  if(gps) txt.textContent = '正在用你的位置：' + label;
+  else if(hasPreciseLoc()) txt.textContent = '会用你选的地点：' + label + '（点一下改用当前位置）';
+  else if(on) txt.textContent = '已允许用我的位置，出方案时申请授权';
+  else txt.textContent = '用我的位置找店（现在是按你填的地址）';
+  btn.classList.toggle('on', !!on);
+  btn.setAttribute('aria-pressed', String(!!on));
+}
+function aiToggleGeo(){
+  if(aiState.sending || state.running){ toast('等这一轮说完再改位置设置'); return; }
+  const gps = hasPreciseLoc() && state.origin.source === 'gps';
+  if(gps){                                   // 正在用 → 关掉
+    aiState.useGeo = false;
+    state.origin = null;                     // 只清 GPS 来的坐标；「我的」里自己选的地点不动
+    aiSave(); renderAiLoc();
+    toast('不用我的位置了，改按你填的地址找店');
+    return;
+  }
+  if(aiState.useGeo){ aiState.useGeo = false; aiSave(); renderAiLoc(); toast('已取消用我的位置'); return; }
+  // 打开：这一次点击就是用户手势，正好用来申请授权
+  aiState.useGeo = true; aiSave(); renderAiLoc();
+  geolocate().then(r => {
+    if(!r.ok) aiState.useGeo = false;
+    aiSave(); renderAiLoc();
+    toast(r.ok ? '好，出方案就用你的位置' : (r.reason + '，还是按你填的地址找店'));
+  });
 }
 async function aiMakeCombo(opts){
   if(aiState.sending || state.running) return;
@@ -8419,14 +8500,10 @@ async function aiMakeCombo(opts){
   const tip = aiPush({ role:'ai', kind:'note', text: reroll ? '换一桌，重新读一遍咱们聊的…' : '正在读咱们聊的…' });
   state.running = true; aiState.busy = 'combo';
   renderAiChat(); aiScrollBottom();
-  /* 定位请求必须在用户点这个按钮的"手势"里发出去，晚一步手机浏览器就不弹授权框了，
-   * 所以这两行放在第一个 await 之前，而且解析意图和定位并行跑（不互相等）。 */
+  /* 解析意图和定位并行跑（不互相等）；定位只在用户开过开关、或别处已经设过位置时才动，
+   * 默认这一行什么都不申请，不会弹权限框。 */
   const geoP = aiAskGeo();
   const intentP = aiParseIntent();
-  if(!hasPreciseLoc() && !aiState.geoDenied){
-    tip.text = '📍 先确认一下你在哪（浏览器会弹一次定位授权），同时在读咱们聊的…';
-    renderAiChat();
-  }
   try{
     const geo = await geoP;
     tip.text = aiGeoLine(geo);            // 先告诉用户"我在用你哪个位置找店"
@@ -8544,6 +8621,8 @@ function init(){
   if(aiSendBtn) aiSendBtn.addEventListener('click', aiSend);
   const aiNewChatBtn = $('#aiNewChatBtn');
   if(aiNewChatBtn) aiNewChatBtn.addEventListener('click', aiNewChat);
+  const aiLocBtn = $('#aiLocBtn');
+  if(aiLocBtn) aiLocBtn.addEventListener('click', aiToggleGeo);
   const aiInput = $('#aiInput');
   if(aiInput){
     aiInput.addEventListener('keydown', e => {

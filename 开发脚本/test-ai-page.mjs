@@ -73,7 +73,8 @@ new Function('document','localStorage','requestAnimationFrame','fetch','navigato
          'aiUserKey,aiDeviceId,aiDayKey,aiRnd,aiLoad,aiSave,aiState,aiSend,aiMakeCombo,aiAccept,aiParseIntent,' +
          'aiNormalizeIntent,aiLocalIntent,onAiMsgsClick,openAiSheet,closeAiSheet,aiSheetHTML,aiMsgHTML,aiComboHTML,' +
          'aiComboToCombo,recordCombo,hardFilter,dishById,DISHES,RESTAURANTS,applyCity,AI_SPICY,AI_KEEP_MSGS,' +
-         'geolocate,geolocateMe,aiAskGeo,aiGeoNote,hasPreciseLoc,aiNewChat,renderAiChat,get CITY(){return CITY}};')
+         'geolocate,geolocateMe,aiAskGeo,aiGeoNote,aiToggleGeo,renderAiLoc,hasPreciseLoc,aiNewChat,renderAiChat,' +
+         'get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch, navigator);
 const M = globalThis.__a;
 const $ = s => document.querySelector(s);
@@ -202,59 +203,96 @@ console.log('\n=== 四、纯聊天：只说话，不做决策 ===');
   ok($('#aiMsgs').innerHTML.includes('江西菜为什么这么辣'), '页面上渲染出了这轮对话');
 }
 
-console.log('\n=== 四之二、出方案前会申请定位授权（跟「我的 › 定位我」同一套）===');
+console.log('\n=== 四之二、定位是"可选的"：默认不申请，用户开了才用 ===');
 {
-  M.state.origin = null; M.state.address = ''; M.aiState.geoDenied = false;
+  // 默认状态：没开开关，按按钮不该碰定位
+  M.state.origin = null; M.state.address = '保定市军校广场'; M.aiState.useGeo = false;
   geoMode = 'ok'; geoAsked = 0;
   M.aiState.msgs = []; M.aiState.seq = 0; M.aiState.reroll = 0;
   M.state.running = false;
-  // 一个字都没聊过：不该申请定位（先让用户说想吃什么）
   await M.aiMakeCombo({});
-  ok(geoAsked === 0, '还没聊过就按：连定位都不申请（先问想吃什么）');
+  ok(geoAsked === 0, '还没聊过就按：什么都不申请');
 
   M.aiState.msgs.push({ id:'m1', role:'me', kind:'text', text:'想吃辣的，两个人 80 块' });
   await M.aiMakeCombo({});
   await tick(20);
-  ok(geoAsked === 1, '按下「根据聊天推荐菜」：申请了一次定位授权（浏览器会弹权限框）');
-  ok(!!M.state.origin && M.state.origin.source === 'gps',
-     '用户答应后拿到精确坐标：' + JSON.stringify(M.state.origin && { lng:M.state.origin.lng, lat:M.state.origin.lat, src:M.state.origin.source }));
-  ok(M.state.address.indexOf('保定') !== -1, '坐标被翻译成人话地址，搜店就按它算距离：' + M.state.address);
-  const c1 = M.aiState.msgs.filter(m => m.kind === 'combo').slice(-1)[0];
-  ok(!!c1, '答应授权后照常出方案');
-  ok(!!c1 && String(c1.combo.geo).indexOf('按你的真实位置') !== -1, '方案卡上写清是"按哪配的"：' + (c1 && c1.combo.geo));
-  ok(!!c1 && M.aiComboHTML(c1.combo).indexOf('ac-geo') !== -1, '这行字真渲染进卡片了');
-
-  const before = geoAsked;
-  M.state.running = false;
-  await M.aiMakeCombo({});
-  await tick(20);
-  ok(geoAsked === before, '已经拿到精确坐标了就不再反复申请授权');
+  ok(geoAsked === 0, '没开定位开关时，按「根据聊天推荐菜」不会弹权限框（不强制）');
+  const c0 = M.aiState.msgs.filter(m => m.kind === 'combo').slice(-1)[0];
+  ok(!!c0, '不开定位照样出方案');
+  ok(!!c0 && c0.combo.geo.indexOf('按你填的地址找的店') !== -1, '卡上写的是"按你填的地址找的店"：' + (c0 && c0.combo.geo));
+  ok(!!c0 && c0.combo.geo.indexOf('没拿到定位') === -1, '没开开关不算"失败"，不该写成没拿到定位');
+  ok($('#aiLocBtn').classList.contains('on') === false, '开关默认是关的');
+  ok($('#aiLocText').textContent.indexOf('用我的位置') !== -1, '开关文案说清用途：' + $('#aiLocText').textContent);
 }
+
+console.log('\n--- ① 用户主动打开开关：这一下就是手势，申请授权 ---');
 {
-  // 拒绝这条路：不能挡着不让出方案，而且不反复弹
-  M.state.origin = null; M.state.address = '保定市军校广场'; M.aiState.geoDenied = false;
-  geoMode = 'deny'; geoAsked = 0;
+  M.state.running = false;
+  geoMode = 'ok'; geoAsked = 0;
+  M.aiToggleGeo();
+  await tick(30);
+  ok(geoAsked === 1, '打开开关的那一刻申请了一次授权（浏览器弹权限框）');
+  ok(M.aiState.useGeo === true, '记住了"用户允许用我的位置"');
+  ok(!!M.state.origin && M.state.origin.source === 'gps', '拿到精确坐标：' +
+     JSON.stringify(M.state.origin && { lng:M.state.origin.lng, lat:M.state.origin.lat, src:M.state.origin.source }));
+  ok(M.state.address.indexOf('保定') !== -1, '坐标被翻译成人话地址，搜店就按它算距离：' + M.state.address);
+  ok($('#aiLocBtn').classList.contains('on') === true, '开关显示为开');
+  ok($('#aiLocText').textContent.indexOf('正在用你的位置') !== -1, '开关文案变成"正在用你的位置"：' + $('#aiLocText').textContent);
+  ok(JSON.parse(store.get('eatAgent.ai.v1')).useGeo === true, '这个选择落盘了（下次打开还是开的）');
+}
+
+console.log('\n--- ② 开着的状态下出方案：用真实位置，而且不再重复申请 ---');
+{
+  const before = geoAsked;
   M.aiState.msgs = []; M.aiState.seq = 0;
   M.aiState.msgs.push({ id:'m1', role:'me', kind:'text', text:'想吃辣的' });
   M.state.running = false;
   await M.aiMakeCombo({});
   await tick(20);
-  ok(geoAsked === 1, '拒绝授权这条路：申请过一次');
-  const c2 = M.aiState.msgs.filter(m => m.kind === 'combo').slice(-1)[0];
-  ok(!!c2, '被拒绝也照样出方案（定位不是硬门槛）');
-  ok(!!c2 && c2.combo.geo.indexOf('没拿到定位') !== -1 && c2.combo.geo.indexOf('定位权限被拒绝') !== -1,
-     '方案卡上如实写"没拿到定位、按你填的位置找的店"：' + (c2 && c2.combo.geo));
-  ok(M.aiState.geoDenied === true, '记住了"这次会话里被拒过"');
-  const before2 = geoAsked;
+  ok(geoAsked === before, '已经有坐标了就不再申请（不会每次出方案都弹）');
+  const c1 = M.aiState.msgs.filter(m => m.kind === 'combo').slice(-1)[0];
+  ok(!!c1 && c1.combo.geo.indexOf('按你的真实位置') !== -1, '卡上写明按真实位置找的：' + (c1 && c1.combo.geo));
+  ok(!!c1 && M.aiComboHTML(c1.combo).indexOf('ac-geo') !== -1, '这行字真渲染进卡片了');
+}
+
+console.log('\n--- ③ 再点一下开关 = 不用了，GPS 坐标一起清掉 ---');
+{
   M.state.running = false;
+  M.aiToggleGeo();
+  await tick(20);
+  ok(M.aiState.useGeo === false, '开关关上了');
+  ok(!M.state.origin, '这次拿到的 GPS 坐标被清掉（不会偷偷继续用）');
+  ok($('#aiLocBtn').classList.contains('on') === false, '开关显示为关');
+  M.aiState.msgs = []; M.aiState.seq = 0;
+  M.aiState.msgs.push({ id:'m1', role:'me', kind:'text', text:'想吃辣的' });
   await M.aiMakeCombo({});
   await tick(20);
-  ok(geoAsked === before2, '被拒过一次就不再反复弹授权框（不骚扰用户）');
-  // 手动点「定位我」还是要能再试一次（人工触发的入口不受这个记忆限制）
+  const c2 = M.aiState.msgs.filter(m => m.kind === 'combo').slice(-1)[0];
+  ok(!!c2 && c2.combo.geo.indexOf('按你填的地址找的店') !== -1, '关掉之后又回到按地址找店：' + (c2 && c2.combo.geo));
+}
+
+console.log('\n--- ④ 打开开关但用户拒绝授权：自动弹回去，不能挡着出方案 ---');
+{
+  M.state.origin = null; M.state.address = '保定市军校广场';
+  M.aiState.useGeo = false; geoMode = 'deny'; geoAsked = 0;
+  M.state.running = false;
+  M.aiToggleGeo();
+  await tick(30);
+  ok(geoAsked === 1, '申请过一次');
+  ok(M.aiState.useGeo === false, '被拒绝后开关自动弹回关（不会一直追问）');
+  ok($('#aiLocBtn').classList.contains('on') === false, '开关显示为关');
+  M.aiState.msgs = []; M.aiState.seq = 0;
+  M.aiState.msgs.push({ id:'m1', role:'me', kind:'text', text:'想吃辣的' });
+  await M.aiMakeCombo({});
+  await tick(20);
+  ok(M.aiState.msgs.some(m => m.kind === 'combo'), '被拒绝也照样出方案（定位不是硬门槛）');
+  const c3 = M.aiState.msgs.filter(m => m.kind === 'combo').slice(-1)[0];
+  ok(!!c3 && c3.combo.geo.indexOf('按你填的地址找的店') !== -1, '卡上按地址：' + (c3 && c3.combo.geo));
+  // 手动点「定位我」还是要能再试（人工入口不受影响）
   geoAsked = 0;
   M.geolocateMe();
   await tick(20);
-  ok(geoAsked === 1, '「我的」页手动点「定位我」依然会申请（只有饭饭这边才不反复弹）');
+  ok(geoAsked === 1, '「我的」页手动点「定位我」依然会申请');
   geoMode = 'ok';
 }
 
