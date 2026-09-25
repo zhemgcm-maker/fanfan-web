@@ -2777,26 +2777,45 @@ function distanceTo(restaurant, address){
 
 const AMAP_BASE = 'https://restapi.amap.com/v3';
 
-// 高德 POI 类型/名称 → 我们的菜系标签
+/* 高德 POI 类型/名称 → 我们的菜系标签。
+ *
+ * 2026-09-25 重排 + 补词，修掉三个实测出来的判错（都是"通用词/店名把具体菜系吃掉"）：
+ *   · 胖哥俩肉蟹煲(保定万博广场店) type=餐饮服务;中餐厅;浙江菜 → 原来判成「保定」
+ *     （店名里有"保定"，而江浙那条规则只有"江浙"、没有"浙江"）
+ *   · 粤扬楼淮扬菜 type=中餐厅;淮扬菜 → 原来判成「家常」（"淮扬"没人认，兜到底层"中餐厅"）
+ *   · 沙县小吃 type=小吃快餐;小吃 → 原来判成「西」（"快餐"挂在西餐那条规则里）
+ * 后果就是"这家店做不了你想吃的那道菜"：闸门一路驳回，Agent 把 12 步烧完再退回算法。
+ * 所以现在的顺序是：**先具体菜系，再通用兜底**（保定/河北/家常/中餐厅/小吃放最后），
+ * 并把"浙江/淮扬/苏浙/湘菜/闽菜/徽菜/云贵/东北/拉面"这些漏词补上。 */
 const AMAP_CUI_RULES = [
-  [/川菜|四川|重庆|串串/, '川'],
+  // ① 具体菜系（越具体越靠前）
+  [/川菜|四川|重庆|串串|冒菜/, '川'],
+  [/湘菜|湖南|长沙/, '湘'],
+  [/粤菜|广东|广式|茶餐厅|烧腊|潮汕|肠粉/, '粤'],
+  [/江浙|沪菜|本帮|苏菜|苏浙|浙江|淮扬|杭帮|扬州|无锡|上海菜/, '江浙'],
+  [/鲁菜|山东/, '鲁'],
+  [/闽菜|福建|沙茶|福州|厦门/, '闽'],
+  [/徽菜|安徽|黄山/, '徽'],
+  [/云贵|云南|贵州|滇菜|黔菜/, '云贵'],
+  [/东北|辽宁|吉林|黑龙江/, '东北'],
+  [/西北|兰州|新疆|陕西|西安|肉夹馍|凉皮|拉面|牛肉面|刀削/, '西北'],
+  [/日本|日式|寿司|刺身|居酒屋|料理/, '日'],
+  [/韩国|韩式|部队锅/, '韩'],
+  [/泰国|泰式|越南|东南亚|咖喱/, '东南亚'],
+  // ② 品类（比菜系粗，但也比兜底具体）
   [/火锅/, '火锅'],
   [/烧烤|烤串/, '烧烤'],
-  [/粤菜|广东|广式|茶餐厅|烧腊|潮汕/, '粤'],
-  [/日本|日式|寿司|拉面|居酒屋/, '日'],
-  [/韩国|韩式|部队锅/, '韩'],
-  [/江浙|沪菜|本帮|苏菜|杭帮/, '江浙'],
-  [/西餐|意大利|披萨|汉堡|牛排|快餐/, '西'],
-  [/轻食|沙拉|素食|健康/, '健康'],
-  [/西北|兰州|新疆/, '西北'],
-  [/汉堡|炸鸡|肯德基|麦当劳|快餐/, '汉堡'],
+  [/烤肉|烧肉|铁板烧/, '烤肉'],
   [/披萨|比萨|意式|意大利/, '披萨'],
-  [/烤肉|烧肉|韩式烧烤|铁板烧/, '烤肉'],
-  [/泰国|泰式|越南|东南亚|咖喱/, '东南亚'],
+  [/汉堡|炸鸡|肯德基|麦当劳/, '汉堡'],
+  [/轻食|沙拉|素食|健康餐/, '健康'],
   [/甜品|奶茶|蛋糕|冰淇淋|咖啡|面包/, '甜品'],
+  [/西餐|牛排|意面|意大利菜/, '西'],
+  // ③ 本地与兜底（放最后，别抢上面的具体菜系）
   [/驴肉|罩饼|官府菜|保定|冀菜/, '保定'],
-  [/河北菜|家常|东北|鲁菜|中餐厅/, '家常'],
-  [/小吃|面馆|米粉|包子|早点|粥/, '小吃']
+  [/河北菜|河北/, '河北'],
+  [/中餐厅|家常菜|家常/, '家常'],
+  [/小吃|面馆|米粉|包子|早点|粥|快餐/, '小吃']
 ];
 
 function amapCui(typeStr, name){
@@ -2826,7 +2845,15 @@ const CUI_TAGS = {
   '披萨':['披萨','西餐','芝士','番茄','烤','麦','乳','碳水','热'],
   '烤肉':['烤肉','烧烤','热','聚餐','夜宵','牛','猪','鸡','羊','孜然'],
   '东南亚':['东南亚','酸辣','咖喱','粉','汤','海鲜','虾','鱼','鸡','牛','热带'],
-  '甜品':['甜品','饮品','甜口','凉','乳','蛋','咖啡','麦','蛋糕','冰淇淋']
+  '甜品':['甜品','饮品','甜口','凉','乳','蛋','咖啡','麦','蛋糕','冰淇淋'],
+  /* 湘/鲁/闽/徽/东北/云贵 原来一条都没配：这几类店拿不到菜系标签，
+   * 跟自家菜只能靠"店名里带湘菜/鲁菜"这种巧合（实测湘味人家一条都挂不上）。 */
+  '湘':['辣','重口','下饭','聚餐','小炒','湘'],
+  '鲁':['咸鲜','家常','下饭','热','炒','鲁'],
+  '闽':['清淡','鲜','汤','海鲜','炖','闽'],
+  '徽':['咸鲜','炖','下饭','重口','家常','徽'],
+  '东北':['家常','下饭','热','炖','饺子','东北'],
+  '云贵':['酸辣','辣','粉','米线','汤','云贵']
 };
 
 // 从高德的类型/名称里抽一些关键词，用于和菜品标签做交集匹配
@@ -6270,11 +6297,13 @@ async function traceCravingParse(){
  *   build_combo         → buildCombo（配桌）
  * 关键约束：所有返回值都带 dish_id / shop_id，finalize 只认这些 id。 */
 
-const AGENT_MAX_STEPS = 12;     // 最多几轮工具调用（含最后的 finalize）
+const AGENT_MAX_STEPS = 14;     // 最多几轮工具调用（含最后的 finalize）
                                 /* 原来是 8：实测 10 次真跑失败 6 次，失败全是"步数用完了还没提交方案"
                                  * —— 跑一次的下限是 6 步（读记忆→搜菜→搜店→查菜单→配桌→定案），
-                                 * 模型习惯再多花 2~5 步复查，8 步正好卡在临界线上。加到 12 后实测 4/4 通过，
-                                 * 实际用了 7~10 步，耗时 9~12 秒。 */
+                                 * 模型习惯再多花 2~5 步复查，8 步正好卡在临界线上。加到 12 后实测 4/4 通过。
+                                 * 2026-09-25 又加到 14：勾「苏浙菜 + 吃饭」这类小菜系时，模型会先搜错关键词、
+                                 * 再被 finalize 驳回一两次，实测正好在第 12 步才压线交出来——留 2 步余量。
+                                 * 配合下面的"步数将尽提醒"（第 11 步起催它交方案），不是单纯放长。 */
 const AGENT_TIMEOUT_MS = 90000; // 单次 run 的总时长上限
 
 /* 一次 Agent 会话的上下文 */
@@ -6564,9 +6593,20 @@ async function toolListShopsForDish(a){
   const canMake = shops.filter(sp => shopCanMake(sp, dish));
   const use = canMake.length ? canMake : shops;
   const list = use.map(sp => scoreRestaurant(sp, dish, {})).sort((x, y) => y.total - x.total).slice(0, lim)
-    .map(x => Object.assign(shopBrief(x.restaurant), { fit_score:x.total, why:(x.reasons || []).slice(0,3) }));
-  return { dish_id:dish.id, dish_name:dish.name, count:list.length, shops:list,
-           note: canMake.length ? '' : '没找到能确认做这道菜的店，这些是菜系相近的候选' };
+    .map(x => Object.assign(shopBrief(x.restaurant), {
+      fit_score:x.total, why:(x.reasons || []).slice(0,3),
+      /* 这家店到底做不做得了这道菜，必须写在结果里（见下面 note 的说明） */
+      can_make: canMake.indexOf(x.restaurant) !== -1
+    }));
+  /* 以前这里只给一句"没找到能做这道菜的店"就把候选全放出去，模型会挑一家去 finalize，
+   * 然后在闸门那儿被驳回、白烧一轮，循环几次步数就用完了（勾苏浙菜时实测踩到）。
+   * 现在每一条都标 can_make，并把该怎么做写进 note。 */
+  return { dish_id:dish.id, dish_name:dish.name, count:list.length,
+           can_make_count:canMake.length, shops:list,
+           note: canMake.length
+             ? 'can_make=true 的店才做得了这道菜，finalize 请只用这些店'
+             : '这些店都**做不了**「' + dish.name + '」（can_make 全是 false，只是菜系相近）。' +
+               '别再拿它们 finalize——要么换一道 search_dishes 里别的菜，要么换个关键词搜店' };
 }
 
 // ⑩ 让本地引擎配一桌
@@ -6585,10 +6625,17 @@ function toolBuildCombo(a){
   /* 配出来的这一桌也是"工具真实返回的菜"，必须进白名单——
    * 否则模型照着 build_combo 的结果去 finalize，会被闸门拦下（实测踩过这个坑）。 */
   agentRememberDishes(combo.items.map(i => i.dish));
+  /* 锚定菜没被采纳 = 这家店做不了它（buildCombo 会悄悄换成这家店能做的菜）。
+   * 这句必须说清楚：模型最常见的白烧步数，就是锚定菜没进桌、却把锚定菜写进 finalize，
+   * 被闸门驳回后再换一家店重试（勾「苏浙菜 + 吃饭」实测连撞两次）。 */
+  const anchorUsed = combo.items.some(i => i.anchor);
   return {
     shop_id: sp.id, shop_name: sp.name,
     items: combo.items.map(i => ({ dish_id:i.dish.id, name:i.dish.name, role:i.role, price:i.dish.price, anchor:!!i.anchor })),
     total: combo.total, per_person: combo.perPerson,
+    anchor_used: anchorUsed,
+    anchor_note: anchorUsed ? '' : '⚠️ 这家店做不了「' + dish.name + '」，这一桌换成了别的菜；' +
+      'finalize 时不要写「' + dish.name + '」，用 items 里的 dish_id',
     reasons: combo.reasons.slice(0, 4),
     note:'这是本地引擎配的一桌，你可以直接 finalize，也可以按自己的想法增删（记得用真实存在的 dish_id）'
   };
@@ -6628,7 +6675,16 @@ function toolFinalize(a){
     if(total > cap + 10) errors.push('整桌合计 ¥' + total + ' 超过了「' + tier.name + '」的上限 ¥' + cap + '，去掉一两道再提交');
     else if(total < tier.min) warnings.push('整桌 ¥' + total + ' 比「' + tier.name + '」的下限还低，可以再加点');
   }
-  if(errors.length) return { ok:false, errors, warnings, hint:'按 errors 修正后重新 finalize；id 只能从前面工具返回的结果里取' };
+  if(errors.length){
+    /* 被驳回时给一句能直接照做的下一步：最常见的驳回就是"这家店做不了这道菜"，
+     * 光说"按 errors 修正"模型会瞎换一轮，白烧步数（勾苏浙菜实测）。 */
+    const cantMake = errors.some(e => e.indexOf('未必做') !== -1 || e.indexOf('真实菜单里没有') !== -1);
+    return { ok:false, errors, warnings,
+      hint: cantMake
+        ? '这家店做不了其中某道菜：换一家（list_shops_for_dish 里 can_make=true 的店才做得了），' +
+          '或者直接用这家店 build_combo 返回的 items —— 它返回里 anchor_used=false 就说明那道锚定菜没进桌，别再写它'
+        : '按 errors 修正后重新 finalize；id 只能从前面工具返回的结果里取' };
+  }
   const plan = { shop_id:sp.id, shop_name:sp.name, items: items.map(x => ({ dish_id:x.dish.id, name:x.dish.name, role:x.role, price:x.dish.price })),
                  total, per_person: total, reason: String(args.reason || '') };
   c.finalized = plan;
@@ -6677,7 +6733,10 @@ const AGENT_SYSTEM_PROMPT =
   'get_shop_menu 一次把候选店打包查（shop_ids 数组），别一家一家查；' +
   '如果返回里 with_menu=0（都没采集过菜单），就不要再查菜单了，按菜系和人均直接定；' +
   'build_combo 返回的一桌菜已经是真实 id，可以直接拿去 finalize，不用再回头查一遍；\n' +
-  '7) 查得差不多了就调 finalize 提交，不要无限查下去（整个流程最多 12 轮，用完就交不出方案了）。\n' +
+  '7) 查得差不多了就调 finalize 提交，不要无限查下去（整个流程最多 ' + AGENT_MAX_STEPS + ' 轮，用完就交不出方案了）。\n' +
+  '8) 交方案前先确认这家店做得了这几道菜：list_shops_for_dish 每条店给了 can_make 字段，' +
+  'build_combo 的返回里有 anchor_used——anchor_used=false 就是"这家店做不了那道锚定菜、这一桌换成了别的菜"，' +
+  '那就别再把锚定菜写进 finalize。被闸门驳回一次就白烧一轮。\n' +
   '关于 food kind：rice=配米饭吃（配饭的菜都算），noodle=配面或粉吃，other=整份菜/小吃/火锅烧烤。\n' +
   '回答用中文。中间思考可以简短，但最终必须通过工具（finalize）交付结果。';
 
@@ -6797,6 +6856,14 @@ async function agentRunWith(opts, mode){
 
   for(let step = 1; step <= AGENT_MAX_STEPS; step++){
     ctx.steps = step;
+    /* 步数将尽：从倒数第 3 轮起，每轮都塞一句硬提醒。
+     * 为什么要有：勾小菜系（苏浙菜）时模型会反复搜店、被闸门驳回再来，眼看步数烧完却不交方案，
+     * 用户那边就是"等了半分钟、最后退回算法"。宁可交一个不完美但能吃的方案。 */
+    if(step === AGENT_MAX_STEPS - 3 && !ctx.finalized){
+      messages.push({ role:'user', content:'⏳ 提醒：只剩 ' + (AGENT_MAX_STEPS - step + 1) + ' 轮了。' +
+        '立刻用手上已有的结果调 finalize（店和菜的 id 必须来自前面工具返回过的），别再搜新的店。' });
+      push({ type:'nudge', step, message:'步数将尽，已提醒它交方案' });
+    }
     let r;
     try{
       r = await llmChat(null, null, { messages, tools: mode === 'native' ? AGENT_TOOLS : null, temperature:0.3,

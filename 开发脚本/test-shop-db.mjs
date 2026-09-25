@@ -30,7 +30,7 @@ async function mockFetch(url){
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,cuisineRefFor,dishById,menuSourceText,get CITY(){return CITY}};')
+  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,cuisineRefFor,dishById,menuSourceText,amapCui,amapTags,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch);
 const D = globalThis.__D;
 
@@ -215,6 +215,36 @@ console.log('\n=== 九、菜系参照（同城同菜系借菜单，只做加法�
   ok(!!(ref2 && ref2.name.indexOf('女掌柜') !== -1 && ref2.name.indexOf('川香苑') !== -1),
      '同城同类店合并成一份参考：' + (ref2 ? ref2.name : '无'));
   ok(!!(ref2 && D.menuHasDish(ref2, D.dishById('cx01'))), '川香苑的招牌菜在合并参考里');
+}
+
+/* ---------- 高德类型 → 菜系：2026-09-25 修过一批判错，锁住 ----------
+ * 这些判错会连锁到"这家店做不了你想吃的菜"→ Agent 被闸门反复驳回→ 步数烧完退回算法
+ * （勾「苏浙菜 + 吃饭」实测踩到），所以拿真实高德 type 钉成回归用例。 */
+console.log('\n--- 高德类型 → 菜系（真实 type 复现）---');
+try {
+  const cases = [
+    ['餐饮服务;中餐厅;浙江菜', '胖哥俩肉蟹煲(保定万博广场店)', '江浙', '店名里有"保定"，也不能盖掉类型里的浙江菜'],
+    ['餐饮服务;中餐厅;淮扬菜', '粤扬楼淮扬菜(勘察研究总院宿舍中区店)', '江浙', '"淮扬"原来没人认，兜成了家常'],
+    ['餐饮服务;中餐厅;湘菜', '湘味人家', '湘', '湘菜原来没有规则，被"中餐厅"兜成家常'],
+    ['餐饮服务;中餐厅;闽菜', '闽江饭店', '闽', '闽菜原先一条规则都没有'],
+    ['餐饮服务;中餐厅;云南菜', '云味小馆', '云贵', '云贵原先一条规则都没有'],
+    ['餐饮服务;小吃快餐;小吃', '沙县小吃(裕华路店)', '小吃', '"快餐"原来挂在西餐那条规则上，把沙县判成了西'],
+    ['餐饮服务;中餐厅;中餐厅', '保定老驴头驴肉火烧', '保定', '驴肉火烧仍然是保定（兜底规则放到最后不等于失效）'],
+    ['餐饮服务;中餐厅;河北菜', '老保定家常菜', '保定', '同上：店名里的保定仍优先于"家常"']
+  ];
+  cases.forEach(([type, name, want, why]) => {
+    const got = D.amapCui(type, name);
+    ok(got === want, name + ' → ' + got + '（' + why + '）');
+  });
+
+  /* 菜系对上了，"这家店做得了这道菜"才成立——这是 Agent 能顺利定案的前提 */
+  const jzShop = { id:'amap-B0I6C5JU2L', name:'粤扬楼淮扬菜(勘察研究总院宿舍中区店)',
+                   cui:[D.amapCui('餐饮服务;中餐厅;淮扬菜', '粤扬楼淮扬菜(勘察研究总院宿舍中区店)')],
+                   tags:[...new Set(D.amapTags({ type:'餐饮服务;中餐厅;淮扬菜', name:'粤扬楼淮扬菜' }))], sig:[] };
+  const shizitou = D.DISHES.find(d => d.name === '红烧狮子头');
+  ok(D.shopCanMake(jzShop, shizitou), '江浙菜馆（淮扬菜）能做「红烧狮子头」：' + jzShop.cui.join('/'));
+} catch (err) {
+  ok(false, '菜系映射异常：' + err.message);
 }
 
 console.log('\n' + (fail ? '❌ 失败 ' + fail + ' 项' : '✅ 商家数据库（补菜单不改偏好）全部通过'));
