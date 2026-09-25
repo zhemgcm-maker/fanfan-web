@@ -392,6 +392,17 @@
   .tabbar button.has-dot .t-dot{display:block}
 
   /* ---------- 「饭饭AI」页面 ---------- */
+  /* 饭饭的脸：内联 SVG，不引外链、离线可用，从 20px 到 200px 都清晰 */
+  .ff-svg{display:block;width:100%;height:100%}
+  /* 头部那个方形标记：自用版的 logo 是橙色渐变色块，饭饭这张脸换成奶油底，碗才看得清 */
+  .logo.ai-logo{
+    background:linear-gradient(135deg,#fff8f0,#ffe6d2);
+    border:1px solid #ffdcc2;box-shadow:0 6px 14px rgba(255,106,61,.20)
+  }
+  .tabbar button .t-icon.ff-tab{display:block;width:23px;height:23px}
+  /* 聊天气泡旁边的小头像：给脸留一点边，别贴边 */
+  .ai-line .av.ff-av{padding:2px;background:#fff6ee;border-color:#ffdfc8}
+
   /* AI 今日推荐 */
   .ai-daily{
     position:relative;overflow:hidden;border-radius:20px;padding:15px 16px 14px;
@@ -1044,7 +1055,7 @@
 
   <header class="top">
     <div class="brandline">
-      <div class="logo">🤖</div>
+      <div class="logo ai-logo" id="aiFaceLogo"></div>
       <h1>饭饭 AI</h1>
     </div>
     <p class="sub">陪你聊各地的吃——这道菜什么来头、哪个菜系什么脾气、两个人多少钱够。想让我直接出方案，就按下面那个按钮。</p>
@@ -1102,7 +1113,7 @@
     <span class="t-icon">🍜</span><span>推荐</span>
   </button>
   <button type="button" id="tabAi" role="tab" aria-selected="false">
-    <span class="t-icon">🤖</span><span>饭饭AI</span>
+    <span class="t-icon ff-tab" id="aiFaceTab"></span><span>饭饭AI</span>
   </button>
   <button type="button" id="tabMe" role="tab" aria-selected="false">
     <span class="t-icon">👤</span><span>我的</span><span class="t-dot" id="meDot"></span>
@@ -7770,6 +7781,30 @@ const AI_SPICY = ['不辣', '微辣', '中辣', '特辣'];
 const AI_CAT_HINT = { rice:'配米饭吃', noodle:'配面／粉吃', other:'整份菜／小吃' };
 const AI_ROLE_NAME = { single:'一人食', main:'主菜', side:'配菜', staple:'主食', soup:'汤', drink:'饮品' };
 
+/* 饭饭的脸：一颗会笑的米饭团子，头顶扣着自家的小碗。
+ * 为什么不用 emoji：🍚 在不同手机上长得不一样、大小也没法统一，跟"饭饭"这个角色对不上。
+ * 这里是内联 SVG——不引外链、离线可用，从 21px 的 Tab 图标到详情页大图都清晰。
+ * 所有用到脸的地方都引这一个常量，改脸只改这一处。 */
+const FF_FACE =
+  '<svg class="ff-svg" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+    // ① 头顶的小碗（先画，被脸压住一半，才像"扣在头上"）
+    '<path d="M14.6 21c0-5.2 4.2-9.4 9.4-9.4s9.4 4.2 9.4 9.4z" fill="#ff8551"></path>' +
+    // ② 奶白的圆脸
+    '<circle cx="24" cy="31" r="13.4" fill="#fffaf4" stroke="#ffc9a4" stroke-width="1.3"></circle>' +
+    '<ellipse cx="19.6" cy="26.6" rx="7" ry="4.2" fill="#ffffff" opacity=".6"></ellipse>' +
+    // ③ 碗沿压在额头上（画在脸之后，不然会被脸盖掉、看不见）
+    '<rect x="12.9" y="18.4" width="22.2" height="3.4" rx="1.7" fill="#ef6a3a"></rect>' +
+    // ④ 眼睛：大一点、带高光，才有"看着你"的感觉
+    '<ellipse cx="18.2" cy="31" rx="2.95" ry="3.65" fill="#3d2b20"></ellipse>' +
+    '<ellipse cx="29.8" cy="31" rx="2.95" ry="3.65" fill="#3d2b20"></ellipse>' +
+    '<circle cx="19.2" cy="29.6" r="1.15" fill="#fffdf9"></circle>' +
+    '<circle cx="30.8" cy="29.6" r="1.15" fill="#fffdf9"></circle>' +
+    // ⑤ 腮红 + 笑
+    '<ellipse cx="14.8" cy="36" rx="2.6" ry="1.9" fill="#ffa08e" opacity=".7"></ellipse>' +
+    '<ellipse cx="33.2" cy="36" rx="2.6" ry="1.9" fill="#ffa08e" opacity=".7"></ellipse>' +
+    '<path d="M20.7 36.4c1.5 2 5.1 2 6.6 0" fill="none" stroke="#b8562a" stroke-width="2.1" stroke-linecap="round"></path>' +
+  '</svg>';
+
 /* 页面状态：msgs 落盘，busy 是临时的"正在想"，hist 是最近推过的菜（别短期内重复） */
 let aiState = { msgs:[], hist:[], day:'', dishId:'', key:'', stories:{}, busy:null, seq:0, sending:false, sheetDish:'' };
 
@@ -8050,12 +8085,13 @@ function aiLastComboMsg(){
   return null;
 }
 function aiMsgHTML(m){
-  if(m.kind === 'combo') return '<div class="ai-line" data-msg="' + m.id + '"><span class="av">🤖</span>' + aiComboHTML(m.combo) + '</div>';
+  if(m.kind === 'combo') return '<div class="ai-line" data-msg="' + m.id + '"><span class="av ff-av">' + FF_FACE + '</span>' + aiComboHTML(m.combo) + '</div>';
   const me = m.role === 'me';
   const cls = me ? 'ai-line me' : (m.kind === 'note' ? 'ai-line note' : 'ai-line');
-  const av = me ? '🙋' : (m.kind === 'note' ? '🍽' : '🍚');
+  // 用户那头还是 emoji；饭饭一律用画出来的这张脸（改脸只改 FF_FACE 一处）
+  const av = me ? '<span class="av">🙋</span>' : '<span class="av ff-av">' + FF_FACE + '</span>';
   const foot = m.foot ? '<div class="bfoot">' + esc(m.foot) + '</div>' : '';
-  return '<div class="' + cls + '" data-msg="' + m.id + '"><span class="av">' + av + '</span>' +
+  return '<div class="' + cls + '" data-msg="' + m.id + '">' + av +
     '<div class="bub">' + esc(m.text || '') + foot + '</div></div>';
 }
 function aiComboHTML(c){
@@ -8084,7 +8120,7 @@ function renderAiChat(){
   const box = $('#aiMsgs');
   if(!box) return;
   const busy = aiState.busy
-    ? '<div class="ai-line"><span class="av">🍚</span><div class="bub ai-typing">' +
+    ? '<div class="ai-line"><span class="av ff-av">' + FF_FACE + '</span><div class="bub ai-typing">' +
         '<i></i><i></i><i></i><span style="margin-left:6px;font-size:12.5px;color:var(--muted)">' +
         esc(aiState.busy === 'combo' ? '正在按咱们聊的配一桌…' : '饭饭在想…') + '</span></div></div>'
     : '';
@@ -8402,6 +8438,11 @@ function init(){
   $('#goMeCard').addEventListener('click', () => switchTab('me'));
 
   /* 饭饭AI：聊饮食文化 + 「根据聊天推荐菜」（按下才走决策链） */
+  // 饭饭的脸：头部标记和底部 Tab 图标都在这儿注入（HTML 里留空位，SVG 只有一份）
+  const aiFaceLogo = $('#aiFaceLogo');
+  if(aiFaceLogo) aiFaceLogo.innerHTML = FF_FACE;
+  const aiFaceTab = $('#aiFaceTab');
+  if(aiFaceTab) aiFaceTab.innerHTML = FF_FACE;
   const aiSendBtn = $('#aiSendBtn');
   if(aiSendBtn) aiSendBtn.addEventListener('click', aiSend);
   const aiInput = $('#aiInput');
