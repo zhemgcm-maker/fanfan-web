@@ -109,7 +109,9 @@ if(added.length){
 }
 
 // ② 写/合并 解析结果
-const outDir = path.join(path.dirname(path.resolve(kbFile)), '..', '商家数据库', '解析结果');
+/* 默认写到**脚本所在仓库**的 商家数据库\解析结果（跟 find-shop.mjs 一个口径）。
+ * 别按 kb 文件推——kb 可能是别的工作目录里的正本，会把菜单写丢在项目外面（踩过一次）。 */
+const outDir = flag('out') || path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\//, '')), '..', '商家数据库', '解析结果');
 const target = path.join(outDir, shopName.replace(/[\\/:*?"<>|\s]+/g, '_') + '.json');
 const meta = Array.isArray(raw) ? {} : raw;
 const menuItems = items.filter(it => it.name).map(it => {

@@ -882,6 +882,214 @@
       "uncertain": []
     },
     {
+      "id": "local-小江溪",
+      "name": "小江溪·山野江西菜(保定万博广场店)",
+      "city": "保定",
+      "scope": "branch",
+      "amapId": "B0L25SCNXX",
+      "branchName": "小江溪·山野江西菜(保定万博广场店)",
+      "cuisineRef": [
+        "赣"
+      ],
+      "cuisineRefKeys": [
+        "江西",
+        "赣",
+        "南昌",
+        "瓦罐",
+        "拌粉"
+      ],
+      "cuisineRefWhole": true,
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-09-25",
+      "image": "",
+      "menu": [
+        {
+          "name": "南昌爆辣辣烧鸡脚",
+          "price": 59,
+          "cat": "赣味小炒",
+          "dishId": "xjx01",
+          "kbName": "南昌爆辣辣烧鸡脚"
+        },
+        {
+          "name": "老南昌油浸鱼",
+          "price": 78,
+          "cat": "赣味小炒",
+          "dishId": "xjx02",
+          "kbName": "老南昌油浸鱼"
+        },
+        {
+          "name": "虫草蛋炒胖豆芽",
+          "price": 26,
+          "cat": "家常小炒",
+          "dishId": "xjx03",
+          "kbName": "虫草蛋炒胖豆芽"
+        },
+        {
+          "name": "宁都古法三杯鸡",
+          "price": 69,
+          "cat": "赣味小炒",
+          "dishId": "xjx04",
+          "kbName": "宁都古法三杯鸡"
+        },
+        {
+          "name": "铜锅葱香粉丝虾",
+          "price": 49,
+          "cat": "砂锅铜锅",
+          "dishId": "xjx05",
+          "kbName": "铜锅葱香粉丝虾"
+        },
+        {
+          "name": "井冈山烟笋炒肉",
+          "price": 39,
+          "cat": "赣味小炒",
+          "dishId": "xjx06",
+          "kbName": "井冈山烟笋炒肉"
+        },
+        {
+          "name": "皱椒脆藕煸排骨",
+          "price": 49,
+          "cat": "赣味小炒",
+          "dishId": "xjx07",
+          "kbName": "皱椒脆藕煸排骨"
+        },
+        {
+          "name": "拆骨肉酸菜肥肠煲",
+          "price": 59,
+          "cat": "砂锅铜锅",
+          "dishId": "xjx08",
+          "kbName": "拆骨肉酸菜肥肠煲"
+        },
+        {
+          "name": "庐陵野椒炒鸡杂",
+          "price": 36,
+          "cat": "赣味小炒",
+          "dishId": "xjx09",
+          "kbName": "庐陵野椒炒鸡杂"
+        },
+        {
+          "name": "铅山芋子滑牛肉",
+          "price": 48,
+          "cat": "赣味小炒",
+          "dishId": "xjx10",
+          "kbName": "铅山芋子滑牛肉"
+        },
+        {
+          "name": "庐陵酱香鸭",
+          "price": 58,
+          "cat": "赣味小炒",
+          "dishId": "xjx11",
+          "kbName": "庐陵酱香鸭"
+        },
+        {
+          "name": "蒜蓉芥末罗氏虾",
+          "price": 98,
+          "cat": "砂锅铜锅",
+          "dishId": "xjx12",
+          "kbName": "蒜蓉芥末罗氏虾"
+        },
+        {
+          "name": "土鸡蛋炒胖豆芽",
+          "price": 26,
+          "cat": "家常小炒",
+          "dishId": "xjx13",
+          "kbName": "土鸡蛋炒胖豆芽"
+        },
+        {
+          "name": "小炒拆骨肉",
+          "price": 49,
+          "cat": "赣味小炒",
+          "dishId": "xjx14",
+          "kbName": "小炒拆骨肉"
+        },
+        {
+          "name": "碎椒炒蛋",
+          "price": 26,
+          "cat": "家常小炒",
+          "dishId": "xjx15",
+          "kbName": "碎椒炒蛋"
+        },
+        {
+          "name": "井冈山红椒煸鳝片",
+          "price": 59,
+          "cat": "赣味小炒",
+          "dishId": "xjx16",
+          "kbName": "井冈山红椒煸鳝片"
+        },
+        {
+          "name": "灵焰土豆牛排煲",
+          "price": 58,
+          "cat": "砂锅铜锅",
+          "dishId": "xjx17",
+          "kbName": "灵焰土豆牛排煲"
+        },
+        {
+          "name": "赣南秋酿醉花甲",
+          "price": 38,
+          "cat": "赣味小炒",
+          "dishId": "xjx18",
+          "kbName": "赣南秋酿醉花甲"
+        },
+        {
+          "name": "稻浪酸辣墨鱼仔",
+          "price": 68,
+          "cat": "赣味小炒",
+          "dishId": "xjx19",
+          "kbName": "稻浪酸辣墨鱼仔"
+        },
+        {
+          "name": "豫章酒香黑鸭煲",
+          "price": 78,
+          "cat": "砂锅铜锅",
+          "dishId": "xjx20",
+          "kbName": "豫章酒香黑鸭煲"
+        },
+        {
+          "name": "鄱阳湖藜蒿炒腊肉",
+          "price": 39,
+          "cat": "赣味小炒",
+          "dishId": "xjx21",
+          "kbName": "鄱阳湖藜蒿炒腊肉"
+        },
+        {
+          "name": "萍乡辣椒炒蛋",
+          "price": 29,
+          "cat": "家常小炒",
+          "dishId": "xjx22",
+          "kbName": "萍乡辣椒炒蛋"
+        },
+        {
+          "name": "江西秘制啤酒鸭",
+          "price": 58,
+          "cat": "赣味小炒",
+          "dishId": "xjx23",
+          "kbName": "江西秘制啤酒鸭"
+        },
+        {
+          "name": "肉汁水蒸蛋",
+          "price": 28,
+          "cat": "家常小炒",
+          "dishId": "xjx24",
+          "kbName": "肉汁水蒸蛋"
+        },
+        {
+          "name": "干椒老豆腐焖风吹鸡",
+          "price": 45,
+          "cat": "赣味小炒",
+          "dishId": "xjx25",
+          "kbName": "干椒老豆腐焖风吹鸡"
+        },
+        {
+          "name": "江西汤汁小炒肉",
+          "price": 52,
+          "cat": "赣味小炒",
+          "dishId": "xjx26",
+          "kbName": "江西汤汁小炒肉"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-川香苑",
       "name": "川香苑",
       "city": "保定",
