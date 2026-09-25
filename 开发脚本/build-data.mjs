@@ -85,6 +85,9 @@ for(const f of files){
      * 为什么不能只按菜系：程序把"熊麻婆现炒浇头面.饭(保定市永华北大街店)"推成了「保定」
      * （店名里带城市名），黄焖鸡米饭这类被判成「西」——光靠菜系挂不住同类店。 */
     cuisineRefKeys: p.cuisineRefKeys || [],
+    /* cuisineRefWhole：被上面这些关键词命中的同类店，可以整份借这份菜单（不再逐道比菜的菜系）。
+     * 肉蟹煲这类菜只能用这个：高德给肉蟹煲店的是"中餐厅"，程序推成「家常」，菜却按江浙/川写。 */
+    cuisineRefWhole: !!p.cuisineRefWhole,
     confidence: 'confirmed',              // confirmed = 菜单是实际采集来的，不是推断
     source: p.source || '自己拍菜单',
     collectedAt: p.collectedAt || '',

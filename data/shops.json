@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-22",
+  "updatedAt": "2026-09-25",
   "shops": [
     {
       "id": "local-女掌柜土家菜馆",
@@ -13,6 +13,7 @@
         "川"
       ],
       "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-20",
@@ -691,6 +692,7 @@
         "自贡",
         "重庆"
       ],
+      "cuisineRefWhole": false,
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-22",
@@ -890,6 +892,7 @@
       "branchName": "",
       "cuisineRef": [],
       "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
       "confidence": "confirmed",
       "source": "自己拍菜单",
       "collectedAt": "2026-09-19",
@@ -1290,6 +1293,7 @@
         "拌面",
         "快餐"
       ],
+      "cuisineRefWhole": false,
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-22",
@@ -1504,6 +1508,136 @@
           "cat": "饮品",
           "dishId": "xm23",
           "kbName": "红豆酒"
+        }
+      ],
+      "uncertain": []
+    },
+    {
+      "id": "local-胖哥俩肉蟹煲",
+      "name": "胖哥俩肉蟹煲",
+      "city": "保定",
+      "scope": "brand",
+      "amapId": "B0JUGD3FC6",
+      "branchName": "胖哥俩肉蟹煲(保定万博广场店)",
+      "cuisineRef": [
+        "江浙"
+      ],
+      "cuisineRefKeys": [
+        "肉蟹煲",
+        "蟹煲",
+        "牛蛙煲",
+        "鸡爪煲"
+      ],
+      "cuisineRefWhole": true,
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-09-25",
+      "image": "",
+      "menu": [
+        {
+          "name": "肉蟹煲",
+          "price": 178,
+          "cat": "煲类",
+          "dishId": "pg01",
+          "kbName": "肉蟹煲"
+        },
+        {
+          "name": "招牌肉蟹煲",
+          "price": 158,
+          "cat": "煲类",
+          "dishId": "pg02",
+          "kbName": "招牌肉蟹煲"
+        },
+        {
+          "name": "香辣虾蟹煲",
+          "price": 208,
+          "cat": "煲类",
+          "dishId": "pg03",
+          "kbName": "香辣虾蟹煲"
+        },
+        {
+          "name": "鸡翅煲",
+          "price": 178,
+          "cat": "煲类",
+          "dishId": "pg04",
+          "kbName": "鸡翅煲"
+        },
+        {
+          "name": "鸡爪煲",
+          "price": 178,
+          "cat": "煲类",
+          "dishId": "pg05",
+          "kbName": "鸡爪煲"
+        },
+        {
+          "name": "虾煲",
+          "price": 178,
+          "cat": "煲类",
+          "dishId": "pg06",
+          "kbName": "虾煲"
+        },
+        {
+          "name": "仔排煲",
+          "price": 178,
+          "cat": "煲类",
+          "dishId": "pg07",
+          "kbName": "仔排煲"
+        },
+        {
+          "name": "猪手煲",
+          "price": 178,
+          "cat": "煲类",
+          "dishId": "pg08",
+          "kbName": "猪手煲"
+        },
+        {
+          "name": "牛蛙煲",
+          "price": 178,
+          "cat": "煲类",
+          "dishId": "pg09",
+          "kbName": "牛蛙煲"
+        },
+        {
+          "name": "香辣牛蛙煲",
+          "price": 178,
+          "cat": "煲类",
+          "dishId": "pg10",
+          "kbName": "香辣牛蛙煲"
+        },
+        {
+          "name": "虾球小碗菜",
+          "price": 26,
+          "cat": "小碗菜",
+          "dishId": "pg11",
+          "kbName": "虾球小碗菜"
+        },
+        {
+          "name": "「笑薯我了」波波薯条",
+          "price": 15.9,
+          "cat": "炸物小食",
+          "dishId": "pg12",
+          "kbName": "「笑薯我了」波波薯条"
+        },
+        {
+          "name": "渣渣脆小酥肉",
+          "price": 22,
+          "cat": "炸物小食",
+          "dishId": "pg13",
+          "kbName": "渣渣脆小酥肉"
+        },
+        {
+          "name": "香酥翻花鸡翅",
+          "price": 34.9,
+          "cat": "炸物小食",
+          "dishId": "pg14",
+          "kbName": "香酥翻花鸡翅"
+        },
+        {
+          "name": "凉拌黄瓜",
+          "price": 15.9,
+          "cat": "凉菜",
+          "dishId": "pg15",
+          "kbName": "凉拌黄瓜"
         }
       ],
       "uncertain": []
