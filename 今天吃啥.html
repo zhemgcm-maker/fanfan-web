@@ -468,6 +468,7 @@
   }
   .ai-combo .ac-head{font-size:13.5px;font-weight:800;color:#c1602f}
   .ai-combo .ac-shop{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .ai-combo .ac-geo{font-size:11.5px;color:var(--muted);margin-top:4px}
   .ai-combo .ac-items{margin-top:9px;display:flex;flex-direction:column;gap:6px}
   .ai-combo .ac-item{display:flex;gap:8px;align-items:baseline;font-size:13.5px}
   .ai-combo .ac-item .n{flex:1;min-width:0}
@@ -4684,52 +4685,65 @@ function renderAddrStatus(){
   }
 }
 
-// ① 定位我
+/* ① 定位：浏览器 GPS → 高德逆地理编码 → 变成"XX省XX市XX路"，城市不一样会自动切。
+ * 抽成 Promise 是因为有两个调用方：推荐页的「定位我」按钮（用户手动点），
+ * 以及「饭饭AI」页出方案前自动申请一次授权。两处必须是同一套行为，所以只留这一份实现。 */
+function geolocate(){
+  return new Promise(resolve => {
+    if(typeof navigator === 'undefined' || !navigator.geolocation){
+      resolve({ ok:false, unsupported:true, reason:'这个浏览器不给网页定位' });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try{
+        const lng = +Number(pos.coords.longitude).toFixed(6);
+        const lat = +Number(pos.coords.latitude).toFixed(6);
+        let label = '当前位置', adcode = '', cityName = '', province = '';
+        if((state.settings.amapKey || '').trim() && Date.now() >= (state.amapDownUntil || 0)){
+          const rcKey = 'regeo:' + lng.toFixed(4) + ',' + lat.toFixed(4);
+          const rcHit = amapCacheGet(rcKey, AMAP_TTL.geo);
+          try{
+            const j = rcHit || await amapFetch('/geocode/regeo', { location: lng + ',' + lat, extensions:'base' }, 8000);
+            if(!rcHit) amapCacheSet(rcKey, j);
+            const rc = j.regeocode || {}, ac = rc.addressComponent || {};
+            label = String(rc.formatted_address || '').trim() || label;
+            adcode = ac.adcode || '';
+            province = typeof ac.province === 'string' ? ac.province : '';
+            cityName = (typeof ac.city === 'string' && ac.city) ? ac.city
+                     : (ac.city && ac.city[0]) ? ac.city[0] : province;
+          }catch(e){ /* 逆地理失败就用坐标兜底 */ }
+        }
+        switchCityByAdcode(adcode, cityName, province, lng, lat);
+        state.origin = { lng, lat, label, precise:true, source:'gps' };
+        state.address = label;
+        const el = $('#addr'); if(el) el.value = label;
+        renderAddrStatus(); updateSummary(); renderMeHeader();
+        resolve({ ok:true, lng, lat, label, city:cityName });
+      }catch(e){
+        resolve({ ok:false, reason:'定位结果处理失败：' + (e && e.message ? e.message : e) });
+      }
+    }, err => {
+      resolve({ ok:false, code:(err && err.code) || 0,
+                reason:(err && err.code === 1) ? '定位权限被拒绝'
+                     : (err && err.code === 2) ? '定位服务不可用'
+                     : (err && err.code === 3) ? '定位超时' : '定位失败' });
+    }, { enableHighAccuracy:false, timeout:9000, maximumAge:60000 });
+  });
+}
+
+// 推荐页的「定位我」按钮：手动点，成功失败都得在页面上说清楚
 function geolocateMe(){
   const btn = $('#geoBtn');
-  const sayBad = msg => { const el = $('#addrStatus'); if(el){ el.textContent = msg; el.style.color = '#b0461f'; } };
-  if(typeof navigator === 'undefined' || !navigator.geolocation){
-    sayBad('📍 这个浏览器不给网页定位，用「选地点」或手动填地址吧');
-    toast('这个浏览器不支持网页定位，用「选地点」自己挑吧');
-    return;
-  }
+  const say = (msg, bad) => { const el = $('#addrStatus'); if(el){ el.textContent = msg; el.style.color = bad ? '#b0461f' : ''; } };
   const restore = () => { if(btn){ btn.textContent = '📍 定位我'; btn.disabled = false; } };
   if(btn){ btn.textContent = '定位中…'; btn.disabled = true; }
-  sayBad('📍 正在请求定位，浏览器会弹权限提示…');
-  navigator.geolocation.getCurrentPosition(async pos => {
-    try{
-      const lng = +Number(pos.coords.longitude).toFixed(6);
-      const lat = +Number(pos.coords.latitude).toFixed(6);
-      let label = '当前位置', adcode = '', cityName = '', province = '';
-      if((state.settings.amapKey || '').trim() && Date.now() >= (state.amapDownUntil || 0)){
-        const rcKey = 'regeo:' + lng.toFixed(4) + ',' + lat.toFixed(4);
-        const rcHit = amapCacheGet(rcKey, AMAP_TTL.geo);
-        try{
-          const j = rcHit || await amapFetch('/geocode/regeo', { location: lng + ',' + lat, extensions:'base' }, 8000);
-          if(!rcHit) amapCacheSet(rcKey, j);
-          const rc = j.regeocode || {}, ac = rc.addressComponent || {};
-          label = String(rc.formatted_address || '').trim() || label;
-          adcode = ac.adcode || '';
-          province = typeof ac.province === 'string' ? ac.province : '';
-          cityName = (typeof ac.city === 'string' && ac.city) ? ac.city
-                   : (ac.city && ac.city[0]) ? ac.city[0] : province;
-        }catch(e){ /* 逆地理失败就用坐标兜底 */ }
-      }
-      switchCityByAdcode(adcode, cityName, province, lng, lat);
-      state.origin = { lng, lat, label, precise:true, source:'gps' };
-      state.address = label;
-      const el = $('#addr'); if(el) el.value = label;
-      renderAddrStatus(); updateSummary(); renderMeHeader();
-      toast('已定位：' + label);
-    }finally{ restore(); }
-  }, err => {
+  say('📍 正在请求定位，浏览器会弹权限提示…', false);
+  geolocate().then(r => {
     restore();
-    const why = (err && err.code === 1) ? '定位权限被拒绝'
-              : (err && err.code === 2) ? '定位服务不可用'
-              : (err && err.code === 3) ? '定位超时' : '定位失败';
-    sayBad('📍 ' + why + '：可以点「选地点」自己挑一个，或手动填地址');
-    toast(why + '：用「选地点」或手动填地址也行');
-  }, { enableHighAccuracy:false, timeout:9000, maximumAge:60000 });
+    if(r.ok){ renderAddrStatus(); toast('已定位：' + r.label); return; }
+    say('📍 ' + r.reason + (r.unsupported ? '，用「选地点」或手动填地址吧' : '：可以点「选地点」自己挑一个，或手动填地址'), true);
+    toast(r.reason + '：用「选地点」或手动填地址也行');
+  });
 }
 
 // 定位到的城市不在城市表里 → 现场加一个，让"定位"在任何城市都能用
@@ -7806,7 +7820,7 @@ const FF_FACE =
   '</svg>';
 
 /* 页面状态：msgs 落盘，busy 是临时的"正在想"，hist 是最近推过的菜（别短期内重复） */
-let aiState = { msgs:[], hist:[], day:'', dishId:'', key:'', stories:{}, busy:null, seq:0, sending:false, sheetDish:'' };
+let aiState = { msgs:[], hist:[], day:'', dishId:'', key:'', stories:{}, busy:null, seq:0, sending:false, sheetDish:'', geoDenied:false };
 
 function aiLoad(){
   try{
@@ -8101,6 +8115,7 @@ function aiComboHTML(c){
     '<div class="ac-head">🍽 ' + esc(c.title || '按咱们聊的配了这一桌') + '</div>' +
     '<div class="ac-shop">' + esc(shop.name || '还没定店') + (shop.area ? '（' + esc(shop.area) + '）' : '') +
       (shop.km != null ? ' · ' + shop.km + ' km' : '') + (shop.rating ? ' · 评分 ' + shop.rating : '') + '</div>' +
+    (c.geo ? '<div class="ac-geo">' + esc(c.geo) + '</div>' : '') +
     '<div class="ac-items">' + (c.items || []).map(i => '<div class="ac-item">' +
       '<span class="n">' + esc(i.name) + (AI_ROLE_NAME[i.role] ? '<span class="bfoot" style="display:inline;margin-left:6px">' + AI_ROLE_NAME[i.role] + '</span>' : '') + '</span>' +
       '<span class="p">¥' + i.price + '</span></div>').join('') + '</div>' +
@@ -8324,7 +8339,7 @@ async function aiDecideWithIntent(it, opts){
   aiRestoreState(snap);
   return (built && built.combo) ? { built, how, ms:(Date.now() - t0) } : null;
 }
-function aiComboCard(built, note){
+function aiComboCard(built, note, geo){
   const c = built.combo;
   const reason = (c.agentPlan && c.agentPlan.reason) ? c.agentPlan.reason : (c.reasons || []).slice(0, 2).join('；');
   return {
@@ -8334,6 +8349,7 @@ function aiComboCard(built, note){
     items:c.items.map(i => ({ dishId:i.dish.id, name:i.dish.name, price:i.dish.price, role:i.role })),
     total:c.total, perPerson:c.perPerson,
     reason:String(reason || '').slice(0, 180),
+    geo:String(geo || ''),
     foot:note || '', accepted:false
   };
 }
@@ -8343,6 +8359,34 @@ function aiComboToCombo(c){
     items:(c.items || []).map(i => ({ dish: dishById(i.dishId) || { id:i.dishId, name:i.name, price:i.price, tags:[] }, role:i.role })),
     total:c.total, perPerson:c.perPerson
   };
+}
+/* 「饭饭AI」出方案前申请一次定位授权——和「我的 › 定位我」走的是同一个 geolocate()。
+ * 为什么要这样：聊天里读出来的需求不带位置，按填的地址搜店经常偏；先拿到 GPS 坐标，
+ * 算距离和搜店就用真实位置了。三种情况都不挡路：
+ *   已有精确坐标（本会话里刚定位/选过点）→ 不打扰，直接用；
+ *   这次会话里刚被拒过 → 不再反复弹，安静地按填的地址走；
+ *   其余 → 申请一次，答应就用，拒绝/超时也照旧出方案。 */
+function hasPreciseLoc(){ return !!(state.origin && typeof state.origin.lng === 'number'); }
+function aiAskGeo(){
+  if(hasPreciseLoc()){
+    return Promise.resolve({ asked:false, ok:true, label:state.origin.label || state.address || '' });
+  }
+  if(aiState.geoDenied){
+    return Promise.resolve({ asked:false, ok:false, denied:true, reason:'定位权限被拒绝' });
+  }
+  return geolocate().then(r => {
+    if(!r.ok && r.code === 1) aiState.geoDenied = true;   // 明确被拒才记住；超时/不可用下次还值得再试
+    return { asked:true, ok:!!r.ok, label:r.label || '', reason:r.reason || '', unsupported:!!r.unsupported };
+  });
+}
+function aiGeoLine(geo){
+  if(geo && geo.ok) return '📍 用你的位置（' + (geo.label || '已定位') + '）找店，正在读咱们聊的…';
+  return '📍 ' + ((geo && geo.reason) || '没拿到定位') + '，先按你填的位置找店，正在读咱们聊的…';
+}
+// 这一桌是"按哪儿"配出来的，直接写在方案卡上——定位成了没有，用户看一眼就知道
+function aiGeoNote(geo){
+  if(geo && geo.ok) return '📍 按你的真实位置（' + (geo.label || '已定位') + '）找的店';
+  return '📍 没拿到定位（' + ((geo && geo.reason) || '未授权') + '），按你填的位置找的店';
 }
 async function aiMakeCombo(opts){
   if(aiState.sending || state.running) return;
@@ -8354,14 +8398,32 @@ async function aiMakeCombo(opts){
     if(el && el.focus) el.focus();
     return;
   }
-  if(!state.profile.city){ toast('请先在「我的」里选择城市，再让我出方案'); switchTab('me'); return; }
   const reroll = !!(opts && opts.reroll);
   const t0 = Date.now();
   const tip = aiPush({ role:'ai', kind:'note', text: reroll ? '换一桌，重新读一遍咱们聊的…' : '正在读咱们聊的…' });
   state.running = true; aiState.busy = 'combo';
   renderAiChat(); aiScrollBottom();
+  /* 定位请求必须在用户点这个按钮的"手势"里发出去，晚一步手机浏览器就不弹授权框了，
+   * 所以这两行放在第一个 await 之前，而且解析意图和定位并行跑（不互相等）。 */
+  const geoP = aiAskGeo();
+  const intentP = aiParseIntent();
+  if(!hasPreciseLoc() && !aiState.geoDenied){
+    tip.text = '📍 先确认一下你在哪（浏览器会弹一次定位授权），同时在读咱们聊的…';
+    renderAiChat();
+  }
   try{
-    const intent = await aiParseIntent();
+    const geo = await geoP;
+    tip.text = aiGeoLine(geo);            // 先告诉用户"我在用你哪个位置找店"
+    renderAiChat();
+    // 定位成功会顺带把城市切成你所在的城市；真没城市又没定上位，才请用户去「我的」设一个
+    if(!state.profile.city){
+      tip.text = '📍 还不知道你在哪个城市。去「我的 › 我的习惯」选一个城市，再回来点一次这个按钮。';
+      renderAiChat();
+      toast('请先在「我的」里选择城市，再让我出方案');
+      switchTab('me');
+      return;
+    }
+    const intent = await intentP;
     tip.text = '读到的需求：' + (intent.note || (catName(intent.cat) + ' · ' + ((TIERS.find(t => t.id === intent.tier) || {}).name || ''))) + '，正在找能做这桌菜的店…';
     renderAiChat();
     const prev = aiLastComboMsg();
@@ -8376,7 +8438,8 @@ async function aiMakeCombo(opts){
       const ids = res.built.combo.items.map(i => i.dish.id);
       aiState.hist = aiState.hist.concat(ids).slice(-24);
       state.shownDishIds = ids;         // 让紧接着的「换一桌」能避开这一桌
-      aiPush({ role:'ai', kind:'combo', combo:aiComboCard(res.built, res.how + ' · 用了 ' + ((Date.now() - t0) / 1000).toFixed(1) + ' 秒') });
+      aiPush({ role:'ai', kind:'combo', combo:aiComboCard(res.built,
+        res.how + ' · 用了 ' + ((Date.now() - t0) / 1000).toFixed(1) + ' 秒', aiGeoNote(geo)) });
     }
   }catch(e){
     const idx = aiState.msgs.indexOf(tip);
