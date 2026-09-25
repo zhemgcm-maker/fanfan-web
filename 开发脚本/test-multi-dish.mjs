@@ -40,13 +40,18 @@ const document = {
 const store = new Map();
 const localStorage = { getItem:k => store.has(k) ? store.get(k) : null, setItem:(k,v)=>store.set(k,String(v)), removeItem:k=>store.delete(k) };
 
-// ---- 假高德：任何关键词都返回这批"不同菜系的面馆"----
+/* ---- 假高德：任何关键词都返回这批"不同菜系的面馆" ----
+ * 坐标必须落在"裕华路步行街"地标附近：resolveLocation 优先用内置地标坐标
+ * （115.496239,38.859446），而外卖的搜店半径是 3200 米，超出半径的店会被
+ * amapSearchByKeyword 当成"不够近"丢掉。之前这里写的是老坐标，离地标 3.2km，
+ * 正好压在半径线上，5 家里有 3 家被丢掉 → 断言「≥3 家不同的店」假挂。 */
+const LANDMARK = { lng:115.496239, lat:38.859446 };   // 保定 · 裕华路步行街
 const POIS = [
-  { id:'N1', name:'川味面馆',   type:'餐饮服务;中餐厅;川菜',      location:'115.4650,38.8750', adname:'莲池区', address:'裕华路1号', biz_ext:{ rating:'4.5', cost:'20' } },
-  { id:'N2', name:'兰州牛肉面', type:'餐饮服务;中餐厅;西北菜',    location:'115.4660,38.8760', adname:'莲池区', address:'裕华路2号', biz_ext:{ rating:'4.4', cost:'22' } },
-  { id:'N3', name:'粤式云吞面', type:'餐饮服务;中餐厅;粤菜',      location:'115.4640,38.8745', adname:'莲池区', address:'裕华路3号', biz_ext:{ rating:'4.3', cost:'26' } },
-  { id:'N4', name:'家常面馆',   type:'餐饮服务;中餐厅;家常菜',    location:'115.4630,38.8740', adname:'莲池区', address:'裕华路4号', biz_ext:{ rating:'4.2', cost:'18' } },
-  { id:'N5', name:'过桥米线店', type:'餐饮服务;小吃;米粉',        location:'115.4670,38.8770', adname:'莲池区', address:'裕华路5号', biz_ext:{ rating:'4.1', cost:'25' } }
+  { id:'N1', name:'川味面馆',   type:'餐饮服务;中餐厅;川菜',      location:(LANDMARK.lng + 0.0010) + ',' + (LANDMARK.lat + 0.0006), adname:'莲池区', address:'裕华路1号', biz_ext:{ rating:'4.5', cost:'20' } },
+  { id:'N2', name:'兰州牛肉面', type:'餐饮服务;中餐厅;西北菜',    location:(LANDMARK.lng + 0.0016) + ',' + (LANDMARK.lat - 0.0002), adname:'莲池区', address:'裕华路2号', biz_ext:{ rating:'4.4', cost:'22' } },
+  { id:'N3', name:'粤式云吞面', type:'餐饮服务;中餐厅;粤菜',      location:(LANDMARK.lng - 0.0010) + ',' + (LANDMARK.lat - 0.0008), adname:'莲池区', address:'裕华路3号', biz_ext:{ rating:'4.3', cost:'26' } },
+  { id:'N4', name:'家常面馆',   type:'餐饮服务;中餐厅;家常菜',    location:(LANDMARK.lng - 0.0014) + ',' + (LANDMARK.lat + 0.0008), adname:'莲池区', address:'裕华路4号', biz_ext:{ rating:'4.2', cost:'18' } },
+  { id:'N5', name:'过桥米线店', type:'餐饮服务;小吃;米粉',        location:(LANDMARK.lng + 0.0024) + ',' + (LANDMARK.lat + 0.0010), adname:'莲池区', address:'裕华路5号', biz_ext:{ rating:'4.1', cost:'25' } }
 ];
 async function mockFetch(url){
   const u = String(url);
