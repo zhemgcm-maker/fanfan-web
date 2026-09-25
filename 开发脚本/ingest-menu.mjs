@@ -59,6 +59,12 @@ const added = [], same = [], missing = [];
 items.forEach(it => {
   const name = String(it.name || '').trim();
   if(!name){ missing.push(it); return; }
+  /* 允许调用方在菜单里预先指定 sameAs（外卖平台上同一道菜的名字五花八门：
+     "巨无霸汉堡(单品)"、"麦辣鸡腿汉堡"、"甜品站麦旋风奥利奥"…）。指到已有菜就别新增。 */
+  if(it.sameAs){
+    const target = byNorm.get(norm(it.sameAs));
+    if(target){ same.push({ name, d:target, exact:false, price:it.price, kbPrice:target.price }); return; }
+  }
   const hit = findExisting(name);
   if(hit){
     same.push({ name, d:hit.d, exact:hit.exact, price:it.price, kbPrice:hit.d.price });
@@ -75,6 +81,9 @@ items.forEach(it => {
     id, name, cat:it.cat, cui:it.cui, price:it.price, spicy:it.spicy,
     tags:it.tags, alg:it.alg, role:it.role, desc:it.desc, hot:it.hot
   });
+  // 同一批里后面的条目可以 sameAs 指到刚加进来的这道（先出现的当正名）
+  const k = norm(name);
+  if(!byNorm.has(k)) byNorm.set(k, { id, name, cui:it.cui, tags:it.tags, price:it.price });
 });
 
 console.log('店：' + shopName + '　菜单 ' + items.length + ' 道　id 前缀 ' + prefix + (dry ? '（--dry 只预演，不写文件）' : ''));
