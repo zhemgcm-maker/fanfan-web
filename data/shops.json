@@ -3,6 +3,214 @@
   "updatedAt": "2026-09-25",
   "shops": [
     {
+      "id": "local-兰湘子",
+      "name": "兰湘子·湘菜小炒",
+      "city": "保定",
+      "scope": "brand",
+      "amapId": "B0K33R6PBI",
+      "branchName": "兰湘子·湘菜小炒(保定未来石万达店)",
+      "cuisineRef": [
+        "湘"
+      ],
+      "cuisineRefKeys": [
+        "湘菜",
+        "湘",
+        "湖南",
+        "小炒",
+        "辣椒炒肉"
+      ],
+      "cuisineRefWhole": true,
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-09-25",
+      "image": "",
+      "menu": [
+        {
+          "name": "辣椒炒肉",
+          "price": 30,
+          "cat": "湘味小炒",
+          "dishId": "c07",
+          "kbName": "辣椒炒肉"
+        },
+        {
+          "name": "辣炒金钱蛋",
+          "price": 19,
+          "cat": "湘味小炒",
+          "dishId": "lxz01",
+          "kbName": "辣炒金钱蛋"
+        },
+        {
+          "name": "湘西辣子鸡",
+          "price": 39.8,
+          "cat": "湘味小炒",
+          "dishId": "lxz02",
+          "kbName": "湘西辣子鸡"
+        },
+        {
+          "name": "酸辣鸡胗",
+          "price": 33,
+          "cat": "湘味小炒",
+          "dishId": "lxz03",
+          "kbName": "酸辣鸡胗"
+        },
+        {
+          "name": "砂窝笋香腊肉",
+          "price": 43.8,
+          "cat": "砂锅煲类",
+          "dishId": "lxz04",
+          "kbName": "砂窝笋香腊肉"
+        },
+        {
+          "name": "香煎酥皮鲈鱼",
+          "price": 59.8,
+          "cat": "口味菜",
+          "dishId": "lxz05",
+          "kbName": "香煎酥皮鲈鱼"
+        },
+        {
+          "name": "糖醋里脊",
+          "price": 29.8,
+          "cat": "口味菜",
+          "dishId": "m08",
+          "kbName": "糖醋里脊"
+        },
+        {
+          "name": "擂辣椒皮蛋(热菜)",
+          "price": 19.8,
+          "cat": "湘味小炒",
+          "dishId": "x04",
+          "kbName": "擂辣椒皮蛋"
+        },
+        {
+          "name": "陈坛辣椒鸡",
+          "price": 30,
+          "cat": "湘味小炒",
+          "dishId": "lxz06",
+          "kbName": "陈坛辣椒鸡"
+        },
+        {
+          "name": "金汤酸菜鱼",
+          "price": 53.8,
+          "cat": "口味菜",
+          "dishId": "lxz07",
+          "kbName": "金汤酸菜鱼"
+        },
+        {
+          "name": "春笋炒腊肉",
+          "price": 39.8,
+          "cat": "湘味小炒",
+          "dishId": "lxz08",
+          "kbName": "春笋炒腊肉"
+        },
+        {
+          "name": "柠檬蒜香凤尾虾",
+          "price": 45.8,
+          "cat": "口味菜",
+          "dishId": "lxz09",
+          "kbName": "柠檬蒜香凤尾虾"
+        },
+        {
+          "name": "生爆香辣虾",
+          "price": 39,
+          "cat": "口味菜",
+          "dishId": "lxz10",
+          "kbName": "生爆香辣虾"
+        },
+        {
+          "name": "砂窝肉末茄子煲",
+          "price": 23.8,
+          "cat": "砂锅煲类",
+          "dishId": "lxz11",
+          "kbName": "砂窝肉末茄子煲"
+        },
+        {
+          "name": "湘子肉丸烩菜",
+          "price": 35.8,
+          "cat": "湘味小炒",
+          "dishId": "lxz12",
+          "kbName": "湘子肉丸烩菜"
+        },
+        {
+          "name": "香辣孜然鱿鱼",
+          "price": 42.9,
+          "cat": "口味菜",
+          "dishId": "lxz13",
+          "kbName": "香辣孜然鱿鱼"
+        },
+        {
+          "name": "口味香辣蹄花",
+          "price": 43.9,
+          "cat": "口味菜",
+          "dishId": "lxz14",
+          "kbName": "口味香辣蹄花"
+        },
+        {
+          "name": "红葱酱原味蒸鲈鱼",
+          "price": 59.9,
+          "cat": "口味菜",
+          "dishId": "lxz15",
+          "kbName": "红葱酱原味蒸鲈鱼"
+        },
+        {
+          "name": "香辣牛杂煲",
+          "price": 39.8,
+          "cat": "砂锅煲类",
+          "dishId": "lxz16",
+          "kbName": "香辣牛杂煲"
+        },
+        {
+          "name": "腊味手工笋",
+          "price": 43.8,
+          "cat": "湘味小炒",
+          "dishId": "lxz17",
+          "kbName": "腊味手工笋"
+        },
+        {
+          "name": "大蒜叶炒腊肉",
+          "price": 39.8,
+          "cat": "湘味小炒",
+          "dishId": "lxz18",
+          "kbName": "大蒜叶炒腊肉"
+        },
+        {
+          "name": "牛杂煲",
+          "price": 39.8,
+          "cat": "砂锅煲类",
+          "dishId": "lxz19",
+          "kbName": "牛杂煲"
+        },
+        {
+          "name": "清蒸鲈鱼",
+          "price": 59.8,
+          "cat": "口味菜",
+          "dishId": "m11",
+          "kbName": "清蒸鲈鱼"
+        },
+        {
+          "name": "鲜香椿炒鸡蛋",
+          "price": 25.8,
+          "cat": "湘味小炒",
+          "dishId": "lxz20",
+          "kbName": "鲜香椿炒鸡蛋"
+        },
+        {
+          "name": "火爆酸菜炒肥肠",
+          "price": 53.8,
+          "cat": "口味菜",
+          "dishId": "lxz21",
+          "kbName": "火爆酸菜炒肥肠"
+        },
+        {
+          "name": "油子红烧肉",
+          "price": 49.8,
+          "cat": "湘味小炒",
+          "dishId": "lxz22",
+          "kbName": "油子红烧肉"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-女掌柜土家菜馆",
       "name": "女掌柜土家菜馆",
       "city": "保定",
