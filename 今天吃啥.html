@@ -2781,7 +2781,11 @@ async function serverSelfCheck(){
 
   // ② 高德代理
   try{
-    const j = await apiCall('/api/amap', { method:'POST', timeoutMs:20000, body:{ path:'/v3/geocode/geo', params:{ address:'保定万博广场' } } });
+    /* 注意这里的 path 不带 /v3：后端自己会拼（后端请求的是 restapi.amap.com/v3 + path）。
+     * 前端所有调用方都是这个约定——本机直连那边也是 AMAP_BASE('.../v3') + path。
+     * 这里以前多写了一个 /v3，拼成 /v3/v3/geocode/geo，高德对不存在的服务回 10002，
+     * 于是自检把它误报成「服务端 Key 类型不对」，还顺手把 amapOk 置 false 把后端代理整个禁掉。 */
+    const j = await apiCall('/api/amap', { method:'POST', timeoutMs:20000, body:{ path:'/geocode/geo', params:{ address:'保定万博广场' } } });
     if(String(j.status) === '1' && j.geocodes && j.geocodes.length){
       state.server.amapOk = true; state.server.amapReason = '';
       out.push('✅ 高德代理可用（拿到 ' + j.geocodes[0].location + '）');
