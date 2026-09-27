@@ -12,6 +12,11 @@ const edits = [
   // 1) 清空预填密钥
   { required:true, pattern:/const DEFAULT_KEY = 'sk-[^']*';/,
     replacement:"const DEFAULT_KEY = '';   // 分享版：不预填任何密钥，使用者填自己的" },
+  /* 1b) 高德 Key 也要清 —— 原来漏了这一条，于是这个叫"不含密钥版"的文件里
+   * 一直带着高德 Key（高德额度也是资源，谁拿到都能刷）。
+   * 分享版里高德留空即可：使用者可以填自己的，或者退回 OpenStreetMap（免 Key）。 */
+  { required:true, pattern:/^const DEFAULT_AMAP_KEY = '[^']*';/m,
+    replacement:"const DEFAULT_AMAP_KEY = '';   // 分享版：不预填高德 Key，填自己的或用 OpenStreetMap" },
   // 2) 默认关闭大模型（没有密钥时开启会只弹提示）
   { required:true, pattern:/settings:\{ v:SETTINGS_VERSION, enabled:'on',/,
     replacement:"settings:{ v:SETTINGS_VERSION, enabled:'off'," },
