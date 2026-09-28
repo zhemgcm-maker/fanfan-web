@@ -62,13 +62,17 @@ const fakeFetch = async (url, init) => {
 };
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__S={state,parseTextToolCall,agentProtocol,serverLlmOn,serverAmapOn,amapFetch,llmChat,setToken,getToken,renderServerUI,DEFAULT_AMAP_KEY,flushAllergyIfDirty,saveProfileNow,pushProfileNow,renderAllergyState,' +
+  code + '\nglobalThis.__S={state,parseTextToolCall,agentProtocol,serverLlmOn,serverAmapOn,guestLocked,loggedIn,amapFetch,llmChat,setToken,getToken,renderServerUI,DEFAULT_AMAP_KEY,flushAllergyIfDirty,saveProfileNow,pushProfileNow,renderAllergyState,' +
          'probeToolsPassThrough,ensureAgentChannel,agentRun};')
   (document, localStorage, f => setTimeout(f, 0), fakeFetch);
 const S = globalThis.__S;
 
 let fail = 0;
 const ok = (c, label, extra) => { console.log((c ? '  ✅ ' : '  ❌ ') + label + (extra ? ' — ' + extra : '')); if(!c) fail++; };
+/* 登录状态的两把开关：账号身份 + 后端令牌。新版规下"未登录"= 大模型整条线锁着， */
+/* 所以凡是要测大模型的用例，都得先真的"登录"（身份和令牌一起给）。 */
+const asGuest = () => { S.state.identity = { type:'guest' }; S.setToken(''); };
+const asUser = () => { S.state.identity = { type:'user', id:'u-test', username:'测试账号' }; S.setToken('fake.jwt.token'); };
 
 console.log('=== 一、文字工具协议解析器 ===');
 ok(!!S.parseTextToolCall('{"tool":"search_dishes","args":{"query":"川菜"}}'), '干净的 JSON 能解析');
@@ -81,10 +85,17 @@ ok(S.parseTextToolCall('{"tool":"x","args":"{\\"a\\":1}"}') !== null, 'args 是�
 console.log('\n=== 二、大模型走哪条通道 ===');
 S.state.settings.apiBase = 'https://backend.example.com';
 S.state.settings.useServerLlm = 'auto';
-S.setToken('');
+asGuest();
 ok(S.serverLlmOn() === false, '没登录 → 走本机直连');
-S.setToken('fake.jwt.token');
+ok(S.guestLocked() === true, '没登录 → 大模型这条线整体锁着（只能用算法引擎）');
+calls.length = 0;
+let lockedErr = null;
+try{ await S.llmChat('sys', 'hi', {}); }catch(e){ lockedErr = e; }
+ok(!!lockedErr && lockedErr.guestLocked === true, '没登录时 llmChat 直接拦下，并且标明是"未登录"这件事');
+ok(calls.length === 0, '拦下来就不该有任何请求发出去（内置 Key 不会被游客花掉）');
+asUser();
 ok(S.serverLlmOn() === true, '登录了 → 走后端代理');
+ok(S.guestLocked() === false, '登录之后大模型解锁');
 ok(S.agentProtocol() === 'text', '后端 tools 能力未知时先用文字协议（保守）');
 S.state.server.llmTools = true;
 ok(S.agentProtocol() === 'native', '自检确认后端透传 tools → 用原生协议');

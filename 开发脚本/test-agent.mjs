@@ -58,6 +58,12 @@ const ok = (cond, label, extra) => {
 };
 
 // 固定成"小饭 · 吃饭 · 华电二校区"，和线上实际用法一致
+/* 新版规：不登录只能用算法引擎（GUEST_LLM_LOCK），Agent 这条链要登录才开。
+ * 这里直接把身份和令牌都摆上，等价于"登录后用户在跑 Agent"。
+ * 通道选本机直连（useServerLlm='off'），请求才会走本机那个真 Key 直连 DeepSeek。 */
+A.state.identity = { type:'user', id:'u-test', username:'测试账号' };
+try{ localStorage.setItem('eatAgent.token.v1', 'fake.jwt'); }catch(e){}
+A.state.settings.useServerLlm = 'off';
 A.state.settings.enabled = 'on';
 A.state.settings.key = key;
 A.state.settings.model = 'deepseek-chat';

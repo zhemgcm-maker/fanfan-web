@@ -591,6 +591,9 @@
 
   .me-title{font-size:12.5px;color:var(--muted);font-weight:600;margin:18px 4px 0;letter-spacing:.3px}
   .me-card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:8px;box-shadow:0 6px 18px rgba(255,106,61,.07)}
+  /* 饭饭AI 页顶部那条"没登录＝现在只能用算法版"的提示 */
+  .ai-guestbar{display:flex;align-items:center;gap:9px;background:#fff7ec;border:1px solid #f2ddc6;border-radius:14px;padding:10px 12px;margin-top:14px;font-size:12.5px;line-height:1.6;color:#5a4636}
+  .ai-guestbar .gb-btn{margin-left:auto;flex:0 0 auto;background:#ff6a3d;color:#fff;border:none;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;min-height:44px}
   .me-block{padding:13px 14px}
   .me-block + .me-block{border-top:1px solid #f8f0e8}
   .me-label{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px}
@@ -799,8 +802,8 @@
   <div class="me-card">
     <!-- 未登录：注册 / 登录。账号在后端，登录后口味、忌口、设置跟着账号走，换设备也能恢复 -->
     <div class="me-block" id="acctGuestBlock">
-      <div class="me-label"><span class="l-icon">☁️</span>登录账号（跨设备同步）</div>
-      <div class="me-hint">登录后：忌口、口味、设置都记在账号上，换手机也能恢复；不登录也能正常用，只是数据只在这台设备。</div>
+      <div class="me-label"><span class="l-icon">☁️</span>登录账号（解锁 AI 智能体）</div>
+      <div class="me-hint">不登录只用本地算法引擎：「推荐」和「AI 今日推荐」照常出结果，但和饭饭聊天、按聊天配菜、菜的来历讲解都用不了。登录后解锁完整的 AI 智能体，忌口、口味、设置也记在账号上，换手机能恢复。</div>
       <label class="field" for="acctUserTop">用户名</label>
       <input type="text" id="acctUserTop" placeholder="2-20 个字符" autocomplete="username">
       <label class="field" for="acctPassTop">密码</label>
@@ -1092,6 +1095,9 @@
     <p class="sub">陪你聊各地的吃——这道菜什么来头、哪个菜系什么脾气、两个人多少钱够。想让我直接出方案，就按下面那个按钮。</p>
   </header>
 
+  <!-- 没登录时的提示条（登录后自动消失）：说清"现在能用什么、登录能多什么" -->
+  <div class="ai-guestbar hidden" id="aiGuestBar"></div>
+
   <!-- 每日一道：按"今天 + 你"挑，同一天同一个人不变 -->
   <div class="ai-daily" id="aiDaily"></div>
 
@@ -1124,6 +1130,12 @@
 <div class="sheet" id="aiSheet" role="dialog" aria-modal="true">
   <div class="sheet-mask" id="aiSheetMask"></div>
   <div class="sheet-card" id="aiSheetCard"></div>
+</div>
+
+<!-- 开屏提醒：不登录只能用算法引擎，登录才解锁 AI 智能体 -->
+<div class="sheet" id="loginSheet" role="dialog" aria-modal="true">
+  <div class="sheet-mask" id="loginSheetMask"></div>
+  <div class="sheet-card" id="loginSheetCard"></div>
 </div>
 
 <!-- AI 记忆全记录（从「我的 → AI 记忆」三块点进来） -->
@@ -2466,6 +2478,13 @@ const DEFAULT_AMAP_KEY = '80103a929a6ae30846c107baaf7b55db';                    
 //     注：这个文件会被分享给别人，Key 也会跟着一起被看到，别放太贵重的额度
 const DEFAULT_KEY = 'sk-a2db95512d7c4990a5c41b3f340c9e8a';      // ← ② DeepSeek Key 填这里
 
+/* 未登录的人能不能用大模型：
+ *   true  = 不登录只能用本地算法引擎（开屏会提醒去登录），登录后才解锁 AI 智能体；
+ *   false = 只弹提醒、不真拦（游客照旧能调大模型，内置那把 Key 会被游客花掉）。
+ * 默认真拦的两个理由：① 开屏那句"不登录只能用算法"才不是骗人的；
+ *                    ② 这样游客就不会消耗内置的 DeepSeek Key，登录的人走后端账号的额度。 */
+const GUEST_LLM_LOCK = true;
+
 //  ③ 城市：在页面上用下拉框切换即可；要增删城市改下面的 CITIES 表
 //     （每个城市的 landmarks 快捷地址 / coords 粗略坐标 / areas 商圈关键词都在那张表里）
 /* ========================================================================== */
@@ -2612,6 +2631,12 @@ async function apiCall(path, opts){
 
 // 走不走后端：登录了 + 地址在 + 没被显式关掉
 function serverLlmOn(){ return !!apiBase() && state.settings.useServerLlm !== 'off' && !!getToken(); }
+// 是不是真的登录了：有账号身份、手里还有后端发的令牌
+function loggedIn(){ return state.identity.type === 'user' && !!getToken(); }
+/* 未登录的人要不要挡在大模型之外（见顶部 GUEST_LLM_LOCK）。
+ * 挡的只是"大模型"这一条线：本地算法引擎、AI 今日推荐、联网搜店全都照常，
+ * 所以不登录的人打开就能用，只是这顿饭由本地规则算出来，不是大模型想出来的。 */
+function guestLocked(){ return GUEST_LLM_LOCK && !loggedIn(); }
 // 高德：后端上次明确不可用（amapOk === false）就不再试，免得每次都白等一轮
 function serverAmapOn(){ return !!apiBase() && state.settings.useServerAmap !== 'off' && state.server.amapOk !== false; }
 function identityLabel(){ return state.identity.type === 'user' ? ('已登录：' + state.identity.username) : '未登录（只用本机）'; }
@@ -6349,7 +6374,8 @@ function renderServerUI(){
   const parts = [];
   parts.push(apiBase() ? ('后端：' + apiBase().replace(/^https?:\/\//,'')) : '后端：未配置（纯本机模式）');
   parts.push(on ? '账号：已登录' : '账号：未登录');
-  parts.push('大模型：' + (serverLlmOn() ? '走后端代理' : '本机直连'));
+  parts.push(guestLocked() ? '大模型：未登录锁定（只能用算法引擎）'
+                           : ('大模型：' + (serverLlmOn() ? '走后端代理' : '本机直连')));
   parts.push('工具协议：' + (agentProtocol() === 'native' ? '原生' : '文字协议'));
   if(state.server.amapOk === false) parts.push('高德：后端不可用（' + (state.server.amapReason || '') + '）→ 已回退本机');
   else if(state.server.amapOk === true) parts.push('高德：走后端代理');
@@ -6413,6 +6439,13 @@ function readSettingsUI(){
  *   ② llmChat(system, user, {tools:AGENT_TOOLS}) —— 带工具定义，模型可以自己返回 tool_calls
  *   ③ llmChat(null, null, {messages:[…]})      —— 完整多轮消息（Agent 循环里回灌工具结果用） */
 async function llmChat(system, user, opts){
+  /* 未登录就拦在这里：Agent 决策、意图解析、推荐语润色、饭饭聊天、菜品讲解
+   * 全都从这一条路走，拦在出口上，别的入口就算漏了也发不出去请求。 */
+  if(guestLocked()){
+    const e = new Error('还没登录：大模型要登录后才能用，这一轮走的是本地算法引擎');
+    e.guestLocked = true;
+    throw e;
+  }
   const s = state.settings;
   const o = opts || {};
   const t0 = Date.now();
@@ -7563,12 +7596,15 @@ async function run(){
   /* 大模型有两条通道：本机直连（自带 Key）或后端代理（登录了就行，Key 在服务端）。
    * 以前只认"本机填了 Key"，接了后端之后那样会把 Agent 模式白白降级。 */
   const llmChannel = serverLlmOn() ? 'server' : (String(state.settings.key || '').trim() ? 'direct' : '');
-  const agentReady = agentWanted && state.settings.enabled === 'on' && !!llmChannel;
+  // 没登录的人不许走 Agent（见 GUEST_LLM_LOCK）：这不是"用不了"，是"还没解锁"
+  const agentReady = agentWanted && state.settings.enabled === 'on' && !!llmChannel && !guestLocked();
   const offline = (typeof navigator !== 'undefined' && navigator.onLine === false);
   if(agentWanted && !agentReady){
-    traceAdd('⚙️ 改用算法引擎', (state.settings.enabled !== 'on'
-      ? '大模型被关掉了'
-      : '没配大模型 Key、也没登录后端账号') + '，这一轮用本地规则引擎（结果一样有）', 'done');
+    traceAdd('⚙️ 改用算法引擎', guestLocked()
+      ? '还没登录：不登录只能用本地算法引擎，登录后就能让大模型自己调工具决策（结果一样有）'
+      : (state.settings.enabled !== 'on'
+        ? '大模型被关掉了'
+        : '没配大模型 Key、也没登录后端账号') + '，这一轮用本地规则引擎（结果一样有）', 'done');
   }else if(agentReady && offline){
     traceAdd('⚙️ 改用算法引擎', '浏览器报告当前离线，用本地规则引擎（不联网、不花 token）', 'done');
   }else if(agentReady){
@@ -7985,6 +8021,20 @@ function renderAiPage(){
   renderAiDaily();
   renderAiChat();
   renderAiLoc();
+  renderAiGuestBar();
+}
+/* 没登录时在「饭饭AI」页顶上挂一条提示：能用什么、登录能多什么。
+ * 登录之后自己消失——不用去别的地方找开关。 */
+function renderAiGuestBar(){
+  const el = $('#aiGuestBar');
+  if(!el) return;
+  if(!guestLocked()){ el.classList.add('hidden'); el.innerHTML = ''; return; }
+  el.classList.remove('hidden');
+  el.innerHTML = '<span>🔒 现在没登录，用的是<b>算法版</b>：下面「AI 今日推荐」照常每天换一道；' +
+    '和饭饭聊天、按聊天配菜、讲菜的来历要登录。</span>' +
+    '<button type="button" class="gb-btn" id="aiGuestGo">去登录</button>';
+  const go = $('#aiGuestGo');
+  if(go) go.onclick = () => switchTab('me');
 }
 function renderAiDaily(){
   const box = $('#aiDaily');
@@ -8046,7 +8096,10 @@ function aiSheetHTML(dish, info, loading){
     '</div>' +
     '<div class="sheet-sec"><div class="st">📖 这道菜的来历</div>' +
       '<div class="sc" id="aiStoryBox">' + (loading ? '正在取…' : esc((info && info.story) || aiLocalStory(dish))) + '</div>' +
-      ((info && info.src === 'llm') ? '' : '<div style="margin-top:7px"><button type="button" class="sheet-reload" id="aiStoryRetry">重新讲解</button></div>') +
+        ((info && info.src === 'llm') ? ''
+          : (guestLocked()
+            ? '<div class="sc dim" style="margin-top:8px">🔒 上面这句是本地写的一句话。登录之后，饭饭会把这道菜真正的来历、名字怎么来的、做法上有什么讲究讲给你听。</div>'
+            : '<div style="margin-top:7px"><button type="button" class="sheet-reload" id="aiStoryRetry">重新讲解</button></div>')) +
     '</div>' +
     '<div class="sheet-sec' + ((info && info.cui) ? '' : ' hidden') + '" id="aiCuiSec"><div class="st">🍲 这个菜系</div>' +
       '<div class="sc" id="aiCuiBox">' + esc((info && info.cui) || '') + '</div></div>' +
@@ -8126,12 +8179,59 @@ function closeAiSheet(){
   document.body.style.overflow = '';
 }
 
+/* ---------- 开屏提醒：不登录只能用算法引擎 ----------
+ * 「强制提醒」= 每次打开页面都弹一次（未登录时），必须点一个按钮才收起来；
+ * 点了「先不登录」只记在这一次会话里（刷新还会再弹），登录之后就永远不弹了。 */
+function renderLoginSheet(){
+  const card = $('#loginSheetCard');
+  if(!card) return;
+  card.innerHTML =
+    '<div class="sheet-grab"></div>' +
+    '<div class="sheet-head">' +
+      '<div class="sheet-face">🍚</div>' +
+      '<div><div class="sheet-name">登录一下，饭饭能更懂你</div>' +
+      '<div class="sheet-meta">不登录也能用，只是只能用算法版</div></div>' +
+    '</div>' +
+    '<div class="sheet-sec"><div class="st">不登录（算法版）</div>' +
+      '<div class="sc">· 「推荐」照常能用：按档位、类别、口味和一句话需求，用本地规则打分配一桌菜\n' +
+      '· 「AI 今日推荐」照常能用：每天给你换一道不一样的菜\n' +
+      '· 但这几样要登录：和饭饭聊饮食文化、根据聊天配菜、菜的来历讲解、让大模型自己决策</div></div>' +
+    '<div class="sheet-sec"><div class="st">登录之后</div>' +
+      '<div class="sc">· 解锁 AI 智能体：大模型自己读记忆、搜菜、搜店、查菜单，再配一桌\n' +
+      '· 饭饭能陪你聊各地饮食、按聊天给你推荐菜、讲每道菜的来历\n' +
+      '· 口味、忌口、吃过什么都记在账号上，换台设备打开还在</div></div>' +
+    '<div class="row" style="margin-top:14px">' +
+      '<button type="button" class="btn" id="loginSheetGo">去登录 / 注册</button>' +
+      '<button type="button" class="btn ghost" id="loginSheetSkip">先不登录，用算法版</button>' +
+    '</div>' +
+    '<p class="note">账号只用来存你的口味和忌口，不登录一样不耽误这顿饭。</p>';
+  const go = $('#loginSheetGo');
+  if(go) go.onclick = () => { closeLoginSheet(); switchTab('me'); const u = $('#acctUserTop'); if(u){ try{ u.focus(); }catch(e){} } };
+  const skip = $('#loginSheetSkip');
+  if(skip) skip.onclick = () => closeLoginSheet();
+}
+function openLoginSheet(){
+  const sheet = $('#loginSheet');
+  if(!sheet) return;
+  renderLoginSheet();
+  sheet.classList.add('show');
+}
+function closeLoginSheet(){
+  const sheet = $('#loginSheet');
+  if(sheet) sheet.classList.remove('show');
+  state._guestNoticeSeen = true;      // 本次会话不再打扰，刷新后重新提醒
+}
+// 开屏调一次：未登录才弹；登录过的人一辈子不弹
+function maybeShowGuestNotice(){ if(guestLocked() && !state._guestNoticeSeen) openLoginSheet(); }
+
 /* ---------- 聊天 ---------- */
 function aiLlmReady(){
+  if(guestLocked()) return false;                 // 未登录：聊天这条线不开（见 GUEST_LLM_LOCK）
   if(state.settings.enabled !== 'on') return false;
   return serverLlmOn() || !!String(state.settings.key || '').trim();
 }
 function aiChannelLabel(){
+  if(guestLocked()) return '未登录（现在只能用算法版）';
   if(serverLlmOn()) return '后端代理（' + (state.identity.type === 'user' ? '账号已登录' : '已连接') + '）';
   return '本机直连';
 }
@@ -8254,6 +8354,17 @@ async function aiSend(){
   if(!el) return;
   const text = String(el.value || '').trim();
   if(!text) return;
+  /* 未登录：不装作"出错了"，直接把规矩说清楚，输入框里的字留着，登录回来还能发 */
+  if(guestLocked()){
+    const last = aiState.msgs[aiState.msgs.length - 1];
+    const tip = '饭饭的聊天要登录后才能用哦。\n' +
+      '不登录也能用：「推荐」和「AI 今日推荐」跑的是本地算法引擎，一样能配出一桌菜。\n' +
+      '去「我的 › 我的账号」登录一下，就能和饭饭聊了。';
+    if(!last || last.text !== tip) aiPush({ role:'ai', kind:'note', text: tip });
+    renderAiChat(); aiScrollBottom();
+    toast('未登录：现在只能用算法版');
+    return;
+  }
   if(!aiLlmReady()){ toast('先在「我的 › 联网与模型设置」里打开大模型，或者登录后端账号'); return; }
   el.value = ''; el.style.height = 'auto';
   aiPush({ role:'me', kind:'text', text });
@@ -8368,7 +8479,8 @@ async function aiDecideWithIntent(it, opts){
   let built = null, how = '';
   const offline = (typeof navigator !== 'undefined' && navigator.onLine === false);
   const llmChannel = serverLlmOn() ? 'server' : (String(state.settings.key || '').trim() ? 'direct' : '');
-  const agentReady = state.settings.agent === 'agent' && state.settings.enabled === 'on' && !!llmChannel && !offline;
+  // 同 runAgentFlow：没登录的人不解锁 Agent，安静地落到下面的算法引擎
+  const agentReady = state.settings.agent === 'agent' && state.settings.enabled === 'on' && !!llmChannel && !offline && !guestLocked();
   if(agentReady){
     try{
       let brief = {};
@@ -8491,7 +8603,10 @@ function aiToggleGeo(){
 }
 async function aiMakeCombo(opts){
   if(aiState.sending || state.running) return;
-  if(!aiLlmReady()){ toast('先在「我的 › 联网与模型设置」里打开大模型，或者登录后端账号'); return; }
+  /* 未登录（guestLocked）也照样能让按——这条链路本来就有本地兜底：
+   * 意图解析退回词表规则，配菜走算法引擎，所以「不登录＝只能用算法」不是把功能砍掉，
+   * 而是"能出结果、但由本地规则算"。真正拦住的是"大模型被关掉又没登录"那种情况。 */
+  if(!aiLlmReady() && !guestLocked()){ toast('先在「我的 › 联网与模型设置」里打开大模型，或者登录后端账号'); return; }
   const said = aiState.msgs.some(m => m.role === 'me' && m.kind === 'text' && m.text);
   if(!said){
     toast('先跟我说两句想吃什么（比如「想吃辣的，两个人 80 块」），再点这个按钮');
@@ -8644,6 +8759,9 @@ function init(){
   if(aiMsgs) aiMsgs.addEventListener('click', onAiMsgsClick);
   const aiSheetMask = $('#aiSheetMask');
   if(aiSheetMask) aiSheetMask.addEventListener('click', closeAiSheet);
+  // 开屏那张「不登录只能用算法版」的提醒：点遮罩等于「先不登录」，但要点一下才算关掉
+  const loginSheetMask = $('#loginSheetMask');
+  if(loginSheetMask) loginSheetMask.addEventListener('click', closeLoginSheet);
   const aiSheetCard = $('#aiSheetCard');
   if(aiSheetCard) aiSheetCard.addEventListener('click', e => {
     const id = e.target && e.target.id;
@@ -8883,9 +9001,10 @@ function init(){
       if($('#acctPassTop')) $('#acctPassTop').value = '';
       await loadShopDb().catch(()=>{});
       renderSettingsUI(); renderProfile(); renderChips(); renderSpiceSeg(); renderTierSeg(); renderAccountUI();
+      renderAiPage();          // 「饭饭AI」那条"没登录只能用算法版"的提示要跟着登录状态消失
       const nm = (state.profile.allergies || []).length;
       toast('✅ ' + (kind === 'register' ? '注册成功' : '登录成功') + '：' + msg +
-            '（这个账号的忌口：' + (nm ? nm + ' 项' : '暂无') + '）');
+            '（这个账号的忌口：' + (nm ? nm + ' 项' : '暂无') + '）· AI 智能体已解锁');
     }catch(err){
       // 409 = 用户名已被注册过，直接引导去登录，别让用户一脸问号
       const taken = /409|已存在|已注册|duplicate/i.test(err.message);
@@ -8903,7 +9022,8 @@ function init(){
     readSettingsUI();
     logoutAccount();
     renderSettingsUI(); renderAccountUI();
-    toast('已退出登录，接下来只用本机数据');
+    renderAiPage();            // 退出登录就又回到算法版，提示条要回来
+    toast('已退出登录：数据回到本机，AI 智能体也要重新登录才能用');
   });
   if($('#btnSyncTop')) $('#btnSyncTop').addEventListener('click', async e => {
     const b = e.currentTarget, old = b.textContent;
@@ -8959,6 +9079,10 @@ function init(){
   if(!state.profile.city){
     setTimeout(() => toast('还没选择城市，去「我的 › 我的习惯」里选一个'), 700);
   }
+
+  /* 开屏提醒：没登录的人先说清楚"现在能用什么、登录能多什么"。
+   * 直接弹，不等任何异步——这是产品要的"强制提醒"，不是等条件满足才提示。 */
+  setTimeout(maybeShowGuestNotice, 450);
 
   // 商家数据库：进页面就加载一次（有 data/shops.json 就用它，没有就用内置快照；
   // 加载失败也只是"没有真实菜单"，推荐流程照旧）

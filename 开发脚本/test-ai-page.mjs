@@ -74,6 +74,7 @@ new Function('document','localStorage','requestAnimationFrame','fetch','navigato
          'aiNormalizeIntent,aiLocalIntent,onAiMsgsClick,openAiSheet,closeAiSheet,aiSheetHTML,aiMsgHTML,aiComboHTML,' +
          'aiComboToCombo,recordCombo,hardFilter,dishById,DISHES,RESTAURANTS,applyCity,AI_SPICY,AI_KEEP_MSGS,' +
          'geolocate,geolocateMe,aiAskGeo,aiGeoNote,aiToggleGeo,renderAiLoc,hasPreciseLoc,aiNewChat,renderAiChat,' +
+         'guestLocked,renderAiGuestBar,maybeShowGuestNotice,openLoginSheet,closeLoginSheet,' +
          'get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch, navigator);
 const M = globalThis.__a;
@@ -105,6 +106,17 @@ M.state.running = false;
   M.RESTAURANTS.push({ id:'test-shop', name:'测试餐厅（万能）', area:'裕华路', cui, tags, avg:40, rating:4.5, delivery:true, sig:[] });
 }
 
+/* 规矩：不登录只能用算法引擎（GUEST_LLM_LOCK），所以这个用例先切成"已登录"——
+ * 一~八节测的都是登录之后的完整能力；未登录那一套单独放在最后一节。
+ * 通道钉在「本机直连」：这样请求走上面的假大模型，不受后端代理影响。 */
+const asUser = () => {
+  M.state.identity = { type:'user', id:'u-test', username:'测试账号' };
+  store.set('eatAgent.token.v1', 'fake.jwt');
+  M.state.settings.useServerLlm = 'off';
+};
+const asGuest = () => { M.state.identity = { type:'guest' }; store.delete('eatAgent.token.v1'); };
+asUser();
+
 console.log('=== 一、底部三个 Tab ===');
 ok(!!$('#tabAi'), '底部多了一个「饭饭AI」Tab');
 M.switchTab('ai');
@@ -117,11 +129,19 @@ M.switchTab('home');
 ok($('#pageAi').classList.contains('hidden') && !$('#tabAi').classList.contains('active'), '切回推荐页后饭饭AI 收起来');
 
 console.log('\n=== 二、AI 今日推荐：每天每人一道，但不能是忌口菜 ===');
-const pickFor = dev => { store.set('eatAgent.aidevice.v1', dev); M.aiState.hist = []; return M.aiPickDailyDish(); };
+  /* "换一个人"在新版规下要换账号（登录后 aiUserKey 认的是账号，不认设备串），
+   * 所以这里顺便把身份也换掉；设备串照旧动一下，保证两条路都不串味。 */
+  const pickFor = dev => {
+    store.set('eatAgent.aidevice.v1', dev);
+    M.state.identity = { type:'user', id:'u-' + dev, username:dev };
+    M.aiState.hist = [];
+    return M.aiPickDailyDish();
+  };
 const d1 = pickFor('dev-alpha'), d1b = pickFor('dev-alpha');
 ok(!!d1 && d1.id === d1b.id, '同一个人的同一天：挑出来的菜是固定的（不会刷新一次换一道）');
 const picks = new Set(['dev-a', 'dev-b', 'dev-c', 'dev-d', 'dev-e', 'dev-f', 'dev-g', 'dev-h'].map(d => pickFor(d).id));
 ok(picks.size >= 2, '换一个用户就会换菜（8 个设备挑出 ' + picks.size + ' 种不同的菜）');
+  pickFor('dev-alpha'); asUser();          // 后面几节回到"测试账号"
 ok(M.aiRnd('2026-09-25|d01') === M.aiRnd('2026-09-25|d01'), '确定性伪随机：同样的种子永远同样的结果');
 ok(M.aiRnd('2026-09-25|d01') !== M.aiRnd('2026-09-26|d01'), '换一天就是另一个种子（今日推荐不会天天一样）');
 {
@@ -418,6 +438,76 @@ console.log('\n=== 八、「新对话」：只清聊天，长期记忆一根汗�
   ok(M.aiState.msgs.length === 1, '一轮没跑完时点「新对话」不生效');
   ok($('#toast').textContent.indexOf('等这一轮') !== -1, '并且说清为什么不动：' + $('#toast').textContent);
   M.state.running = false;
+}
+
+console.log('\n=== 九、不登录＝只能用算法版（开屏提醒的那条规矩）===');
+{
+  asGuest();
+  M.aiState.msgs = []; M.aiState.seq = 0;
+  M.state.running = false;
+  ok(M.guestLocked() === true, '未登录 → 大模型这条线整体锁着');
+
+  // ① 开屏提醒：未登录才弹，必须点一个按钮才收
+  M.state._guestNoticeSeen = false;
+  M.maybeShowGuestNotice();
+  ok($('#loginSheet').classList.contains('show'), '开屏弹出提醒');
+  const sheetTxt = $('#loginSheetCard').innerHTML;
+  ok(sheetTxt.includes('算法版') && sheetTxt.includes('登录之后'), '提醒里写清了：不登录能用什么、登录能多什么');
+  ok(sheetTxt.includes('AI 今日推荐'), '连"不登录也能用"的具体功能都点了名');
+  ok(typeof $('#loginSheetGo').onclick === 'function' && typeof $('#loginSheetSkip').onclick === 'function',
+     '两个出口都在：去登录 / 先不登录');
+  $('#loginSheetSkip').onclick();
+  ok(!$('#loginSheet').classList.contains('show'), '点「先不登录」能收起来');
+  ok(M.state._guestNoticeSeen === true, '收起来后本次会话不再打扰（刷新还会再提醒）');
+  M.closeLoginSheet();
+  M.maybeShowGuestNotice();
+  ok(!$('#loginSheet').classList.contains('show'), '点过一次之后，同一次会话里不再弹');
+
+  // ② 「饭饭AI」页顶上的提示条
+  M.renderAiGuestBar();
+  ok(!$('#aiGuestBar').classList.contains('hidden'), '饭饭AI 页顶上挂出"现在没登录"的提示条');
+  ok($('#aiGuestBar').innerHTML.includes('算法版'), '提示条写明现在用的是算法版');
+
+  // ③ 聊天：一个请求都不发，只给一条说明（不是报错）
+  $('#aiInput').value = '江西菜为什么这么辣';
+  const before9 = llmBodies.length;
+  await M.aiSend();
+  ok(llmBodies.length === before9, '未登录点发送：一个请求都没发出去');
+  ok(M.aiState.msgs.length === 1 && M.aiState.msgs[0].kind === 'note', '聊天里给一条说明，而不是报错');
+  ok(M.aiState.msgs[0].text.includes('登录'), '说明里指出了要登录：' + M.aiState.msgs[0].text.split('\n')[0]);
+  ok($('#aiInput').value === '江西菜为什么这么辣', '输入框里的字留着，登录回来还能发');
+
+  // ④ 今日推荐照常：算法版也能每天换一道
+  M.aiState.dishId = ''; M.renderAiDaily();
+  ok($('#aiDaily').innerHTML.length > 0, '不开大模型，「AI 今日推荐」照样出卡片');
+
+  // ⑤ 菜的来历：给本地那句，并写清登录后能听讲解
+  const gDish = M.aiPickDailyDish();
+  M.openAiSheet(gDish);
+  await tick(60);
+  const sheetHtml = $('#aiSheetCard').innerHTML;
+  ok(sheetHtml.includes('本地写的一句话'), '未登录时菜的来历是本地那句，并标明要登录才讲得细');
+  ok(!sheetHtml.includes('aiStoryRetry'), '未登录不给「重新讲解」按钮（点了也调不动大模型）');
+  M.closeAiSheet();
+
+  // ⑥ 根据聊天推荐菜：照常出方案，走的是算法引擎
+  M.aiState.msgs = []; M.aiState.seq = 0;
+  M.aiState.msgs.push({ id:'m1', role:'me', kind:'text', text:'想吃辣的' });
+  await M.aiMakeCombo({});
+  await tick(20);
+  const gCombo = M.aiState.msgs.filter(m => m.kind === 'combo').slice(-1)[0];
+  ok(!!gCombo, '未登录也能按聊天配一桌（算法引擎）');
+  ok(!!gCombo && String(gCombo.combo.how || gCombo.combo.who || '').length >= 0, '方案照样落地');
+
+  // ⑦ 登录回来：提示条消失、聊天恢复
+  asUser();
+  M.renderAiGuestBar();
+  ok($('#aiGuestBar').classList.contains('hidden'), '登录后提示条自己消失');
+  M.aiState.msgs = []; M.aiState.seq = 0;
+  $('#aiInput').value = '再来聊聊江西菜';
+  const before9b = llmBodies.length;
+  await M.aiSend();
+  ok(llmBodies.length === before9b + 1, '登录后聊天又能调大模型了');
 }
 
 console.log('\n' + (fail ? '❌ 共 ' + fail + ' 条断言失败' : '✅ 饭饭AI 页面全部通过'));

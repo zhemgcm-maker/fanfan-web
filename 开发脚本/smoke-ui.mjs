@@ -213,6 +213,16 @@ try {
 
 // ---------- 大模型接入路径 ----------
 console.log('\n--- DeepSeek 接入路径 ---');
+/* 这一节要"登录 + 本机直连"：
+ * ① 新版规——不登录只能用算法引擎（GUEST_LLM_LOCK），不登录的话大模型一个请求都不发；
+ * ② 通道钉在本机直连，请求才会走上面那个假 DeepSeek（后端代理那一路由 test-server 专测）。 */
+const asUser = () => {
+  api.state.identity = { type:'user', id:'u-smoke', username:'烟雾测试' };
+  localStorage.setItem('eatAgent.token.v1', 'fake.jwt');
+  api.state.settings.useServerLlm = 'off';
+};
+const asGuest = () => { api.state.identity = { type:'guest' }; localStorage.removeItem('eatAgent.token.v1'); };
+asUser();
 assert(api.state.settings.provider === 'deepseek', '默认服务商是 DeepSeek');
 assert(api.state.settings.base === 'https://api.deepseek.com/v1', '默认接口地址正确');
 assert(api.state.settings.model === 'deepseek-chat', '默认模型是 deepseek-chat');
@@ -492,6 +502,27 @@ try {
   assert(api.state.profile.city === 'baoding', '城市选择写入偏好（localStorage）');
 } catch (err) {
   assert(false, '城市切换异常：' + err.message);
+}
+
+/* ---------- 未登录：只能用算法引擎，但结果照常有 ---------- */
+console.log('\n--- 未登录（开屏提醒的那条规矩）---');
+try {
+  asGuest();
+  mock.mode = 'ok'; mock.calls = 0; mock.llmCalls = 0;
+  api.state.settings.enabled = 'on';        // 大模型开着，但人没登录
+  api.state.settings.key = '';
+  api.state.settings.useServerLlm = 'auto';
+  api.state.settings.amapKey = 'fake-amap-key';   // 和「联网搜索」那节同一个口径，才拿得到保定那 8 家店
+  api.changeCity('baoding');
+  Object.assign(api.state, { tier:'mid', cat:'other', spiceMax:3, mode:'delivery', address:'保定市裕华路步行街', craveTags:['想吃肉'], seed:1, budget:60 });
+  api.state.profile.allergies = [];
+  api.state.profile.history = [];
+  await api.run();
+  await new Promise(r => setTimeout(r, 3000));
+  assert(document.querySelector('#result').innerHTML.includes('就吃这一桌'), '未登录也照样配出一桌（走算法引擎）');
+  assert(mock.llmCalls === 0, '未登录这一轮一次大模型都没调（不花 token）');
+} catch (err) {
+  assert(false, '未登录路径异常：' + err.message);
 }
 
 console.log('\n' + (errors.length ? '❌ 失败 ' + errors.length + ' 项' : '✅ 全部交互路径通过'));
