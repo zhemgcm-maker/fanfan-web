@@ -466,7 +466,11 @@ try {
 
 console.log('\n--- 城市切换（离线店库已清空）---');
 try {
-  assert(Object.keys(api.CITIES).length === 3, '城市表里有 3 个城市：' + Object.keys(api.CITIES).join('/'));
+  // 城市表允许继续加（每加一个城市只要在 CITIES 里补一条），所以这里断言"该有的都在"，不锁死数量
+  assert(['baoding','beijing','fuzhou','xiamen'].every(k => !!api.CITIES[k]),
+         '城市表里有：' + Object.keys(api.CITIES).join('/'));
+  assert(api.CITIES.xiamen.name === '厦门市' && api.CITIES.xiamen.adcode === '350200',
+         '厦门市的名称与 adcode 正确（定位到厦门能自动切过去）');
   assert(Object.values(api.CITIES).every(c => c.offline === false), '所有城市都没有离线店库（offline 全为 false）');
 
   // 保定：离线店库已删除，选店只能靠联网
@@ -495,6 +499,15 @@ try {
   await api.run();
   await new Promise(r => setTimeout(r, 3000));
   assert(document.querySelector('#result').innerHTML.indexOf('这次没搜到饭店') !== -1, '没网时页面提示「这次没搜到饭店」');
+
+  // 厦门（新加的城市）：能选中，地标/坐标/商圈都要跟着切过去
+  api.changeCity('xiamen');
+  assert(api.CITY.name === '厦门市' && api.CITY.adcode === '350200', '切到厦门：CITY 已换成厦门（adcode 350200）');
+  assert(api.CITY.landmarks.indexOf('鼓浪屿') !== -1, '厦门的地标快捷地址已生效（鼓浪屿）');
+  assert(Array.isArray(api.CITY.coords['厦门北站']) && api.CITY.coords['厦门北站'].length === 2,
+         '厦门的地标有兜底坐标（没 Key 时也能定位）');
+  assert(JSON.stringify(api.CITY.areas).indexOf('思明') !== -1, '厦门的商圈关键词已生效');
+  assert(api.state.address === '', '切到厦门后旧地址被清空');
 
   // 切回保定
   api.changeCity('baoding');
