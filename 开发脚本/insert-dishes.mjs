@@ -43,7 +43,15 @@ for(; i < src.length; i++){
 }
 if(closeIdx === -1){ console.error('没找到 dishes 数组的结尾，未插入'); process.exit(1); }
 
-src = src.slice(0, closeIdx) + lines + '\n  ' + src.slice(closeIdx);
+/* 数组最后一个元素后面是没有逗号的（正常写法），直接往它后面接新元素会变成 `} {` 语法错误。
+ * 所以先看收尾括号前面最后一个可见字符：不是逗号（也不是刚开的括号）就补一个。 */
+let head = src.slice(0, closeIdx);
+const tailChar = /(\S)(\s*)$/.exec(head);
+if(tailChar && tailChar[1] !== ',' && tailChar[1] !== '['){
+  head = head.slice(0, tailChar.index + 1) + ',' + tailChar[2];
+}
+
+src = head + lines + '\n  ' + src.slice(closeIdx);
 fs.writeFileSync(dbFile, src, 'utf8');
 console.log('已插入 ' + fresh.length + ' 道新菜（' + fresh[0].id + ' … ' + fresh[fresh.length - 1].id + '）');
 console.log('写入的是 ' + dbFile + '（index.html 不用改）');

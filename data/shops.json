@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-25",
+  "updatedAt": "2026-09-30",
   "shops": [
     {
       "id": "local-兰湘子",
@@ -2275,6 +2275,151 @@
           "cat": "凉菜",
           "dishId": "pg15",
           "kbName": "凉拌黄瓜"
+        }
+      ],
+      "uncertain": []
+    },
+    {
+      "id": "local-醉花小岸",
+      "name": "醉花小岸",
+      "city": "保定",
+      "scope": "brand",
+      "amapId": "",
+      "branchName": "醉花小岸(未来石店)",
+      "cuisineRef": [
+        "川"
+      ],
+      "cuisineRefKeys": [
+        "烤鱼",
+        "纸包鱼",
+        "鱼火锅",
+        "青花椒烤鱼",
+        "醉花小岸"
+      ],
+      "cuisineRefWhole": true,
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-09-30",
+      "image": "",
+      "menu": [
+        {
+          "name": "经典麻辣烤鱼",
+          "price": 138,
+          "cat": "烤鱼",
+          "dishId": "zhxa01",
+          "kbName": "经典麻辣烤鱼"
+        },
+        {
+          "name": "青花椒烤鱼",
+          "price": 138,
+          "cat": "烤鱼",
+          "dishId": "zhxa02",
+          "kbName": "青花椒烤鱼"
+        },
+        {
+          "name": "重庆泡椒烤鱼",
+          "price": 138,
+          "cat": "烤鱼",
+          "dishId": "zhxa03",
+          "kbName": "重庆泡椒烤鱼"
+        },
+        {
+          "name": "酱香味烤鱼",
+          "price": 138,
+          "cat": "烤鱼",
+          "dishId": "zhxa04",
+          "kbName": "酱香味烤鱼"
+        },
+        {
+          "name": "蒜香味烤鱼",
+          "price": 138,
+          "cat": "烤鱼",
+          "dishId": "zhxa05",
+          "kbName": "蒜香味烤鱼"
+        },
+        {
+          "name": "香辣荔枝味烤鱼",
+          "price": 138,
+          "cat": "烤鱼",
+          "dishId": "zhxa06",
+          "kbName": "香辣荔枝味烤鱼"
+        },
+        {
+          "name": "甜麻花甲味烤鱼",
+          "price": 138,
+          "cat": "烤鱼",
+          "dishId": "zhxa07",
+          "kbName": "甜麻花甲味烤鱼"
+        },
+        {
+          "name": "清江鱼",
+          "price": 138,
+          "cat": "烤鱼",
+          "dishId": "zhxa08",
+          "kbName": "清江鱼"
+        },
+        {
+          "name": "成都小酥肉",
+          "price": 18,
+          "cat": "小吃",
+          "dishId": "zhxa09",
+          "kbName": "成都小酥肉"
+        },
+        {
+          "name": "红糖糍粑",
+          "price": 18,
+          "cat": "甜品",
+          "dishId": "cq68",
+          "kbName": "红糖糍粑"
+        },
+        {
+          "name": "虾仁炒饭",
+          "price": 16,
+          "cat": "主食",
+          "dishId": "zhxa11",
+          "kbName": "虾仁炒饭"
+        },
+        {
+          "name": "麻辣鸭头",
+          "price": 38,
+          "cat": "热菜",
+          "dishId": "zhxa12",
+          "kbName": "麻辣鸭头"
+        },
+        {
+          "name": "当虾遇到鸡翅",
+          "price": 48,
+          "cat": "热菜",
+          "dishId": "zhxa13",
+          "kbName": "当虾遇到鸡翅"
+        },
+        {
+          "name": "干锅菜花",
+          "price": 26,
+          "cat": "热菜",
+          "dishId": "cn11",
+          "kbName": "干锅花菜"
+        },
+        {
+          "name": "馋嘴蛙",
+          "price": 68,
+          "cat": "热菜",
+          "dishId": "zhxa15",
+          "kbName": "馋嘴蛙"
+        },
+        {
+          "name": "菠萝蒜香鸡",
+          "price": 36,
+          "cat": "热菜",
+          "dishId": "zhxa16",
+          "kbName": "菠萝蒜香鸡"
+        },
+        {
+          "name": "方便面荷包蛋",
+          "price": 10,
+          "cat": "主食",
+          "dishId": "zhxa17",
+          "kbName": "方便面荷包蛋"
         }
       ],
       "uncertain": []
