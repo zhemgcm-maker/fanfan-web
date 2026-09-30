@@ -2929,6 +2929,19 @@ function scoreRestaurant(restaurant, dish, ctx){
  *   ② 没采集过 → 按菜系 + 经营品类标签推断（老办法）。
  * 注意菜单这条路是"收紧"而不是"放宽"：它只会让推荐更准，不会让某家店因为"有数据库"
  * 就多出本来不会做的菜。 */
+/* 「同类店整份借菜单」那一路的公共部分（胖哥俩肉蟹煲、醉花小岸这类店在程序里会被推成「家常」，
+ * 菜却按江浙/川写，逐道比菜系永远借不到，所以按店名/品类关键词认）。
+ * 抽出来是因为以前只有 shopCanMake 走了这条路，restaurantServes（配桌用的那个）没走——
+ * 于是界面上说"这家店能做你想吃的"，点进去配桌却判"做不了"，最后端出一桌不相关的菜。 */
+function refWholeKeys(ref){ return (ref && (ref.wholeKeys || (ref.cuisineRefWhole ? ref.cuisineRefKeys : null))) || []; }
+function shopTextOf(shop){ return String((shop && shop.name) || '') + ' ' + ((shop && shop.tags) || []).join(' ') + ' ' + ((shop && shop.type) || ''); }
+function refServes(shop, dish){
+  const ref = cuisineRefFor(shop);
+  if(!ref) return false;
+  const keys = refWholeKeys(ref);
+  if(keys.length && keys.some(k => k && shopTextOf(shop).indexOf(k) !== -1) && menuHasDish(ref, dish)) return true;
+  return (shop.cui || []).includes(dish.cui) && menuHasDish(ref, dish);
+}
 function restaurantServes(restaurant, dish){
   if(restaurant.sig.includes(dish.id)) return true;
   const db = dbShopForCached(restaurant);
@@ -2939,11 +2952,10 @@ function restaurantServes(restaurant, dish){
    * 能多认一道菜，绝不会因为"菜单里没有"就否决（那不是这家店的菜单）。
    * 另外只认同菜系的菜：川菜馆借了女掌柜的菜单，也不能因此"会做湘菜"——
    * 那会破坏"店与菜按菜系对口"这条底线（实测就栽在菜单里那道湘菜「农家一碗香」上）。 */
-  const ref = cuisineRefFor(restaurant);
-  const refHit = !!(ref && restaurant.cui.includes(dish.cui) && menuHasDish(ref, dish));
-  if(!restaurant.cui.includes(dish.cui)) return refHit;
+  if(refServes(restaurant, dish)) return true;
+  if(!restaurant.cui.includes(dish.cui)) return false;
   // 标签交集：单字标签（如"西""辣"）只允许完全相同，避免"西"误配"西餐"
-  return refHit || (restaurant.tags || []).some(t => dish.tags.some(dt =>
+  return (restaurant.tags || []).some(t => dish.tags.some(dt =>
     dt === t || (t.length >= 2 && dt.indexOf(t) !== -1) || (t.length >= 2 && t.indexOf(dt) !== -1)
   ));
 }
@@ -2951,7 +2963,17 @@ function restaurantServes(restaurant, dish){
 function shopMenuSource(restaurant){
   const db = dbShopForCached(restaurant);
   const dishes = db ? dbMenuDishes(db) : null;
-  return (dishes && dishes.length) ? { dishes, db } : null;
+  if(dishes && dishes.length) return { dishes, db };
+  /* 自己没采过菜单、但被 cuisineRefKeys 认成"同类店"（烤鱼、肉蟹煲这类）：
+   * 整份借参照菜单当它的菜单。以前这里只认"自己的菜单"，配桌时会退回"全库按菜系推断"，
+   * 于是烤鱼店里给你配出保定家常菜——界面上写着能做你想吃的，配出来却是另一桌。 */
+  const ref = cuisineRefFor(restaurant);
+  const keys = refWholeKeys(ref);
+  if(ref && keys.length && keys.some(k => k && shopTextOf(restaurant).indexOf(k) !== -1)){
+    const rd = dbMenuDishes(ref);
+    if(rd.length) return { dishes: rd, db: ref, borrowed: true };
+  }
+  return null;
 }
 
 /* "这家店能不能做这道菜"的统一入口。
@@ -2961,20 +2983,9 @@ function shopCanMake(shop, dish){
   if(!shop || !dish) return false;
   const db = dbShopForCached(shop);
   if(db) return menuHasDish(db, dish);
-  if(restaurantServes(shop, dish) || (shop.cui || []).includes(dish.cui)) return true;
-  const ref = cuisineRefFor(shop);
-  if(!ref) return false;
-  /* 同类店参照（cuisineRefWhole）：被 cuisineRefKeys 关键词命中的店，可以整份借这份菜单，
-   * 不再逐道比菜的菜系。为什么需要这条：肉蟹煲这类店高德只给"中餐厅"，程序推出来是「家常」，
-   * 而煲类菜按江浙/川写——按菜系比就永远借不到（实测保定的钳哆/猫小猫/赖胖子全是「家常」）。
-   * 只对显式开了这个开关的记录生效，别的菜系参照仍按老口径（逐道比 cui），不会跨菜系串味。 */
-  const wholeKeys = ref.wholeKeys || (ref.cuisineRefWhole ? ref.cuisineRefKeys : null);
-  if(wholeKeys && wholeKeys.length){
-    const text = String(shop.name || '') + ' ' + (shop.tags || []).join(' ') + ' ' + (shop.type || '');
-    const byKey = wholeKeys.some(k => k && text.indexOf(k) !== -1);
-    if(byKey && menuHasDish(ref, dish)) return true;
-  }
-  return (shop.cui || []).includes(dish.cui) && menuHasDish(ref, dish);
+  /* 同类店参照（cuisineRefWhole）那条路已经在 restaurantServes → refServes 里了，
+   * 这里只保留"菜系对得上就算能做"这条更宽松的老口径（工具层/详情页用来判断"哪里能吃到"）。 */
+  return restaurantServes(shop, dish) || (shop.cui || []).includes(dish.cui);
 }
 
 /* ------------------------------ 6. 智能体主流程 ------------------------------ */
@@ -4749,12 +4760,21 @@ function renderResult(combo, meal, extra, online){
     ? dishShopOptions(state.lastRec, online, 6).filter(o => !combo.anchorDish || o.dish.id !== combo.anchorDish.id).slice(0, 5)
     : [];
   const shopChoices = (online && online.shops ? online.shops : [])
-    .map(sp => ({
-      shop: sp,
-      can: CANDIDATE_DISHES.filter(cd => shopCanMake(sp, cd)).length
-    }))
+    /* 判定必须和配桌用同一个（restaurantServes），并且把"到底能做哪几道"写出来：
+     * 以前这里算的是数量、用的是更宽松的 shopCanMake，于是"能做 5 道你想吃的"被读成
+     * "能做我想吃的烤鱼"，点进去才发现配的是别的菜（烤鱼店配出一桌保定家常菜）。 */
+    .map(sp => {
+      const canDishes = CANDIDATE_DISHES.filter(cd => restaurantServes(sp, cd));
+      return {
+        shop: sp,
+        can: canDishes.length,
+        names: canDishes.slice(0, 2).map(d => d.name),
+        hasAnchor: !!(combo.anchorDish && restaurantServes(sp, combo.anchorDish))
+      };
+    })
     .filter(x => x.can > 0 && x.shop.id !== r.id)
-    .sort((a, b) => (b.can - a.can) || (a.shop.km - b.shop.km))
+    // 能做出"你想吃的那道"的店排前面，其次才是能做更多道的、更近的
+    .sort((a, b) => (b.hasAnchor - a.hasAnchor) || (b.can - a.can) || ((a.shop.km || 99) - (b.shop.km || 99)))
     .slice(0, 6);
   const anchorName = combo.anchorDish ? combo.anchorDish.name : combo.items[0].dish.name;
   // 契合度四条：0-100 的百分比，条子长度就是数字（超 100 的按 100 算，别出现"105 分满条"）
@@ -4837,7 +4857,7 @@ function renderResult(combo, meal, extra, online){
           '<span class="a-emoji">🏠</span><span class="a-main">' +
             '<span class="a-name">' + esc(x.shop.name) + (x.shop.area ? '（' + esc(x.shop.area) + '）' : '') + '</span>' +
             '<span class="a-sub">' + x.shop.km + 'km ｜ 评分 ' + (x.shop.rating || '暂无') + ' ｜ 人均 ¥' + x.shop.avg +
-              ' ｜ 能做 ' + x.can + ' 道你想吃的</span>' +
+              ' ｜ 能做：' + esc(x.names.join('、')) + (x.can > x.names.length ? ' 等 ' + x.can + ' 道' : '') + '</span>' +
           '</span><span class="r-arrow">›</span></div>').join('') +
         '<p class="note" style="margin:6px 0 0">换店之后会按这家店重新配一桌菜（同一家店一次点齐）</p></div>'
       : '') + restartHTML();
@@ -5033,7 +5053,15 @@ function useShop(shopId){
   rememberShown(meal);
   state.lastResult = { combo: meal.best, meal, addr: state.address, online };
   renderResult(meal.best, meal, '', online);
-  toast('已换成「' + meal.best.restaurant.name + '」：' + meal.best.items.map(i => i.dish.name).join('＋'));
+  /* 兜底一句实话：万一这家店真做不了"你想吃的"，别让用户以为那一桌就是他要的 */
+  const wantHits = (rec.scored || []).concat(rec.mains || [])
+    .filter(x => ((x.hitTags || []).length + (x.textHits || []).length) > 0);
+  const gotWant = wantHits.some(x => meal.best.items.some(i => i.dish.id === x.dish.id));
+  if(wantHits.length && !gotWant){
+    toast('⚠️ 这家店没做你想吃的「' + wantHits[0].dish.name + '」，这一桌是它家能做的几道');
+  }else{
+    toast('已换成「' + meal.best.restaurant.name + '」：' + meal.best.items.map(i => i.dish.name).join('＋'));
+  }
 }
 
 /* ------------------------------ 9. 可选：调用真实大模型 ------------------------------ */
