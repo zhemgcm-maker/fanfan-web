@@ -693,16 +693,20 @@
       <div class="num">1</div>
       <div>
         <p class="step-title">今天吃多大一口？</p>
-        <p class="step-hint">按金额界定档位，档位决定候选菜品的价格区间</p>
+        <p class="step-hint">档位按<b>人均</b>算；几个人决定这一桌能花多少</p>
       </div>
     </div>
     <div class="tiers" id="tierList" role="group" aria-label="预算档位"></div>
     <div class="slider-row">
       <div class="slider-top">
-        <span>这顿的心理预算上限</span>
+        <span>人均预算（每人多少钱）</span>
         <b id="budgetLabel">¥--</b>
       </div>
       <input type="range" id="budgetRange" min="10" max="200" step="1" value="60" aria-label="预算上限">
+      <div style="margin-top:12px">
+        <span class="step-hint" style="display:block;margin-bottom:6px">几个人吃？</span>
+        <div class="chips" id="peopleList" role="group" aria-label="几个人"></div>
+      </div>
       <p class="note" id="tierNote">先选上面三个档位之一。</p>
     </div>
   </section>
@@ -1214,12 +1218,14 @@ if(!DB){
 
 /* ------------------------------ 1. 知识库 ------------------------------ */
 
-// 预算档位：按金额界定
-const TIERS = [
-  { id:'small', name:'小饭', emoji:'🥣', min:0,   max:25,  desc:'垫一口就好：快、省、不耽误事' },
-  { id:'mid',   name:'中饭', emoji:'🍱', min:26,  max:60,  desc:'正经一顿：吃得舒服、有肉有菜' },
-  { id:'good',  name:'吃好饭', emoji:'🍣', min:61, max:200, desc:'犒劳自己：食材和口味优先' }
-];
+/* 预算档位：**人均**额度（min/max 都是"每人多少钱"）。
+ * 一桌能花多少 = 人均档位 × 人数，换算在 tableCap() 里，别在别处自己乘。
+ * 具体档位定义在 data/db.js 的 vocab.tiers（数据外置，改档位不用动主程序）。 */
+const TIERS = DB.vocab.tiers;
+
+/* 人数档位：p1/p2/p34/p5 各自带一个折算用的 n（3–4 人按 4 人算，5 人以上按 5 人算）。
+ * 见 data/db.js 的 vocab.people。 */
+const PEOPLE = DB.vocab.people;
 
 const CATS = [
   { id:'rice',   name:'吃饭', emoji:'🍚', sub:'配米饭吃的一餐' },
@@ -1456,7 +1462,8 @@ const GUEST_LLM_LOCK = true;
 
 const state = {
   tier:null,          // small | mid | good
-  budget:60,          // 心理预算上限
+  budget:60,          // 人均预算上限（一桌额度 = 这个数 × 人数，见 tableCap）
+  peopleId:'p1',      // 几个人：p1 / p2 / p34 / p5（定义在 data/db.js 的 vocab.people）
   cat:null,           // rice | noodle | other
   craveTags:[],
   craveText:'',
@@ -2075,6 +2082,28 @@ function rand(seed, key){
 }
 function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 function pickTier(){ return TIERS.find(t=>t.id===state.tier) || null; }
+/* ---------------- 人数与额度（A 方案：档位 = 人均，人数放大成一桌） ----------------
+ *   人均额度 = min(档位上限, 预算滑杆)       ← 滑杆拖的是"每人多少钱"
+ *   一桌额度 = 人均额度 × 人数
+ *   人均显示 = 整桌合计 ÷ 人数
+ * 判定口径必须分开，否则会自相矛盾：
+ *   一人餐（盖饭/面）      → 跟人额度比（它就是一个人的花费）
+ *   整份硬菜（烤鱼/水煮鱼） → 跟一桌额度比（它是几个人分着吃的） */
+function peopleItem(){ return PEOPLE.find(p => p.id === state.peopleId) || PEOPLE[0]; }
+function peopleCount(){ return peopleItem().n || 1; }
+/* 聊天里说"三个人"这种 → 归到最接近的档位（同样近时取人多的那档，宁可多算一点） */
+function peopleIdNearest(n){
+  const x = Math.max(1, Math.round(Number(n) || 1));
+  let best = PEOPLE[0], bestDiff = Math.abs((PEOPLE[0].n || 1) - x);
+  PEOPLE.forEach(p => {
+    const d = Math.abs((p.n || 1) - x);
+    if(d < bestDiff || (d === bestDiff && (p.n || 1) > (best.n || 1))){ best = p; bestDiff = d; }
+  });
+  return best.id;
+}
+function perPersonCap(){ const t = pickTier(); return t ? Math.min(t.max, state.budget) : state.budget; }
+function tableCap(){ return perPersonCap() * peopleCount(); }
+function tableFloor(){ const t = pickTier(); return (t ? t.min : 0) * peopleCount(); }
 function dishById(id){ return DISHES.find(d=>d.id===id); }
 function catName(id){ const c = CATS.find(c=>c.id===id); return c ? c.name : ''; }
 
@@ -2978,7 +3007,12 @@ function ingredientName(tag){
 
 function recommend(){
   const tier = pickTier();
-  const cap = Math.min(tier.max, state.budget) + 8;
+  /* 两个额度口径不能混（见 perPersonCap/tableCap）：
+   *   一人餐（盖饭/面/饺子）是一个人的花费 → 跟"人均额度"比；
+   *   整份硬菜（烤鱼/水煮鱼/干锅）是几个人分着吃的 → 跟"一桌额度"比。
+   * 以前两处共用一个 cap，人一多就会把硬菜全过滤掉。 */
+  const perCap = perPersonCap() + 8;
+  const tableCeil = tableCap() + 8;
   // 「今天吃什么」只在"能当一顿饭"的菜里选；配菜/主食/汤/饮品只在组合搭配时用
   const singleDishes = DISHES.filter(d => !d.role || d.role === 'single');
   const catPool = singleDishes.filter(d => inCat(d, state.cat));
@@ -2994,7 +3028,7 @@ function recommend(){
     crossCat = singleDishes.filter(d => !inCat(d, state.cat) && hits(d));
   }
   const pool = catPool.concat(crossCat);
-  const inBudget = pool.filter(d => d.price <= cap);
+  const inBudget = pool.filter(d => d.price <= perCap);
   const passed = [], filtered = [];
   inBudget.forEach(d => {
     const f = hardFilter(d);
@@ -3009,7 +3043,7 @@ function recommend(){
   // 点菜型整份菜（水煮鱼、红烧肉这类）：不参与"今天吃什么"的单菜排名，
   // 但可以去当"一桌菜"的主菜，所以要单独算一遍分
   const mains = DISHES
-    .filter(d => d.role === 'main' && d.price <= cap &&
+    .filter(d => d.role === 'main' && d.price <= tableCeil &&
       (inCat(d, state.cat) || (crossCat.length && hits(d))))
     .filter(d => hardFilter(d).ok)
     .map(d => scoreDish(d, {}))
@@ -3017,7 +3051,7 @@ function recommend(){
 
   // 配菜/汤/饮品平时只做配角，但"想喝奶茶"这种需求下可以当主角
   const extras = DISHES
-    .filter(d => inCat(d, state.cat) && ['side','soup','drink'].indexOf(d.role) !== -1 && d.price <= cap)
+    .filter(d => inCat(d, state.cat) && ['side','soup','drink'].indexOf(d.role) !== -1 && d.price <= perCap)
     .filter(d => hardFilter(d).ok)
     .map(d => scoreDish(d, {}))
     .sort((a,b)=>b.total-a.total);
@@ -3148,6 +3182,7 @@ const ROLE_ORDER = ['main','single','side','soup','staple','drink'];
 //  - 锚定菜是整份荤菜（水煮鱼）→ 要配主食、素菜、汤
 //  - 锚定菜本身是一顿饭（盖饭/面/粉）→ 已经是主食，只需补个小菜
 function comboPlan(tierId, mode, anchor){
+  const n = Math.max(1, peopleCount());
   const role = anchor ? (anchor.role || 'single') : 'single';
   // 甜品/饮品/汤当主角时（比如"想喝奶茶"），就配个小食收尾，别硬塞米饭
   if(role === 'drink' || role === 'side' || role === 'soup'){
@@ -3157,25 +3192,38 @@ function comboPlan(tierId, mode, anchor){
   // single = 本身就是一顿饭（盖饭/面/饺子/火烧），自带主食；
   // main   = 整份菜（水煮鱼），必须再配主食才算一顿。
   const isComplete = role === 'single';
+  let base;
   if(tierId === 'small'){
-    return { slots: isMain ? ['main','staple'] : ['single'], extras:['drink','side'] };
+    base = { slots: isMain ? ['main','staple'] : ['single'], extras:['drink','side'] };
+  }else if(tierId === 'mid'){
+    if(isMain) base = { slots:['main','staple'], extras: mode === 'dinein' ? ['side','soup','drink'] : ['side','drink'] };
+    else if(isComplete) base = { slots:['single','side'], extras:['drink','soup'] };
+    else base = { slots:['single','staple'], extras:['side','drink'] };
+  }else{
+    // 吃好饭
+    if(isMain) base = { slots:['main','side','staple'], extras:['soup','drink'] };
+    else if(isComplete) base = { slots:['single','side'], extras:['soup','drink'] };
+    else base = { slots:['single','side','staple'], extras:['soup','drink'] };
   }
-  if(tierId === 'mid'){
-    if(isMain) return { slots:['main','staple'], extras: mode === 'dinein' ? ['side','soup','drink'] : ['side','drink'] };
-    if(isComplete) return { slots:['single','side'], extras:['drink','soup'] };
-    return { slots:['single','staple'], extras:['side','drink'] };
-  }
-  // 吃好饭
-  if(isMain) return { slots:['main','side','staple'], extras:['soup','drink'] };
-  if(isComplete) return { slots:['single','side'], extras:['soup','drink'] };
-  return { slots:['single','side','staple'], extras:['soup','drink'] };
+  if(n === 1) return base;
+  /* 人多要加菜位：slots 里同一个 role 出现几次就要几道（buildCombo 按次数填）。
+   * filler = 主食那一档：主角是整份硬菜就再来一道硬菜，主角本身就是一份饭就再来一份。
+   * 份额（米饭 ×2）不在这里处理——那是给 items 加 qty 的那一版。 */
+  const filler = isMain ? 'main' : 'single';
+  const plan = { slots: base.slots.slice(), extras: base.extras.slice() };
+  if(n >= 2) plan.slots.push('side');
+  if(n >= 3) plan.slots.push(filler);
+  if(n >= 5){ plan.slots.push(filler); plan.slots.push('side'); }
+  return plan;
 }
 
 // 在某家店里，围绕"锚定菜"配出一桌菜
 function buildCombo(restaurant, anchorDish){
   const tier = pickTier();
-  const cap = Math.min(tier.max, state.budget);
-  const floor = tier.min;
+  /* 额度都是**整桌**口径：人均档位 × 人数（见 tableCap）。
+   * 单人时就是原来的 min(档位上限, 滑杆)，所以 1 人的行为跟以前一模一样。 */
+  const cap = tableCap();
+  const floor = tableFloor();
   const plan = comboPlan(tier.id, state.mode, anchorDish);
 
   // 这家店能做的菜（过忌口/辣度），单道菜不打预算分，预算按整桌算
@@ -3221,8 +3269,11 @@ function buildCombo(restaurant, anchorDish){
 
   // ② 按结构补齐主位：在预算内挑分最高的一道（类别优先由 byRole 统一负责）
   let singleSubstituted = false;   // 主菜位被"一人食"顶掉了
+  /* slots 里同一个 role 出现几次就要几道（人多时会有 2 个 main / 2 个 side）。 */
+  const needSlots = {};
+  for(const role of plan.slots) needSlots[role] = (needSlots[role] || 0) + 1;
   for(const role of plan.slots){
-    if(items.some(i => i.role === role)) continue;
+    if(items.filter(i => i.role === role).length >= needSlots[role]) continue;
     // 已经用"一人食"顶掉主菜位：它自己就带主食，不用再配一份米饭
     if(role === 'staple' && singleSubstituted) continue;
     const pick = byRole(role).find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
@@ -3285,7 +3336,7 @@ function buildCombo(restaurant, anchorDish){
   return {
     restaurant, items,
     total: sum,
-    perPerson: sum,
+    perPerson: Math.round(sum / peopleCount()),   // 真人均：整桌合计 ÷ 人数
     score: +comboScore.toFixed(1),
     budgetScore: +budgetScore.toFixed(1),
     balance,
@@ -3536,7 +3587,7 @@ function renderTiers(){
       '<span class="emoji">' + t.emoji + '</span>' +
       '<span class="t-main">' +
         '<span class="t-name">' + t.name +
-          '<span class="t-price">' + (t.min === 0 ? '¥' + t.max + ' 以内' : '¥' + t.min + '–' + (t.max >= 200 ? t.max + '+' : t.max)) + '</span>' +
+          '<span class="t-price">' + (t.min === 0 ? '人均 ¥' + t.max + ' 以内' : '人均 ¥' + t.min + '–' + (t.max >= 200 ? t.max + '+' : t.max)) + '</span>' +
         '</span>' +
         '<span class="t-desc">' + t.desc + '</span>' +
       '</span>' +
@@ -3555,9 +3606,34 @@ function renderBudgetNote(){
   const t = pickTier();
   $('#budgetLabel').textContent = '¥' + state.budget;
   if(!t){ $('#tierNote').textContent = '先选上面三个档位之一。'; return; }
-  const eff = Math.min(t.max, state.budget);
-  $('#tierNote').textContent = '当前档位「' + t.name + '」（' +
-    (t.min===0 ? '¥'+t.max+' 以内' : '¥'+t.min+'–'+t.max) + '），实际会优先推荐 ¥' + eff + ' 以内的选择。';
+  const per = perPersonCap();
+  const p = peopleItem();
+  /* 把公式直接写出来：人均 × 人数 = 一桌额度。用户老是分不清"150 是每人还是整桌"。 */
+  $('#tierNote').textContent = '当前档位「' + t.name + '」按人均算：人均 ¥' + per + ' × ' +
+    p.label + ' = 这一桌最多 ¥' + tableCap() + '（整份硬菜按够 ' + peopleCount() + ' 个人吃来算）' +
+    (p.note ? '；' + p.note : '') + '。';
+}
+
+/* 「几个人」：四个档，点一下就走。换算用的人数写在 data/db.js 的 vocab.people 里 */
+function renderPeople(){
+  const box = $('#peopleList');
+  if(!box) return;
+  const p = peopleItem();
+  box.innerHTML = '';
+  PEOPLE.forEach(opt => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button';
+    b.textContent = opt.label;
+    b.setAttribute('aria-pressed', String(opt.id === p.id));
+    b.onclick = () => {
+      if(state.peopleId === opt.id) return;
+      state.peopleId = opt.id;
+      state.profile.peopleId = opt.id;      // 记住上次的人数（登录后跟着账号走）
+      saveProfile();
+      renderPeople(); renderBudgetNote(); updateSummary();
+    };
+    box.appendChild(b);
+  });
 }
 
 function renderCats(){
@@ -4487,7 +4563,8 @@ function renderHomePref(){
 function updateSummary(){
   const t = pickTier();
   const bits = [];
-  if(t) bits.push(t.emoji + ' ' + t.name + '（≤¥' + Math.min(t.max, state.budget) + '）');
+  if(t) bits.push(t.emoji + ' ' + t.name + '（人均 ≤¥' + perPersonCap() + '）');
+  if(peopleCount() > 1) bits.push(peopleItem().label + '·一桌 ≤¥' + tableCap());
   if(state.cat) bits.push(CATS.find(c=>c.id===state.cat).emoji + ' ' + catName(state.cat));
   if(state.craveTags.length) bits.push('想：' + state.craveTags.slice(0,2).join('/') + (state.craveTags.length>2?'…':''));
   if(state.address) bits.push('📍' + state.address.slice(0,10) + (state.address.length>10?'…':''));
@@ -4963,6 +5040,8 @@ function useShop(shopId){
 
 const SYSTEM_PROMPT =
   '你是一名懂吃的美食决策智能体，负责给用户推荐吃什么、去哪家店。\n' +
+  '注意口径：预算档位是**人均**的，payload 里还会给 people（人数）和 budgetPerPerson（人均预算），' +
+  'mealPlan 里的 total 是整桌合计、perPerson 才是人均。写推荐语时说"人均"别把整桌数当人均。\n' +
   '用户会给你：预算档位、食物类型、今日口味、地址，以及系统已经配好的一桌菜（mealPlan：' +
   '包含饭店、每道菜的角色与价格、合计与人均、搭配理由），另外还有备选组合和单菜候选。\n' +
   '关于"食物类型"：它按"这道菜配什么主食"划分，不是按菜系划分——配米饭吃算「吃饭」，' +
@@ -5744,15 +5823,20 @@ function toolSearchDishes(a){
 function toolFilterDishes(a){
   const ids = (a && Array.isArray(a.dish_ids)) ? a.dish_ids : [];
   const tier = pickTier();
-  const cap = tier ? Math.min(tier.max, state.budget) : state.budget;
+  /* 同样要分口径：整份硬菜跟"一桌额度"比，一人餐跟"人均额度"比 */
+  const perCap = perPersonCap();
+  const tCap = tableCap();
   const ok = [], bad = [];
   ids.forEach(id => {
     const d = dishById(id);
     if(!d){ bad.push({ dish_id:id, why:'知识库里没有这个 id' }); return; }
     const f = hardFilter(d);
     if(!f.ok){ bad.push({ dish_id:d.id, name:d.name, why:f.why }); return; }
-    if(d.price > cap && d.role !== 'staple' && d.role !== 'drink' && d.role !== 'side'){
-      bad.push({ dish_id:d.id, name:d.name, why:'单价 ¥' + d.price + ' 超过这档的上限 ¥' + cap });
+    const limit = (d.role === 'main') ? tCap : perCap;
+    if(d.price > limit && d.role !== 'staple' && d.role !== 'drink' && d.role !== 'side'){
+      bad.push({ dish_id:d.id, name:d.name, why:'单价 ¥' + d.price + ' 超过' +
+        (d.role === 'main' ? '这一桌的额度 ¥' + limit + '（人均 ¥' + perCap + ' × ' + peopleCount() + ' 人）'
+                           : '人均额度 ¥' + limit + '（' + tier.name + '档，' + peopleCount() + ' 人）') });
       return;
     }
     ok.push(dishBrief(d));
@@ -6004,9 +6088,11 @@ function toolFinalize(a){
   const total = items.reduce((n, x) => n + x.dish.price, 0);
   const tier = pickTier();
   if(tier){
-    const cap = Math.min(tier.max, state.budget);
-    if(total > cap + 10) errors.push('整桌合计 ¥' + total + ' 超过了「' + tier.name + '」的上限 ¥' + cap + '，去掉一两道再提交');
-    else if(total < tier.min) warnings.push('整桌 ¥' + total + ' 比「' + tier.name + '」的下限还低，可以再加点');
+    /* 闸门按"整桌额度"判：人均档位 × 人数（人少时就是原来的数） */
+    const cap = tableCap();
+    if(total > cap + 10) errors.push('整桌合计 ¥' + total + ' 超过了额度 ¥' + cap +
+      '（「' + tier.name + '」人均 ¥' + perPersonCap() + ' × ' + peopleCount() + ' 人），去掉一两道再提交');
+    else if(total < tableFloor()) warnings.push('整桌 ¥' + total + ' 比这一桌的下限 ¥' + tableFloor() + '（人均 ¥' + tier.min + ' × ' + peopleCount() + ' 人）还低，可以再加点');
   }
   if(errors.length){
     /* 被驳回时给一句能直接照做的下一步：最常见的驳回就是"这家店做不了这道菜"，
@@ -6061,7 +6147,8 @@ const AGENT_SYSTEM_PROMPT =
   '用 get_shop_menu 查真实菜单，确认这些店到底做不做得了这几道菜——' +
   '它支持批量：一次传 shop_ids 数组（最多 8 家），比你一家一家查省好几轮；\n' +
   '4) 只能使用工具真实返回过的 dish_id 和 shop_id。自己编的 id 会被拒绝，浪费一轮；\n' +
-  '5) 一桌菜要像真去店里点单：主菜 +（素菜／汤／主食／饮品按档位取舍），合计别越过用户的档位上限；\n' +
+  '5) 一桌菜要像真去店里点单：主菜 +（素菜／汤／主食／饮品按档位取舍），合计别越过 budget_cap（那是整桌额度 = 人均 × 人数）。' +
+  '人越多菜要多：2 人至少主菜 + 配菜 + 主食，3~4 人要两道硬菜，5 人以上再加；整份硬菜（烤鱼、水煮鱼）按"够几个人吃"算，别按人均价卡它；\n' +
   '6) 省着用工具：search_shops 最多 2 次、list_shops_for_dish 最多 2 次；' +
   'get_shop_menu 一次把候选店打包查（shop_ids 数组），别一家一家查；' +
   '如果返回里 with_menu=0（都没采集过菜单），就不要再查菜单了，按菜系和人均直接定；' +
@@ -6082,10 +6169,14 @@ function agentUserBrief(){
     location: state.origin ? { lng:state.origin.lng, lat:state.origin.lat, label:state.origin.label } : null,
     tier: tier ? { id:tier.id, name:tier.name, range:'¥' + tier.min + '-' + tier.max } : null,
     /* 上限口径必须和 finalize 的闸门、buildCombo 的 cap 完全一致：
-     * 都是 min(档位上限, 心理预算)。以前这里直接发滑块值（默认 60），
+     * 都是"人均档位 × 人数"（tableCap）。以前这里直接发滑块值（默认 60），
      * 于是「小饭」档模型以为能花 60，配出来的桌必被闸门驳回（¥25 上限），白烧好几步。 */
-    budget_cap: (tier ? Math.min(tier.max, state.budget) : state.budget),
-    budget_cap_note: '整桌合计不要超过这个数（含饮料），超了 finalize 会驳回',
+    people: peopleCount(),
+    budget_per_person: perPersonCap(),
+    budget_cap: tableCap(),
+    budget_cap_note: '这是整桌的合计上限（人均 ' + perPersonCap() + ' × ' + peopleCount() +
+      ' 人，含饮料），超了 finalize 会驳回；整份硬菜（烤鱼、水煮鱼）按"够 ' + peopleCount() +
+      ' 个人吃"来算，不要当成人均价',
     food_kind: state.cat || null,
     food_kind_name: state.cat ? catName(state.cat) : null,
     craving_tags: state.craveTags,
@@ -6375,7 +6466,7 @@ function comboFromAgentPlan(r, secs){
   const shopScore = scoreRestaurant(restaurant, dishById(anchorId), {}).total;
   const anchorDish = dishById(anchorId);
   const combo = {
-    restaurant, items, total:sum, perPerson:sum,
+    restaurant, items, total:sum, perPerson: Math.round(sum / peopleCount()),
     budgetScore:+budgetScore.toFixed(1), balance,
     reasons:[budgetReason].concat(balanceReasons),
     km:(restaurant.km != null ? restaurant.km : 0),
@@ -6551,8 +6642,8 @@ async function run(){
   const addr = state.address || '（未填写地址，按全部商圈估算）';
 
   // ① 意图解析
-  let li = traceAdd('① 解析需求', '档位 ' + tier.name + '（' + (tier.min===0?'≤¥'+tier.max:'¥'+tier.min+'–'+tier.max) + '，心理上限 ¥' + Math.min(tier.max,state.budget) + '）｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食'), 'active', {silent:true});
-  await sleep(320); traceUpdate(li, '① 解析需求', '档位 ' + tier.name + '｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食') + '｜📍' + addr);
+  let li = traceAdd('① 解析需求', '档位 ' + tier.name + '（人均 ' + (tier.min===0?'≤¥'+tier.max:'¥'+tier.min+'–'+tier.max) + '，人均预算 ¥' + perPersonCap() + ' × ' + peopleCount() + ' 人 = 一桌 ¥' + tableCap() + '）｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食'), 'active', {silent:true});
+  await sleep(320); traceUpdate(li, '① 解析需求', '档位 ' + tier.name + '·' + peopleCount() + ' 人（一桌 ≤¥' + tableCap() + '）｜类型 ' + catName(state.cat) + '｜' + period.label + '｜' + (state.mode==='delivery'?'外卖':'堂食') + '｜📍' + addr);
 
   // ② 记忆
   const memBits = [];
@@ -6702,7 +6793,10 @@ async function run(){
     const t = $('#llmText');
     const payload = {
       city: CITY.full,
-      tier:{ id:tier.id, name:tier.name, range:'¥'+tier.min+'-'+tier.max, budgetCap:Math.min(tier.max,state.budget) },
+    /* 润色这一路也要拿到"人均 / 人数 / 整桌额度"三个数，否则模型会把整桌合计说成人均 */
+    tier:{ id:tier.id, name:tier.name, range:'¥'+tier.min+'-'+tier.max+'／人', budgetCap:tableCap() },
+    people: peopleCount(),
+    budgetPerPerson: perPersonCap(),
       category:{ id:state.cat, name:catName(state.cat) },
       craving:{ tags:state.craveTags, text:state.craveText },
       address: state.address || null,
@@ -7312,11 +7406,12 @@ function aiIntentPrompt(){
   const vocab = Object.keys(CAT_CRAVE_TAGS).map(c => catName(c) + '（' + c + '）：' + CAT_CRAVE_TAGS[c].join('、')).join('\n');
   return '你在帮一个"今天吃什么"的应用读用户意图。下面是一段用户和助手的聊天记录。\n' +
     '请从中提炼出"这一顿想吃什么"，只输出一个 JSON，不要解释、不要 markdown 代码块：\n' +
-    '{"cat":"rice|noodle|other","tier":"small|mid|good","budget":数字,"tags":["标签"],"keywords":["关键词"],"note":"一句话概括"}\n' +
+    '{"cat":"rice|noodle|other","tier":"small|mid|good","budget":数字,"people":数字,"tags":["标签"],"keywords":["关键词"],"note":"一句话概括"}\n' +
     '规则：\n' +
     '1) cat：rice＝配米饭吃的一餐，noodle＝配面／粉吃的一餐，other＝整份菜／小吃／火锅；拿不准给 other。\n' +
     '2) tier 是这一顿的档位：small＝人均不超过 25 元，mid＝26~60 元，good＝61 元以上；拿不准给 mid。\n' +
-    '3) budget 填整桌能接受的最高金额（含饮料）；聊天里没说就填 tier 的上限（25 / 60 / 200）。\n' +
+    '3) budget 填**人均**能接受的最高金额（含饮料）；聊天里没说就填 tier 的上限（25 / 60 / 200）。\n' +
+    '3b) people 填聊天里说的吃饭人数（整数）；没提就填 0。\n' +
     '4) tags 只能从下面这份词表里原样选，最多 3 个。词表里确实没有对得上的就给空数组，绝对不要硬凑：\n' + vocab + '\n' +
     '5) keywords 放词表以外、语义具体的东西：菜名、菜系、食材、做法（比如"江西菜""瓦罐汤""藜蒿"），最多 5 个、每个 2~6 个字。\n' +
     '6) 用户明确说的忌口／不要的东西，不要放进 keywords。\n' +
@@ -7340,8 +7435,11 @@ function aiNormalizeIntent(raw, src, text, ms){
   const clean = normalizeParsed(r, allowed);     // 复用"用一句话说说"那套校验：标签只在词表内
   const tier = ['small', 'mid', 'good'].indexOf(r.tier) !== -1 ? r.tier : 'mid';
   const b = Number(r.budget);
+  /* 人数：模型填 0 或乱填就当"没说"，这一轮沿用界面上选的那个 */
+  const ppl = Number(r.people);
   return {
     cat, tier,
+    people:(isFinite(ppl) && ppl >= 1 && ppl <= 20) ? Math.round(ppl) : 0,
     budget:(isFinite(b) && b > 0) ? Math.round(b) : (TIERS.find(t => t.id === tier) || TIERS[1]).max,
     tags:clean.tags, keywords:clean.keywords,
     note:String(r.note || clean.note || '').slice(0, 30),
@@ -7364,7 +7462,7 @@ async function aiParseIntent(){
 
 /* 决策链是从 state 里读需求的，所以聊天这边要先把它写进去——写完必须还原，
  * 否则用户在「推荐」页选好的档位／类型会被这次解析悄悄覆盖掉。 */
-const AI_SNAP_FIELDS = ['tier','budget','cat','craveTags','craveText','craveAuto','craveAutoInfo',
+const AI_SNAP_FIELDS = ['tier','budget','peopleId','cat','craveTags','craveText','craveAuto','craveAutoInfo',
                         'reroll','shownShopIds','shownDishIds','lastRec','lastOnline','lastDeadTags','lastCrossCat','lastSig'];
 function aiSnapshotState(){
   const s = {};
@@ -7380,6 +7478,8 @@ function aiApplyIntent(it){
   state.cat = it.cat;
   state.tier = it.tier;
   state.budget = it.budget;
+  // 聊天里说了"两个人"就按两个人算（这一轮用完会由 aiRestoreState 还原）
+  if(it.people) state.peopleId = peopleIdNearest(it.people);
   state.craveTags = it.tags.slice();
   state.craveAuto = it.tags.slice();
   state.craveText = it.keywords.join(' ');
@@ -7635,6 +7735,8 @@ function init(){
   if(state.profile.city && CITIES[state.profile.city]) applyCity(state.profile.city);
   if(typeof state.profile.spiceMax === 'number') state.spiceMax = state.profile.spiceMax;
   $('#spice').value = String(state.spiceMax);
+  // 上次选的人数（存在 profile 里，登录后跟着账号走）
+  if(state.profile.peopleId && PEOPLE.some(p => p.id === state.profile.peopleId)) state.peopleId = state.profile.peopleId;
   if(state.profile.defaultTier){
     const dt = TIERS.find(x => x.id === state.profile.defaultTier);
     if(dt){
@@ -7645,7 +7747,7 @@ function init(){
   }
 
   $('#kbBadge').textContent = '📚 知识库（' + DISHES.length + ' 道菜 · 店铺实时联网搜索）';
-  renderTiers(); renderCats(); renderChips(); renderCitySelect(); renderBudgetNote();
+  renderTiers(); renderPeople(); renderCats(); renderChips(); renderCitySelect(); renderBudgetNote();
   renderSpiceSeg(); renderTierSeg(); renderAddrList(); renderAddrStatus();
   renderProfile(); updateSummary(); revealNext();
 
