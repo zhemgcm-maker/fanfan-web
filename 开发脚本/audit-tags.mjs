@@ -13,7 +13,10 @@ const mi = process.argv.indexOf('--menu');
 const menuFile = mi === -1 ? null : process.argv[mi + 1];
 
 const html = fs.readFileSync(kbFile, 'utf8');
-const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+/* 数据（菜品库/城市/词表）现在在 index.html 同目录的 data/db.js 里，跑体检要一起加载 */
+const _dataDir = String(kbFile).replace(/[^\\/]+$/, '');
+const _dbSrc = fs.existsSync(_dataDir + 'data/db.js') ? fs.readFileSync(_dataDir + 'data/db.js', 'utf8') : '';
+const code = _dbSrc + [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
 function fakeEl(){
   const el = { value:'', className:'', style:{}, children:[], dataset:{},
     classList:{ _s:new Set(), add(){}, remove(){}, contains(){ return false; }, toggle(){} },

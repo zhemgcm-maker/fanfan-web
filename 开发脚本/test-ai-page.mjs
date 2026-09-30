@@ -7,8 +7,11 @@
 //       ⑥ 决策不污染「推荐」页的状态（档位 / 类型 / 预算 / 今日想吃）
 import fs from 'node:fs';
 
-const html = fs.readFileSync(process.argv[2], 'utf8');
-const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+const html = fs.readFileSync(process.argv[2], 'utf8');/* 数据（菜品库/城市/词表）现在在 index.html 同目录的 data/db.js 里，跑测试要一起加载 */
+const _dataDir = String(process.argv[2]).replace(/[^\\/]+$/, '');
+const _dbSrc = fs.existsSync(_dataDir + 'data/db.js') ? fs.readFileSync(_dataDir + 'data/db.js', 'utf8') : '';
+
+const code = _dbSrc + [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
 
 function fakeEl(name = 'el') {
   const el = {

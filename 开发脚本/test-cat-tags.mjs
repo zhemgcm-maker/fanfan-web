@@ -2,7 +2,10 @@
 import fs from 'node:fs';
 
 const html = fs.readFileSync(process.argv[2], 'utf8');
-const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+/* 数据（菜品库/城市/词表）现在在 index.html 同目录的 data/db.js 里，跑测试要一起加载 */
+const _dataDir = String(process.argv[2]).replace(/[^\\/]+$/, '');
+const _dbSrc = fs.existsSync(_dataDir + 'data/db.js') ? fs.readFileSync(_dataDir + 'data/db.js', 'utf8') : '';
+const code = _dbSrc + [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
 
 /* ---- 最小 DOM 桩：innerHTML 清空时要真的清空 children（否则测不出"重画"）---- */
 function fakeEl(){

@@ -14,11 +14,15 @@ const newFile = flag('new'), kbFile = flag('kb'), outDir = flag('out');
 const KEY = process.env.DS_KEY || 'sk-21f864ce09aa412a81b42f06c5d38199';
 if(!newFile || !kbFile || !outDir){ console.error('用法：node gen-kb-records.mjs --new <新菜候选.json> --kb <index.html> --out <目录>'); process.exit(1); }
 
-/* ---------- 从页面里取现有词表（保证生成的记录能无缝进库） ---------- */
-const html = fs.readFileSync(kbFile, 'utf8');
-const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
-const DISHES = new Function('return [' + /const DISHES = \[([\s\S]*?)\n\];/.exec(code)[1] + '];')();
-const ALG = new Function('return {' + /const ALG_MAP = \{([\s\S]*?)\n\};/.exec(code)[1] + '};')();
+/* ---------- 从数据文件里取现有词表（保证生成的记录能无缝进库） ---------- */
+const _kdbFile = String(kbFile).replace(/[^\\/]+$/, '') + 'data/db.js';
+if(!fs.existsSync(_kdbFile)){
+  console.error('找不到 ' + _kdbFile + '（菜品库、词表已经搬到 data/db.js；旧结构请用不带外置数据的 index.html）');
+  process.exit(1);
+}
+const FANFAN_DB = new Function(fs.readFileSync(_kdbFile, 'utf8') + '\nreturn FANFAN_DB;')();
+const DISHES = FANFAN_DB.dishes;
+const ALG = FANFAN_DB.vocab.algMap;
 const CUIS = [...new Set(DISHES.map(d => d.cui))];
 const TAGS = [...new Set(DISHES.flatMap(d => d.tags))].sort();
 const ALG_KEYS = Object.keys(ALG);

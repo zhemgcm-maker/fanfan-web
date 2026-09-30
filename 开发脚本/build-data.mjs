@@ -14,12 +14,20 @@ const kbFile = flag('kb');
 const outDir = flag('out');
 if(!parsedDir || !kbFile || !outDir){ console.error('用法：node build-data.mjs --parsed <目录> --kb <index.html> --out <目录>'); process.exit(1); }
 
-// 从页面里取菜品库（只取名字/菜系/价格/角色，用来做匹配）
+// 取菜品库（只取名字/菜系/价格/角色，用来做匹配）
 const html = fs.readFileSync(kbFile, 'utf8');
-const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
-const m = /const DISHES = \[([\s\S]*?)\n\];/.exec(code);
-if(!m){ console.error('没在页面里找到 DISHES 菜品库'); process.exit(1); }
-const DISHES = new Function('return [' + m[1] + '];')();
+/* 菜品库已经搬到 index.html 同目录的 data/db.js：优先从那儿读；
+ * 读不到再退回"从 HTML 里抠 DISHES"的老办法，兼容还没搬迁的旧文件。 */
+const _kdbFile = String(kbFile).replace(/[^\\/]+$/, '') + 'data/db.js';
+let DISHES;
+if(fs.existsSync(_kdbFile)){
+  DISHES = new Function(fs.readFileSync(_kdbFile, 'utf8') + '\nreturn FANFAN_DB.dishes;')();
+}else{
+  const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+  const m = /const DISHES = \[([\s\S]*?)\n\];/.exec(code);
+  if(!m){ console.error('既没有 ' + _kdbFile + '，页面里也找不到 DISHES 菜品库'); process.exit(1); }
+  DISHES = new Function('return [' + m[1] + '];')();
+}
 console.log('知识库现有 ' + DISHES.length + ' 道菜');
 
 // 把菜单菜名和知识库菜名归一化后比对（去掉规格、斜杠、括号、常见后缀词）

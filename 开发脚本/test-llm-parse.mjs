@@ -3,7 +3,10 @@
 import fs from 'node:fs';
 
 const html = fs.readFileSync(process.argv[2], 'utf8');
-const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+/* 数据（菜品库/城市/词表）现在在 index.html 同目录的 data/db.js 里，跑测试要一起加载 */
+const _dataDir = String(process.argv[2]).replace(/[^\\/]+$/, '');
+const _dbSrc = fs.existsSync(_dataDir + 'data/db.js') ? fs.readFileSync(_dataDir + 'data/db.js', 'utf8') : '';
+const code = _dbSrc + [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
 
 function fakeEl(name = 'el') {
   const el = {
@@ -83,6 +86,11 @@ api.state.profile.likes = {}; api.state.profile.dislikes = {}; api.state.profile
 api.state.profile.banned = { dishes:{}, shops:{} };
 
 console.log('=== 一、大模型把一句话解析成标签，直接进算法 ===');
+/* 新版规：不登录只能用算法引擎（GUEST_LLM_LOCK），大模型这条线要登录才开。
+ * 这个用例测的是"大模型解析"本身，所以先把身份切成已登录。 */
+api.state.identity = { type:'user', id:'u-test', username:'测试账号' };
+try{ localStorage.setItem('eatAgent.token.v1', 'fake.jwt'); }catch(e){}
+api.state.settings.useServerLlm = 'off';      // 钉在本机直连，请求才走上面的假大模型
 api.state.settings.enabled = 'on';
 api.state.settings.key = 'sk-test-dummy';
 api.state.craveText = '想吃奶奶做的味道，清淡点的';

@@ -3,11 +3,14 @@ import fs from 'node:fs';
 
 const src = process.argv[2];
 const html = fs.readFileSync(src, 'utf8');
+/* 数据（菜品库/城市/词表）现在在 index.html 同目录的 data/db.js 里，跑测试要一起加载 */
+const _dataDir = String(src).replace(/[^\\/]+$/, '');
+const _dbSrc = fs.existsSync(_dataDir + 'data/db.js') ? fs.readFileSync(_dataDir + 'data/db.js', 'utf8') : '';
 // 不管文件里现在是空 Key 还是已经填了真 Key，都换成测试值（原来只匹配空字符串，填了 Key 之后就失效了）
 const patched = html.replace(/const DEFAULT_AMAP_KEY = '[^']*';/, "const DEFAULT_AMAP_KEY = 'test-amap-key-abc123';");
 if (patched === html) { console.error('❌ 没找到 DEFAULT_AMAP_KEY 那一行'); process.exit(1); }
 
-const code = [...patched.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+const code = _dbSrc + [...patched.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
 function fakeEl(){const el={innerHTML:'',value:'',className:'',style:{},children:[],dataset:{},classList:{_s:new Set(),add(){},remove(){},contains(){return false},toggle(){}},setAttribute(){},addEventListener(){},appendChild(c){return c},querySelector(){return fakeEl()},querySelectorAll(){return []},scrollIntoView(){}};let t='';Object.defineProperty(el,'textContent',{get(){return t},set(v){t=v}});return el}
 const cache=new Map();
 const document={querySelector(s){if(!cache.has(s))cache.set(s,fakeEl());return cache.get(s)},querySelectorAll(){return []},createElement(){return fakeEl()},addEventListener(){}};
