@@ -1,0 +1,19 @@
+{
+  "id": "local-自选铁板炒饭",
+  "name": "自选铁板炒饭",
+  "city": "保定",
+  "scope": "local",
+  "amapId": "",
+  "cuisineRef": ["家常"],
+  "cuisineRefKeys": ["铁板炒饭", "自选", "炒饭", "蛋炒饭", "加料"],
+  "menu": [
+    { "name": "自选铁板炒饭", "price": 10.8, "cat": "主营" },
+    { "name": "单加蟹排", "price": 3, "cat": "单加品类" },
+    { "name": "单加虾仁", "price": 5, "cat": "单加品类" },
+    { "name": "单加培根", "price": 3, "cat": "单加品类" },
+    { "name": "单加鸡丁", "price": 3, "cat": "单加品类" },
+    { "name": "单加猪肉片", "price": 4, "cat": "单加品类" }
+  ],
+  "source": "菜单整理录入（用户提供）",
+  "collectedAt": "2026-10-01"
+}
