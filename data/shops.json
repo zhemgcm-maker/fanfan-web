@@ -35,7 +35,7 @@
           "name": "香辣鸡腿堡+百事可乐",
           "price": 10,
           "cat": "极致性价比",
-          "dishId": "cp0896",
+          "dishId": "cp0926",
           "kbName": "香辣鸡腿堡+百事可乐"
         },
         {
@@ -684,7 +684,7 @@
           "name": "招牌炸鸡腿(3个)",
           "price": 15,
           "cat": "招牌",
-          "dishId": "cp0897",
+          "dishId": "cp0927",
           "kbName": "招牌炸鸡腿(3个)"
         },
         {
@@ -1327,63 +1327,63 @@
           "name": "荤菜(称重)",
           "price": 1.1,
           "cat": "冒菜称重",
-          "dishId": "cp0898",
+          "dishId": "cp0928",
           "kbName": "荤菜(称重)"
         },
         {
           "name": "素菜(称重)",
           "price": 2.2,
           "cat": "冒菜称重",
-          "dishId": "cp0899",
+          "dishId": "cp0929",
           "kbName": "素菜(称重)"
         },
         {
           "name": "米饭",
           "price": 1,
           "cat": "主食",
-          "dishId": "cp0900",
+          "dishId": "cp0930",
           "kbName": "米饭（档口）"
         },
         {
           "name": "米线",
           "price": 2,
           "cat": "主食",
-          "dishId": "cp0901",
+          "dishId": "cp0931",
           "kbName": "米线"
         },
         {
           "name": "面条",
           "price": 2,
           "cat": "主食",
-          "dishId": "cp0902",
+          "dishId": "cp0932",
           "kbName": "面条"
         },
         {
           "name": "土豆粉",
           "price": 2,
           "cat": "主食",
-          "dishId": "cp0903",
+          "dishId": "cp0933",
           "kbName": "土豆粉"
         },
         {
           "name": "火锅面",
           "price": 2.5,
           "cat": "主食",
-          "dishId": "cp0904",
+          "dishId": "cp0934",
           "kbName": "火锅面"
         },
         {
           "name": "方便面",
           "price": 3.5,
           "cat": "加料",
-          "dishId": "cp0463",
+          "dishId": "cp0496",
           "kbName": "方便面"
         },
         {
           "name": "鸡蛋",
           "price": 1.5,
           "cat": "加料",
-          "dishId": "cp0905",
+          "dishId": "cp0935",
           "kbName": "鸡蛋"
         },
         {
@@ -1730,63 +1730,63 @@
           "name": "单加卤蛋",
           "price": 1.5,
           "cat": "单加料",
-          "dishId": "cp0906",
+          "dishId": "cp0936",
           "kbName": "单加卤蛋"
         },
         {
           "name": "单加煎蛋",
           "price": 1.5,
           "cat": "单加料",
-          "dishId": "cp0907",
+          "dishId": "cp0937",
           "kbName": "单加煎蛋"
         },
         {
           "name": "单加炸蛋",
           "price": 2.5,
           "cat": "单加料",
-          "dishId": "cp0908",
+          "dishId": "cp0938",
           "kbName": "单加炸蛋"
         },
         {
           "name": "单加豆腐片",
           "price": 2,
           "cat": "单加料",
-          "dishId": "cp0909",
+          "dishId": "cp0939",
           "kbName": "单加豆腐片"
         },
         {
           "name": "单加肉肠",
           "price": 3.5,
           "cat": "单加料",
-          "dishId": "cp0910",
+          "dishId": "cp0940",
           "kbName": "单加肉肠"
         },
         {
           "name": "单加鸡腿",
           "price": 5,
           "cat": "单加料",
-          "dishId": "cp0911",
+          "dishId": "cp0941",
           "kbName": "单加鸡腿"
         },
         {
           "name": "单加鸭腿",
           "price": 6,
           "cat": "单加料",
-          "dishId": "cp0912",
+          "dishId": "cp0942",
           "kbName": "单加鸭腿"
         },
         {
           "name": "单加肉丸子",
           "price": 2,
           "cat": "单加料",
-          "dishId": "cp0913",
+          "dishId": "cp0943",
           "kbName": "单加肉丸子"
         },
         {
           "name": "单加虎皮鸡爪",
           "price": 3,
           "cat": "单加料",
-          "dishId": "cp0914",
+          "dishId": "cp0944",
           "kbName": "单加虎皮鸡爪"
         }
       ],
@@ -2201,7 +2201,7 @@
           "name": "米饭",
           "price": 1,
           "cat": "主食",
-          "dishId": "cp0900",
+          "dishId": "cp0930",
           "kbName": "米饭（档口）"
         },
         {
@@ -3149,14 +3149,14 @@
           "name": "卤鸡蛋",
           "price": 1.5,
           "cat": "好粥道",
-          "dishId": "cp0466",
+          "dishId": "cp0499",
           "kbName": "卤鸡蛋"
         },
         {
           "name": "炸麻团",
           "price": 2.5,
           "cat": "好粥道",
-          "dishId": "cp0915",
+          "dishId": "cp0945",
           "kbName": "炸麻团"
         },
         {
@@ -3862,35 +3862,35 @@
           "name": "水煮蛋",
           "price": 1,
           "cat": "营养早餐系列",
-          "dishId": "cp0916",
+          "dishId": "cp0946",
           "kbName": "水煮蛋"
         },
         {
           "name": "卤鸡蛋",
           "price": 1.5,
           "cat": "营养早餐系列",
-          "dishId": "cp0466",
+          "dishId": "cp0499",
           "kbName": "卤鸡蛋"
         },
         {
           "name": "加料鸭腿",
           "price": 7,
           "cat": "加料",
-          "dishId": "cp0917",
+          "dishId": "cp0947",
           "kbName": "加料鸭腿"
         },
         {
           "name": "加料鸡腿",
           "price": 5,
           "cat": "加料",
-          "dishId": "cp0918",
+          "dishId": "cp0948",
           "kbName": "加料鸡腿"
         },
         {
           "name": "加料卤菜",
           "price": 7,
           "cat": "加料",
-          "dishId": "cp0919",
+          "dishId": "cp0949",
           "kbName": "加料卤菜"
         }
       ],
@@ -4451,42 +4451,42 @@
           "name": "尖椒",
           "price": 2,
           "cat": "卤味",
-          "dishId": "cp0920",
+          "dishId": "cp0950",
           "kbName": "尖椒"
         },
         {
           "name": "肠",
           "price": 2,
           "cat": "卤味",
-          "dishId": "cp0921",
+          "dishId": "cp0951",
           "kbName": "肠"
         },
         {
           "name": "兰花干",
           "price": 2,
           "cat": "卤味",
-          "dishId": "cp0922",
+          "dishId": "cp0952",
           "kbName": "兰花干"
         },
         {
           "name": "双椒煎蛋",
           "price": 2,
           "cat": "卤味",
-          "dishId": "cp0923",
+          "dishId": "cp0953",
           "kbName": "双椒煎蛋"
         },
         {
           "name": "虎皮鸡爪",
           "price": 2.5,
           "cat": "卤味",
-          "dishId": "cp0924",
+          "dishId": "cp0954",
           "kbName": "虎皮鸡爪"
         },
         {
           "name": "黄瓜条",
           "price": 0.5,
           "cat": "卤味",
-          "dishId": "cp0925",
+          "dishId": "cp0955",
           "kbName": "黄瓜条"
         }
       ],
@@ -5125,7 +5125,7 @@
           "name": "鸭腿+任一菜品",
           "price": 11.9,
           "cat": "甄选套餐",
-          "dishId": "cp0926",
+          "dishId": "cp0956",
           "kbName": "鸭腿+任一菜品"
         },
         {
@@ -5139,15 +5139,411 @@
           "name": "鸭腿+任意两菜",
           "price": 13.9,
           "cat": "甄选套餐",
-          "dishId": "cp0927",
+          "dishId": "cp0957",
           "kbName": "鸭腿+任意两菜"
         },
         {
           "name": "换购鸭腿",
           "price": 1,
           "cat": "单加料",
-          "dishId": "cp0928",
+          "dishId": "cp0958",
           "kbName": "换购鸭腿"
+        }
+      ],
+      "uncertain": []
+    },
+    {
+      "id": "local-曲先生私房牛肉面",
+      "name": "曲先生私房牛肉面",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学二校区",
+      "canteen": "第三食堂",
+      "stall": "曲先生私房牛肉面",
+      "cuisine": "西北",
+      "avg": 12,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "鸡蛋灌饼",
+          "price": 5,
+          "cat": "营养早餐",
+          "dishId": "cp0262",
+          "kbName": "鸡蛋灌饼（档口）"
+        },
+        {
+          "name": "原味手抓饼",
+          "price": 3,
+          "cat": "营养早餐",
+          "dishId": "cp0414",
+          "kbName": "原味手抓饼"
+        },
+        {
+          "name": "手抓饼+土豆丝",
+          "price": 4,
+          "cat": "营养早餐",
+          "dishId": "cp0959",
+          "kbName": "手抓饼+土豆丝"
+        },
+        {
+          "name": "手抓饼+卤豆皮",
+          "price": 4.5,
+          "cat": "营养早餐",
+          "dishId": "cp0960",
+          "kbName": "手抓饼+卤豆皮"
+        },
+        {
+          "name": "手抓饼+煎蛋",
+          "price": 4.5,
+          "cat": "营养早餐",
+          "dishId": "cp0961",
+          "kbName": "手抓饼+煎蛋"
+        },
+        {
+          "name": "手抓饼+片肠",
+          "price": 4.5,
+          "cat": "营养早餐",
+          "dishId": "cp0962",
+          "kbName": "手抓饼+片肠"
+        },
+        {
+          "name": "手抓饼+肉松",
+          "price": 4.5,
+          "cat": "营养早餐",
+          "dishId": "cp0922",
+          "kbName": "手抓饼+肉松"
+        },
+        {
+          "name": "手抓饼+面筋",
+          "price": 5,
+          "cat": "营养早餐",
+          "dishId": "cp0963",
+          "kbName": "手抓饼+面筋"
+        },
+        {
+          "name": "手抓饼+香肠",
+          "price": 5,
+          "cat": "营养早餐",
+          "dishId": "cp0771",
+          "kbName": "手抓饼+香肠"
+        },
+        {
+          "name": "手抓饼+里脊肉",
+          "price": 5.5,
+          "cat": "营养早餐",
+          "dishId": "cp0772",
+          "kbName": "手抓饼+里脊肉"
+        },
+        {
+          "name": "手抓饼+黑椒鸡排",
+          "price": 6,
+          "cat": "营养早餐",
+          "dishId": "cp0964",
+          "kbName": "手抓饼+黑椒鸡排"
+        },
+        {
+          "name": "豆浆",
+          "price": 2,
+          "cat": "营养早餐",
+          "dishId": "cp0269",
+          "kbName": "豆浆"
+        },
+        {
+          "name": "清汤面/粉",
+          "price": 8,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0382",
+          "kbName": "清汤面/粉"
+        },
+        {
+          "name": "酸辣小面",
+          "price": 8,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0383",
+          "kbName": "酸辣小面"
+        },
+        {
+          "name": "麻辣小面",
+          "price": 8,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0384",
+          "kbName": "麻辣小面"
+        },
+        {
+          "name": "火腿小面/粉",
+          "price": 11,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0385",
+          "kbName": "火腿小面/粉"
+        },
+        {
+          "name": "炸蛋面/粉",
+          "price": 11,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0386",
+          "kbName": "炸蛋面/粉"
+        },
+        {
+          "name": "酸豆角肉沫面/粉",
+          "price": 12,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0387",
+          "kbName": "酸豆角肉沫面/粉"
+        },
+        {
+          "name": "辣子鸡块面/粉",
+          "price": 12,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0388",
+          "kbName": "辣子鸡块面/粉"
+        },
+        {
+          "name": "香菇鸡丁面/粉",
+          "price": 12,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0389",
+          "kbName": "香菇鸡丁面/粉"
+        },
+        {
+          "name": "酸菜肉丝面/粉",
+          "price": 12,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0038",
+          "kbName": "酸菜肉丝面/粉"
+        },
+        {
+          "name": "榨菜肉丝面/粉",
+          "price": 12,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0390",
+          "kbName": "榨菜肉丝面/粉"
+        },
+        {
+          "name": "香辣牛肉面/粉",
+          "price": 15,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0391",
+          "kbName": "香辣牛肉面/粉"
+        },
+        {
+          "name": "酸菜牛肉面/粉",
+          "price": 16,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0392",
+          "kbName": "酸菜牛肉面/粉"
+        },
+        {
+          "name": "臊子面",
+          "price": 11,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0393",
+          "kbName": "臊子面"
+        },
+        {
+          "name": "红烧牛肉面",
+          "price": 15,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0394",
+          "kbName": "红烧牛肉面"
+        },
+        {
+          "name": "香辣羊杂面/粉",
+          "price": 13,
+          "cat": "汤面/粉系列",
+          "dishId": "cp0395",
+          "kbName": "香辣羊杂面/粉"
+        },
+        {
+          "name": "酸辣粉+炸蛋",
+          "price": 11,
+          "cat": "酸辣粉系列(米线)",
+          "dishId": "cp0396",
+          "kbName": "酸辣粉+炸蛋"
+        },
+        {
+          "name": "麻辣粉+炸蛋",
+          "price": 11,
+          "cat": "酸辣粉系列(米线)",
+          "dishId": "cp0397",
+          "kbName": "麻辣粉+炸蛋"
+        },
+        {
+          "name": "牛肉酸辣粉",
+          "price": 15,
+          "cat": "酸辣粉系列(米线)",
+          "dishId": "cp0398",
+          "kbName": "牛肉酸辣粉"
+        },
+        {
+          "name": "臊子酸辣粉",
+          "price": 11,
+          "cat": "酸辣粉系列(米线)",
+          "dishId": "cp0399",
+          "kbName": "臊子酸辣粉"
+        },
+        {
+          "name": "泡椒鸡杂酸辣粉",
+          "price": 12,
+          "cat": "酸辣粉系列(米线)",
+          "dishId": "cp0400",
+          "kbName": "泡椒鸡杂酸辣粉"
+        },
+        {
+          "name": "辣子鸡块酸辣粉",
+          "price": 12,
+          "cat": "酸辣粉系列(米线)",
+          "dishId": "cp0401",
+          "kbName": "辣子鸡块酸辣粉"
+        },
+        {
+          "name": "特色油泼面",
+          "price": 10,
+          "cat": "陕西油泼面系列",
+          "dishId": "cp0402",
+          "kbName": "特色油泼面"
+        },
+        {
+          "name": "肉酱油泼面",
+          "price": 12,
+          "cat": "陕西油泼面系列",
+          "dishId": "cp0403",
+          "kbName": "肉酱油泼面"
+        },
+        {
+          "name": "牛肉油泼面",
+          "price": 16,
+          "cat": "陕西油泼面系列",
+          "dishId": "cp0404",
+          "kbName": "牛肉油泼面"
+        },
+        {
+          "name": "油泼套餐",
+          "price": 14.9,
+          "cat": "陕西油泼面系列",
+          "dishId": "cp0405",
+          "kbName": "油泼套餐"
+        },
+        {
+          "name": "麻酱米线",
+          "price": 10,
+          "cat": "干拌面系列",
+          "dishId": "cp0406",
+          "kbName": "麻酱米线"
+        },
+        {
+          "name": "招牌拌面",
+          "price": 10,
+          "cat": "干拌面系列",
+          "dishId": "cp0407",
+          "kbName": "招牌拌面"
+        },
+        {
+          "name": "葱油火腿拌面",
+          "price": 11,
+          "cat": "干拌面系列",
+          "dishId": "cp0408",
+          "kbName": "葱油火腿拌面"
+        },
+        {
+          "name": "炸酱面",
+          "price": 11,
+          "cat": "干拌面系列",
+          "dishId": "cp0166",
+          "kbName": "炸酱面"
+        },
+        {
+          "name": "经典麻酱拌面",
+          "price": 11,
+          "cat": "干拌面系列",
+          "dishId": "cp0409",
+          "kbName": "经典麻酱拌面"
+        },
+        {
+          "name": "剁椒酱拌面",
+          "price": 13,
+          "cat": "干拌面系列",
+          "dishId": "cp0410",
+          "kbName": "剁椒酱拌面"
+        },
+        {
+          "name": "鸡丝麻酱凉面",
+          "price": 12,
+          "cat": "干拌面系列",
+          "dishId": "cp0411",
+          "kbName": "鸡丝麻酱凉面"
+        },
+        {
+          "name": "香菇鸡丁拌面",
+          "price": 12,
+          "cat": "干拌面系列",
+          "dishId": "cp0412",
+          "kbName": "香菇鸡丁拌面"
+        },
+        {
+          "name": "咸蛋黄拌面",
+          "price": 13,
+          "cat": "干拌面系列",
+          "dishId": "cp0413",
+          "kbName": "咸蛋黄拌面（档口）"
+        },
+        {
+          "name": "卤豆皮",
+          "price": 1.5,
+          "cat": "可加卤味",
+          "dishId": "cp0965",
+          "kbName": "卤豆皮"
+        },
+        {
+          "name": "卤豆干",
+          "price": 1.5,
+          "cat": "可加卤味",
+          "dishId": "cp0966",
+          "kbName": "卤豆干"
+        },
+        {
+          "name": "卤蛋",
+          "price": 2,
+          "cat": "可加卤味",
+          "dishId": "cp0967",
+          "kbName": "卤蛋（档口）"
+        },
+        {
+          "name": "卤肠",
+          "price": 2,
+          "cat": "可加卤味",
+          "dishId": "cp0968",
+          "kbName": "卤肠"
+        },
+        {
+          "name": "卤面筋",
+          "price": 2,
+          "cat": "可加卤味",
+          "dishId": "cp0969",
+          "kbName": "卤面筋"
+        },
+        {
+          "name": "肉丸子",
+          "price": 2,
+          "cat": "可加卤味",
+          "dishId": "cp0970",
+          "kbName": "肉丸子"
+        },
+        {
+          "name": "黄金炸蛋",
+          "price": 3,
+          "cat": "可加卤味",
+          "dishId": "cp0971",
+          "kbName": "黄金炸蛋"
         }
       ],
       "uncertain": []
@@ -5178,70 +5574,70 @@
           "name": "酱香石锅鸡",
           "price": 14,
           "cat": "石锅鸡",
-          "dishId": "cp0382",
+          "dishId": "cp0415",
           "kbName": "酱香石锅鸡"
         },
         {
           "name": "荔枝香辣石锅鸡",
           "price": 14,
           "cat": "石锅鸡",
-          "dishId": "cp0383",
+          "dishId": "cp0416",
           "kbName": "荔枝香辣石锅鸡"
         },
         {
           "name": "蒜香石锅鸡",
           "price": 14,
           "cat": "石锅鸡",
-          "dishId": "cp0384",
+          "dishId": "cp0417",
           "kbName": "蒜香石锅鸡"
         },
         {
           "name": "藤椒石锅鸡",
           "price": 14,
           "cat": "石锅鸡",
-          "dishId": "cp0385",
+          "dishId": "cp0418",
           "kbName": "藤椒石锅鸡"
         },
         {
           "name": "黑鸭风味石锅鸡",
           "price": 14,
           "cat": "石锅鸡",
-          "dishId": "cp0386",
+          "dishId": "cp0419",
           "kbName": "黑鸭风味石锅鸡"
         },
         {
           "name": "荔枝香辣石锅鱼",
           "price": 15,
           "cat": "石锅鱼",
-          "dishId": "cp0387",
+          "dishId": "cp0420",
           "kbName": "荔枝香辣石锅鱼"
         },
         {
           "name": "蒜香石锅鱼",
           "price": 15,
           "cat": "石锅鱼",
-          "dishId": "cp0388",
+          "dishId": "cp0421",
           "kbName": "蒜香石锅鱼"
         },
         {
           "name": "藤椒石锅鱼",
           "price": 15,
           "cat": "石锅鱼",
-          "dishId": "cp0389",
+          "dishId": "cp0422",
           "kbName": "藤椒石锅鱼"
         },
         {
           "name": "番茄石锅鱼",
           "price": 15,
           "cat": "石锅鱼",
-          "dishId": "cp0390",
+          "dishId": "cp0423",
           "kbName": "番茄石锅鱼"
         },
         {
           "name": "酱香石锅鱼",
           "price": 15,
           "cat": "石锅鱼",
-          "dishId": "cp0391",
+          "dishId": "cp0424",
           "kbName": "酱香石锅鱼"
         }
       ],
@@ -5273,147 +5669,147 @@
           "name": "鲜肉包",
           "price": 2.5,
           "cat": "大包子",
-          "dishId": "cp0392",
+          "dishId": "cp0425",
           "kbName": "鲜肉包"
         },
         {
           "name": "酱肉包",
           "price": 2.5,
           "cat": "大包子",
-          "dishId": "cp0393",
+          "dishId": "cp0426",
           "kbName": "酱肉包"
         },
         {
           "name": "奥尔良鸡肉包",
           "price": 2.5,
           "cat": "大包子",
-          "dishId": "cp0394",
+          "dishId": "cp0427",
           "kbName": "奥尔良鸡肉包"
         },
         {
           "name": "香菇青菜包",
           "price": 2,
           "cat": "大包子",
-          "dishId": "cp0395",
+          "dishId": "cp0428",
           "kbName": "香菇青菜包"
         },
         {
           "name": "紫薯包",
           "price": 2,
           "cat": "大包子",
-          "dishId": "cp0396",
+          "dishId": "cp0429",
           "kbName": "紫薯包"
         },
         {
           "name": "奶黄包",
           "price": 2,
           "cat": "大包子",
-          "dishId": "cp0397",
+          "dishId": "cp0430",
           "kbName": "奶黄包"
         },
         {
           "name": "红糖馒头",
           "price": 1.5,
           "cat": "大包子",
-          "dishId": "cp0398",
+          "dishId": "cp0431",
           "kbName": "红糖馒头"
         },
         {
           "name": "叉烧包",
           "price": 2.5,
           "cat": "大包子",
-          "dishId": "cp0399",
+          "dishId": "cp0432",
           "kbName": "叉烧包（档口）"
         },
         {
           "name": "鲜肉小笼包",
           "price": 7,
           "cat": "小笼包",
-          "dishId": "cp0400",
+          "dishId": "cp0433",
           "kbName": "鲜肉小笼包"
         },
         {
           "name": "酸菜肉小笼包",
           "price": 8,
           "cat": "小笼包",
-          "dishId": "cp0401",
+          "dishId": "cp0434",
           "kbName": "酸菜肉小笼包"
         },
         {
           "name": "梅干菜小笼包",
           "price": 8,
           "cat": "小笼包",
-          "dishId": "cp0402",
+          "dishId": "cp0435",
           "kbName": "梅干菜小笼包"
         },
         {
           "name": "青菜萝卜小笼包",
           "price": 6,
           "cat": "小笼包",
-          "dishId": "cp0403",
+          "dishId": "cp0436",
           "kbName": "青菜萝卜小笼包"
         },
         {
           "name": "水晶蒸饺",
           "price": 10,
           "cat": "小笼包",
-          "dishId": "cp0404",
+          "dishId": "cp0437",
           "kbName": "水晶蒸饺"
         },
         {
           "name": "鲜肉玉米蒸饺",
           "price": 8,
           "cat": "小笼包",
-          "dishId": "cp0405",
+          "dishId": "cp0438",
           "kbName": "鲜肉玉米蒸饺"
         },
         {
           "name": "粉丝蒸饺",
           "price": 1.5,
           "cat": "小笼包",
-          "dishId": "cp0406",
+          "dishId": "cp0439",
           "kbName": "粉丝蒸饺"
         },
         {
           "name": "香菇肉丁烧麦",
           "price": 1.5,
           "cat": "烧麦",
-          "dishId": "cp0407",
+          "dishId": "cp0440",
           "kbName": "香菇肉丁烧麦"
         },
         {
           "name": "鲜肉烧麦",
           "price": 8,
           "cat": "烧麦",
-          "dishId": "cp0408",
+          "dishId": "cp0441",
           "kbName": "鲜肉烧麦"
         },
         {
           "name": "白菜肉烧麦",
           "price": 8,
           "cat": "烧麦",
-          "dishId": "cp0409",
+          "dishId": "cp0442",
           "kbName": "白菜肉烧麦"
         },
         {
           "name": "西湖鸡蛋烧麦",
           "price": 8,
           "cat": "烧麦",
-          "dishId": "cp0410",
+          "dishId": "cp0443",
           "kbName": "西湖鸡蛋烧麦"
         },
         {
           "name": "卤蛋",
           "price": 1.5,
           "cat": "汤品",
-          "dishId": "cp0929",
+          "dishId": "cp0967",
           "kbName": "卤蛋（档口）"
         },
         {
           "name": "馄饨",
           "price": 6,
           "cat": "汤品",
-          "dishId": "cp0411",
+          "dishId": "cp0444",
           "kbName": "馄饨"
         },
         {
@@ -5427,84 +5823,84 @@
           "name": "猪肉大葱水饺(大份)",
           "price": 14,
           "cat": "水饺",
-          "dishId": "cp0930",
+          "dishId": "cp0972",
           "kbName": "猪肉大葱水饺(大份)"
         },
         {
           "name": "猪肉白菜水饺(大份)",
           "price": 14,
           "cat": "水饺",
-          "dishId": "cp0931",
+          "dishId": "cp0973",
           "kbName": "猪肉白菜水饺(大份)"
         },
         {
           "name": "猪肉酸菜水饺(大份)",
           "price": 14,
           "cat": "水饺",
-          "dishId": "cp0932",
+          "dishId": "cp0974",
           "kbName": "猪肉酸菜水饺(大份)"
         },
         {
           "name": "鲜肉玉米水饺(大份)",
           "price": 14,
           "cat": "水饺",
-          "dishId": "cp0933",
+          "dishId": "cp0975",
           "kbName": "鲜肉玉米水饺(大份)"
         },
         {
           "name": "牛肉大葱水饺(大份)",
           "price": 16,
           "cat": "水饺",
-          "dishId": "cp0934",
+          "dishId": "cp0976",
           "kbName": "牛肉大葱水饺(大份)"
         },
         {
           "name": "西湖鸡蛋水饺(大份)",
           "price": 12,
           "cat": "水饺",
-          "dishId": "cp0935",
+          "dishId": "cp0977",
           "kbName": "西湖鸡蛋水饺(大份)"
         },
         {
           "name": "猪肉大葱水饺(小份)",
           "price": 11,
           "cat": "水饺",
-          "dishId": "cp0936",
+          "dishId": "cp0978",
           "kbName": "猪肉大葱水饺(小份)"
         },
         {
           "name": "猪肉白菜水饺(小份)",
           "price": 11,
           "cat": "水饺",
-          "dishId": "cp0937",
+          "dishId": "cp0979",
           "kbName": "猪肉白菜水饺(小份)"
         },
         {
           "name": "猪肉酸菜水饺(小份)",
           "price": 11,
           "cat": "水饺",
-          "dishId": "cp0938",
+          "dishId": "cp0980",
           "kbName": "猪肉酸菜水饺(小份)"
         },
         {
           "name": "鲜肉玉米水饺(小份)",
           "price": 11,
           "cat": "水饺",
-          "dishId": "cp0939",
+          "dishId": "cp0981",
           "kbName": "鲜肉玉米水饺(小份)"
         },
         {
           "name": "牛肉大葱水饺(小份)",
           "price": 13,
           "cat": "水饺",
-          "dishId": "cp0940",
+          "dishId": "cp0982",
           "kbName": "牛肉大葱水饺(小份)"
         },
         {
           "name": "西湖鸡蛋水饺(小份)",
           "price": 9,
           "cat": "水饺",
-          "dishId": "cp0941",
+          "dishId": "cp0983",
           "kbName": "西湖鸡蛋水饺(小份)"
         }
       ],
@@ -5932,168 +6328,168 @@
           "name": "低脂素菜火烧",
           "price": 4,
           "cat": "早餐",
-          "dishId": "cp0421",
+          "dishId": "cp0454",
           "kbName": "低脂素菜火烧"
         },
         {
           "name": "卤蛋海带丝火烧",
           "price": 4.5,
           "cat": "早餐",
-          "dishId": "cp0422",
+          "dishId": "cp0455",
           "kbName": "卤蛋海带丝火烧"
         },
         {
           "name": "煎蛋辣丝香肠火烧",
           "price": 5,
           "cat": "早餐",
-          "dishId": "cp0423",
+          "dishId": "cp0456",
           "kbName": "煎蛋辣丝香肠火烧"
         },
         {
           "name": "现磨五谷豆浆",
           "price": 2,
           "cat": "早餐",
-          "dishId": "cp0942",
+          "dishId": "cp0984",
           "kbName": "现磨五谷豆浆"
         },
         {
           "name": "熏肉鲜蔬火烧",
           "price": 6,
           "cat": "招牌爆款",
-          "dishId": "cp0424",
+          "dishId": "cp0457",
           "kbName": "熏肉鲜蔬火烧"
         },
         {
           "name": "牛肉汤+葱油饼",
           "price": 5,
           "cat": "招牌爆款",
-          "dishId": "cp0943",
+          "dishId": "cp0985",
           "kbName": "牛肉汤+葱油饼"
         },
         {
           "name": "牛肉汤粉丝",
           "price": 11,
           "cat": "单品",
-          "dishId": "cp0415",
+          "dishId": "cp0448",
           "kbName": "牛肉汤粉丝"
         },
         {
           "name": "牛杂汤粉丝",
           "price": 11,
           "cat": "单品",
-          "dishId": "cp0416",
+          "dishId": "cp0449",
           "kbName": "牛杂汤粉丝"
         },
         {
           "name": "清汤",
           "price": 5,
           "cat": "单品",
-          "dishId": "cp0419",
+          "dishId": "cp0452",
           "kbName": "清汤"
         },
         {
           "name": "牛肉汤米线",
           "price": 11,
           "cat": "单品",
-          "dishId": "cp0417",
+          "dishId": "cp0450",
           "kbName": "牛肉汤米线"
         },
         {
           "name": "牛杂汤米线",
           "price": 11,
           "cat": "单品",
-          "dishId": "cp0418",
+          "dishId": "cp0451",
           "kbName": "牛杂汤米线"
         },
         {
           "name": "葱油饼",
           "price": 8,
           "cat": "单品",
-          "dishId": "cp0420",
+          "dishId": "cp0453",
           "kbName": "葱油饼"
         },
         {
           "name": "牛肉汤粉丝+葱油饼",
           "price": 13,
           "cat": "套餐",
-          "dishId": "cp0425",
+          "dishId": "cp0458",
           "kbName": "牛肉汤粉丝+葱油饼"
         },
         {
           "name": "牛杂汤粉丝+葱油饼",
           "price": 13,
           "cat": "套餐",
-          "dishId": "cp0426",
+          "dishId": "cp0459",
           "kbName": "牛杂汤粉丝+葱油饼"
         },
         {
           "name": "牛肉汤米线+葱油饼",
           "price": 13,
           "cat": "套餐",
-          "dishId": "cp0944",
+          "dishId": "cp0986",
           "kbName": "牛肉汤米线+葱油饼"
         },
         {
           "name": "牛杂汤米线+葱油饼",
           "price": 13,
           "cat": "套餐",
-          "dishId": "cp0945",
+          "dishId": "cp0987",
           "kbName": "牛杂汤米线+葱油饼"
         },
         {
           "name": "牛肉汤粉丝+小酥肉+葱油饼",
           "price": 16,
           "cat": "套餐",
-          "dishId": "cp0946",
+          "dishId": "cp0988",
           "kbName": "牛肉汤粉丝+小酥肉+葱油饼"
         },
         {
           "name": "牛杂汤粉丝+小酥肉+葱油饼",
           "price": 16,
           "cat": "套餐",
-          "dishId": "cp0947",
+          "dishId": "cp0989",
           "kbName": "牛杂汤粉丝+小酥肉+葱油饼"
         },
         {
           "name": "牛肉汤粉丝+小酥肉",
           "price": 14,
           "cat": "豪华套餐",
-          "dishId": "cp0427",
+          "dishId": "cp0460",
           "kbName": "牛肉汤粉丝+小酥肉"
         },
         {
           "name": "牛杂汤粉丝+小酥肉",
           "price": 14,
           "cat": "豪华套餐",
-          "dishId": "cp0948",
+          "dishId": "cp0990",
           "kbName": "牛杂汤粉丝+小酥肉"
         },
         {
           "name": "卤鸡蛋",
           "price": 1.5,
           "cat": "加料",
-          "dishId": "cp0466",
+          "dishId": "cp0499",
           "kbName": "卤鸡蛋"
         },
         {
           "name": "小酥肉",
           "price": 4,
           "cat": "加料",
-          "dishId": "cp0949",
+          "dishId": "cp0991",
           "kbName": "小酥肉"
         },
         {
           "name": "满料鸡柳拌冷面",
           "price": 12,
           "cat": "人气必点",
-          "dishId": "cp0428",
+          "dishId": "cp0461",
           "kbName": "满料鸡柳拌冷面"
         },
         {
           "name": "双拼鸡柳拌冷面",
           "price": 13,
           "cat": "人气必点",
-          "dishId": "cp0429",
+          "dishId": "cp0462",
           "kbName": "双拼鸡柳拌冷面"
         }
       ],
@@ -6297,77 +6693,77 @@
           "name": "招牌炙烤五花肉",
           "price": 15,
           "cat": "主营",
-          "dishId": "cp0430",
+          "dishId": "cp0463",
           "kbName": "招牌炙烤五花肉"
         },
         {
           "name": "铁板炙烤鸡腿饭",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0431",
+          "dishId": "cp0464",
           "kbName": "铁板炙烤鸡腿饭"
         },
         {
           "name": "五花肉金针菇",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0432",
+          "dishId": "cp0465",
           "kbName": "五花肉金针菇"
         },
         {
           "name": "炙烤梅花肉饭",
           "price": 15,
           "cat": "主营",
-          "dishId": "cp0433",
+          "dishId": "cp0466",
           "kbName": "炙烤梅花肉饭"
         },
         {
           "name": "炙烤牛肉饭",
           "price": 16,
           "cat": "主营",
-          "dishId": "cp0434",
+          "dishId": "cp0467",
           "kbName": "炙烤牛肉饭"
         },
         {
           "name": "五花肉娃娃菜",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0435",
+          "dishId": "cp0468",
           "kbName": "五花肉娃娃菜"
         },
         {
           "name": "法式烤排饭",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0436",
+          "dishId": "cp0469",
           "kbName": "法式烤排饭"
         },
         {
           "name": "煎蛋培根饭",
           "price": 13,
           "cat": "主营",
-          "dishId": "cp0437",
+          "dishId": "cp0470",
           "kbName": "煎蛋培根饭"
         },
         {
           "name": "招牌T骨猪排饭",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0438",
+          "dishId": "cp0471",
           "kbName": "招牌T骨猪排饭"
         },
         {
           "name": "招牌五花肉酸菜",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0439",
+          "dishId": "cp0472",
           "kbName": "招牌五花肉酸菜"
         },
         {
           "name": "五花肉香辣包菜",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0440",
+          "dishId": "cp0473",
           "kbName": "五花肉香辣包菜"
         }
       ],
@@ -6643,77 +7039,77 @@
           "name": "港式酥肉饭",
           "price": 12,
           "cat": "主营",
-          "dishId": "cp0441",
+          "dishId": "cp0474",
           "kbName": "港式酥肉饭"
         },
         {
           "name": "港式腊肠饭",
           "price": 12,
           "cat": "主营",
-          "dishId": "cp0442",
+          "dishId": "cp0475",
           "kbName": "港式腊肠饭"
         },
         {
           "name": "红酒黑鸭煲饭",
           "price": 13,
           "cat": "主营",
-          "dishId": "cp0443",
+          "dishId": "cp0476",
           "kbName": "红酒黑鸭煲饭"
         },
         {
           "name": "红酒麻辣鸭腿饭",
           "price": 13,
           "cat": "主营",
-          "dishId": "cp0444",
+          "dishId": "cp0477",
           "kbName": "红酒麻辣鸭腿饭"
         },
         {
           "name": "咖喱鸡肉饭",
           "price": 13,
           "cat": "主营",
-          "dishId": "cp0445",
+          "dishId": "cp0478",
           "kbName": "咖喱鸡肉饭（档口）"
         },
         {
           "name": "港式鸡块",
           "price": 13,
           "cat": "主营",
-          "dishId": "cp0446",
+          "dishId": "cp0479",
           "kbName": "港式鸡块"
         },
         {
           "name": "港式半只鸡",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0447",
+          "dishId": "cp0480",
           "kbName": "港式半只鸡"
         },
         {
           "name": "港式把子肉",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0448",
+          "dishId": "cp0481",
           "kbName": "港式把子肉"
         },
         {
           "name": "梅菜烧肉饭",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0449",
+          "dishId": "cp0482",
           "kbName": "梅菜烧肉饭"
         },
         {
           "name": "黑金卤肉饭",
           "price": 14,
           "cat": "主营",
-          "dishId": "cp0450",
+          "dishId": "cp0483",
           "kbName": "黑金卤肉饭"
         },
         {
           "name": "番茄牛肉饭",
           "price": 15,
           "cat": "主营",
-          "dishId": "cp0451",
+          "dishId": "cp0484",
           "kbName": "番茄牛肉饭"
         }
       ],
@@ -6745,7 +7141,7 @@
           "name": "肉夹馍",
           "price": 6,
           "cat": "早餐",
-          "dishId": "cp0452",
+          "dishId": "cp0485",
           "kbName": "肉夹馍（档口）"
         },
         {
@@ -6759,126 +7155,126 @@
           "name": "大饼卷一切(单饼)",
           "price": 3,
           "cat": "早餐",
-          "dishId": "cp0453",
+          "dishId": "cp0486",
           "kbName": "大饼卷一切(单饼)"
         },
         {
           "name": "酱香炒鸡拌饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0454",
+          "dishId": "cp0487",
           "kbName": "酱香炒鸡拌饭"
         },
         {
           "name": "咖喱炒鸡拌饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0455",
+          "dishId": "cp0488",
           "kbName": "咖喱炒鸡拌饭"
         },
         {
           "name": "糖醋炒鸡拌饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0456",
+          "dishId": "cp0489",
           "kbName": "糖醋炒鸡拌饭"
         },
         {
           "name": "孜然烧烤炒鸡拌饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0457",
+          "dishId": "cp0490",
           "kbName": "孜然烧烤炒鸡拌饭"
         },
         {
           "name": "麻辣炒鸡拌饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0458",
+          "dishId": "cp0491",
           "kbName": "麻辣炒鸡拌饭"
         },
         {
           "name": "甜辣炒鸡拌饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0459",
+          "dishId": "cp0492",
           "kbName": "甜辣炒鸡拌饭"
         },
         {
           "name": "黑椒炒鸡拌饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0460",
+          "dishId": "cp0493",
           "kbName": "黑椒炒鸡拌饭"
         },
         {
           "name": "青花椒炒鸡拌饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0461",
+          "dishId": "cp0494",
           "kbName": "青花椒炒鸡拌饭"
         },
         {
           "name": "户部巷绝味烤面筋",
           "price": 3,
           "cat": "小吃",
-          "dishId": "cp0462",
+          "dishId": "cp0495",
           "kbName": "户部巷绝味烤面筋"
         },
         {
           "name": "煎鸡蛋",
           "price": 1.5,
           "cat": "单加",
-          "dishId": "cp0950",
+          "dishId": "cp0992",
           "kbName": "煎鸡蛋"
         },
         {
           "name": "大烤肠",
           "price": 2,
           "cat": "单加",
-          "dishId": "cp0951",
+          "dishId": "cp0993",
           "kbName": "大烤肠"
         },
         {
           "name": "鸡柳",
           "price": 2,
           "cat": "单加",
-          "dishId": "cp0504",
+          "dishId": "cp0537",
           "kbName": "鸡柳"
         },
         {
           "name": "土豆丝",
           "price": 1.5,
           "cat": "单加",
-          "dishId": "cp0952",
+          "dishId": "cp0994",
           "kbName": "土豆丝"
         },
         {
           "name": "火鸡面",
           "price": 2,
           "cat": "单加",
-          "dishId": "cp0953",
+          "dishId": "cp0995",
           "kbName": "火鸡面"
         },
         {
           "name": "鸡排",
           "price": 3,
           "cat": "单加",
-          "dishId": "cp0505",
+          "dishId": "cp0538",
           "kbName": "鸡排"
         },
         {
           "name": "海带丝",
           "price": 1.5,
           "cat": "单加",
-          "dishId": "cp0954",
+          "dishId": "cp0996",
           "kbName": "海带丝"
         },
         {
           "name": "尖椒肉丝",
           "price": 4,
           "cat": "单加",
-          "dishId": "cp0955",
+          "dishId": "cp0997",
           "kbName": "尖椒肉丝"
         }
       ],
@@ -6910,42 +7306,42 @@
           "name": "方便面",
           "price": 5,
           "cat": "早餐",
-          "dishId": "cp0463",
+          "dishId": "cp0496",
           "kbName": "方便面"
         },
         {
           "name": "奶黄包",
           "price": 2,
           "cat": "早餐",
-          "dishId": "cp0397",
+          "dishId": "cp0430",
           "kbName": "奶黄包"
         },
         {
           "name": "馄饨",
           "price": 4,
           "cat": "早餐",
-          "dishId": "cp0411",
+          "dishId": "cp0444",
           "kbName": "馄饨"
         },
         {
           "name": "肉三鲜包",
           "price": 2.5,
           "cat": "早餐",
-          "dishId": "cp0464",
+          "dishId": "cp0497",
           "kbName": "肉三鲜包"
         },
         {
           "name": "蒸饺",
           "price": 1.5,
           "cat": "早餐",
-          "dishId": "cp0465",
+          "dishId": "cp0498",
           "kbName": "蒸饺"
         },
         {
           "name": "红糖馒头",
           "price": 1.5,
           "cat": "早餐",
-          "dishId": "cp0398",
+          "dishId": "cp0431",
           "kbName": "红糖馒头"
         },
         {
@@ -6959,56 +7355,56 @@
           "name": "卤鸡蛋",
           "price": 1.5,
           "cat": "早餐",
-          "dishId": "cp0466",
+          "dishId": "cp0499",
           "kbName": "卤鸡蛋"
         },
         {
           "name": "白菜肉包",
           "price": 2,
           "cat": "鲜汁肉包",
-          "dishId": "cp0467",
+          "dishId": "cp0500",
           "kbName": "白菜肉包"
         },
         {
           "name": "芹菜肉包",
           "price": 2,
           "cat": "鲜汁肉包",
-          "dishId": "cp0468",
+          "dishId": "cp0501",
           "kbName": "芹菜肉包"
         },
         {
           "name": "酱肉包",
           "price": 2,
           "cat": "鲜汁肉包",
-          "dishId": "cp0393",
+          "dishId": "cp0426",
           "kbName": "酱肉包"
         },
         {
           "name": "胡萝卜鸡蛋包",
           "price": 2,
           "cat": "鲜汁肉包",
-          "dishId": "cp0469",
+          "dishId": "cp0502",
           "kbName": "胡萝卜鸡蛋包"
         },
         {
           "name": "荔枝鸡拌饭",
           "price": 12.8,
           "cat": "滑蛋饭",
-          "dishId": "cp0470",
+          "dishId": "cp0503",
           "kbName": "荔枝鸡拌饭"
         },
         {
           "name": "蒜香鸡拌饭",
           "price": 12.8,
           "cat": "滑蛋饭",
-          "dishId": "cp0471",
+          "dishId": "cp0504",
           "kbName": "蒜香鸡拌饭"
         },
         {
           "name": "椒麻叉烧鸭腿饭",
           "price": 12.8,
           "cat": "滑蛋饭",
-          "dishId": "cp0472",
+          "dishId": "cp0505",
           "kbName": "椒麻叉烧鸭腿饭"
         },
         {
@@ -7022,91 +7418,91 @@
           "name": "馋嘴鸡丁滑蛋饭",
           "price": 12.8,
           "cat": "滑蛋饭",
-          "dishId": "cp0473",
+          "dishId": "cp0506",
           "kbName": "馋嘴鸡丁滑蛋饭"
         },
         {
           "name": "番茄虾仁滑蛋饭",
           "price": 15,
           "cat": "滑蛋饭",
-          "dishId": "cp0474",
+          "dishId": "cp0507",
           "kbName": "番茄虾仁滑蛋饭"
         },
         {
           "name": "小炒牛肉滑蛋饭",
           "price": 16,
           "cat": "滑蛋饭",
-          "dishId": "cp0475",
+          "dishId": "cp0508",
           "kbName": "小炒牛肉滑蛋饭"
         },
         {
           "name": "回锅肉滑蛋饭",
           "price": 14,
           "cat": "滑蛋饭",
-          "dishId": "cp0476",
+          "dishId": "cp0509",
           "kbName": "回锅肉滑蛋饭"
         },
         {
           "name": "广式腊肠滑蛋饭",
           "price": 12,
           "cat": "滑蛋饭",
-          "dishId": "cp0477",
+          "dishId": "cp0510",
           "kbName": "广式腊肠滑蛋饭"
         },
         {
           "name": "蟹柳滑蛋饭",
           "price": 12.8,
           "cat": "滑蛋饭",
-          "dishId": "cp0478",
+          "dishId": "cp0511",
           "kbName": "蟹柳滑蛋饭"
         },
         {
           "name": "原味煎饼套餐(蛋+生菜+薄脆)",
           "price": 6,
           "cat": "山东煎饼",
-          "dishId": "cp0479",
+          "dishId": "cp0512",
           "kbName": "原味煎饼套餐(蛋+生菜+薄脆)"
         },
         {
           "name": "肉松加料",
           "price": 2,
           "cat": "煎饼加料",
-          "dishId": "cp0956",
+          "dishId": "cp0998",
           "kbName": "肉松加料"
         },
         {
           "name": "培根加料",
           "price": 1,
           "cat": "煎饼加料",
-          "dishId": "cp0957",
+          "dishId": "cp0999",
           "kbName": "培根加料"
         },
         {
           "name": "辣丝加料",
           "price": 1,
           "cat": "煎饼加料",
-          "dishId": "cp0958",
+          "dishId": "cp1000",
           "kbName": "辣丝加料"
         },
         {
           "name": "鸡柳加料",
           "price": 1.5,
           "cat": "煎饼加料",
-          "dishId": "cp0959",
+          "dishId": "cp1001",
           "kbName": "鸡柳加料"
         },
         {
           "name": "鸡排加料",
           "price": 4,
           "cat": "煎饼加料",
-          "dishId": "cp0960",
+          "dishId": "cp1002",
           "kbName": "鸡排加料"
         },
         {
           "name": "烤肠加料",
           "price": 1.5,
           "cat": "煎饼加料",
-          "dishId": "cp0961",
+          "dishId": "cp1003",
           "kbName": "烤肠加料"
         }
       ],
@@ -7138,140 +7534,140 @@
           "name": "香菇油菜啫盖饭",
           "price": 13.8,
           "cat": "啫盖饭",
-          "dishId": "cp0480",
+          "dishId": "cp0513",
           "kbName": "香菇油菜啫盖饭"
         },
         {
           "name": "尖椒鸡蛋啫盖饭",
           "price": 13.8,
           "cat": "啫盖饭",
-          "dishId": "cp0481",
+          "dishId": "cp0514",
           "kbName": "尖椒鸡蛋啫盖饭"
         },
         {
           "name": "尖椒猪肉啫盖饭",
           "price": 15,
           "cat": "啫盖饭",
-          "dishId": "cp0482",
+          "dishId": "cp0515",
           "kbName": "尖椒猪肉啫盖饭"
         },
         {
           "name": "香菇鸡腿啫盖饭",
           "price": 15,
           "cat": "啫盖饭",
-          "dishId": "cp0483",
+          "dishId": "cp0516",
           "kbName": "香菇鸡腿啫盖饭"
         },
         {
           "name": "鸡肉腊肠啫盖饭",
           "price": 15,
           "cat": "啫盖饭",
-          "dishId": "cp0484",
+          "dishId": "cp0517",
           "kbName": "鸡肉腊肠啫盖饭"
         },
         {
           "name": "蒜苔腊肉啫盖饭",
           "price": 16,
           "cat": "啫盖饭",
-          "dishId": "cp0485",
+          "dishId": "cp0518",
           "kbName": "蒜苔腊肉啫盖饭"
         },
         {
           "name": "黑胡椒牛肉啫盖饭",
           "price": 18,
           "cat": "啫盖饭",
-          "dishId": "cp0486",
+          "dishId": "cp0519",
           "kbName": "黑胡椒牛肉啫盖饭"
         },
         {
           "name": "香辣鱿鱼啫盖饭",
           "price": 18,
           "cat": "啫盖饭",
-          "dishId": "cp0487",
+          "dishId": "cp0520",
           "kbName": "香辣鱿鱼啫盖饭"
         },
         {
           "name": "榨菜肉丝煲仔饭",
           "price": 15,
           "cat": "煲仔饭",
-          "dishId": "cp0488",
+          "dishId": "cp0521",
           "kbName": "榨菜肉丝煲仔饭"
         },
         {
           "name": "麻香鸡肉煲仔饭",
           "price": 15,
           "cat": "煲仔饭",
-          "dishId": "cp0489",
+          "dishId": "cp0522",
           "kbName": "麻香鸡肉煲仔饭"
         },
         {
           "name": "香菇滑鸡煲仔饭",
           "price": 15,
           "cat": "煲仔饭",
-          "dishId": "cp0490",
+          "dishId": "cp0523",
           "kbName": "香菇滑鸡煲仔饭"
         },
         {
           "name": "腊香滑鸡煲仔饭",
           "price": 15,
           "cat": "煲仔饭",
-          "dishId": "cp0491",
+          "dishId": "cp0524",
           "kbName": "腊香滑鸡煲仔饭"
         },
         {
           "name": "双腊皇煲仔饭",
           "price": 18,
           "cat": "煲仔饭",
-          "dishId": "cp0492",
+          "dishId": "cp0525",
           "kbName": "双腊皇煲仔饭"
         },
         {
           "name": "全家福煲仔饭",
           "price": 18,
           "cat": "煲仔饭",
-          "dishId": "cp0493",
+          "dishId": "cp0526",
           "kbName": "全家福煲仔饭"
         },
         {
           "name": "美味加料鸡蛋",
           "price": 1.5,
           "cat": "美味加料",
-          "dishId": "cp0962",
+          "dishId": "cp1004",
           "kbName": "美味加料鸡蛋"
         },
         {
           "name": "美味加料腊肠",
           "price": 3,
           "cat": "美味加料",
-          "dishId": "cp0963",
+          "dishId": "cp1005",
           "kbName": "美味加料腊肠"
         },
         {
           "name": "美味加料腊肉",
           "price": 3,
           "cat": "美味加料",
-          "dishId": "cp0964",
+          "dishId": "cp1006",
           "kbName": "美味加料腊肉"
         },
         {
           "name": "美味加料鸡肉",
           "price": 3,
           "cat": "美味加料",
-          "dishId": "cp0965",
+          "dishId": "cp1007",
           "kbName": "美味加料鸡肉"
         },
         {
           "name": "美味加料猪肉",
           "price": 3,
           "cat": "美味加料",
-          "dishId": "cp0966",
+          "dishId": "cp1008",
           "kbName": "美味加料猪肉"
         },
         {
           "name": "美味加料牛肉",
           "price": 4,
           "cat": "美味加料",
-          "dishId": "cp0967",
+          "dishId": "cp1009",
           "kbName": "美味加料牛肉"
         }
       ],
@@ -7303,21 +7699,21 @@
           "name": "古法八宝粥",
           "price": 5,
           "cat": "粥品",
-          "dishId": "cp0494",
+          "dishId": "cp0527",
           "kbName": "古法八宝粥"
         },
         {
           "name": "椰奶",
           "price": 3,
           "cat": "粥品",
-          "dishId": "cp0495",
+          "dishId": "cp0528",
           "kbName": "椰奶"
         },
         {
           "name": "小米南瓜粥",
           "price": 3,
           "cat": "粥品",
-          "dishId": "cp0496",
+          "dishId": "cp0529",
           "kbName": "小米南瓜粥"
         },
         {
@@ -7331,35 +7727,35 @@
           "name": "绿豆豆沙粥",
           "price": 3,
           "cat": "粥品",
-          "dishId": "cp0497",
+          "dishId": "cp0530",
           "kbName": "绿豆豆沙粥"
         },
         {
           "name": "稻香黑米粥",
           "price": 3,
           "cat": "粥品",
-          "dishId": "cp0498",
+          "dishId": "cp0531",
           "kbName": "稻香黑米粥"
         },
         {
           "name": "牛奶燕麦粥",
           "price": 3,
           "cat": "粥品",
-          "dishId": "cp0499",
+          "dishId": "cp0532",
           "kbName": "牛奶燕麦粥"
         },
         {
           "name": "茉莉冰豆浆",
           "price": 4,
           "cat": "粥品",
-          "dishId": "cp0500",
+          "dishId": "cp0533",
           "kbName": "茉莉冰豆浆"
         },
         {
           "name": "哈密西米露",
           "price": 4,
           "cat": "粥品",
-          "dishId": "cp0501",
+          "dishId": "cp0534",
           "kbName": "哈密西米露"
         },
         {
@@ -7373,42 +7769,42 @@
           "name": "土家烧饼",
           "price": 4,
           "cat": "小吃",
-          "dishId": "cp0502",
+          "dishId": "cp0535",
           "kbName": "土家烧饼"
         },
         {
           "name": "烤肠",
           "price": 2,
           "cat": "小吃",
-          "dishId": "cp0503",
+          "dishId": "cp0536",
           "kbName": "烤肠"
         },
         {
           "name": "鸡柳",
           "price": 2,
           "cat": "小吃",
-          "dishId": "cp0504",
+          "dishId": "cp0537",
           "kbName": "鸡柳"
         },
         {
           "name": "鸡排",
           "price": 3,
           "cat": "小吃",
-          "dishId": "cp0505",
+          "dishId": "cp0538",
           "kbName": "鸡排"
         },
         {
           "name": "冰镇绿豆沙",
           "price": 3,
           "cat": "冰饮",
-          "dishId": "cp0506",
+          "dishId": "cp0539",
           "kbName": "冰镇绿豆沙"
         },
         {
           "name": "冰镇红豆沙",
           "price": 3,
           "cat": "冰饮",
-          "dishId": "cp0507",
+          "dishId": "cp0540",
           "kbName": "冰镇红豆沙"
         }
       ],
@@ -7440,63 +7836,63 @@
           "name": "蜜香红茶",
           "price": 4,
           "cat": "甄选好茶",
-          "dishId": "cp0508",
+          "dishId": "cp0541",
           "kbName": "蜜香红茶"
         },
         {
           "name": "韵香茉莉",
           "price": 4,
           "cat": "甄选好茶",
-          "dishId": "cp0509",
+          "dishId": "cp0542",
           "kbName": "韵香茉莉"
         },
         {
           "name": "白桃乌龙",
           "price": 4,
           "cat": "甄选好茶",
-          "dishId": "cp0510",
+          "dishId": "cp0543",
           "kbName": "白桃乌龙"
         },
         {
           "name": "柠檬红茶",
           "price": 5,
           "cat": "甄选好茶",
-          "dishId": "cp0511",
+          "dishId": "cp0544",
           "kbName": "柠檬红茶"
         },
         {
           "name": "柠檬绿茶",
           "price": 5,
           "cat": "甄选好茶",
-          "dishId": "cp0512",
+          "dishId": "cp0545",
           "kbName": "柠檬绿茶"
         },
         {
           "name": "柠檬乌龙",
           "price": 5,
           "cat": "甄选好茶",
-          "dishId": "cp0513",
+          "dishId": "cp0546",
           "kbName": "柠檬乌龙"
         },
         {
           "name": "酸梅汤",
           "price": 3,
           "cat": "特价爆品",
-          "dishId": "cp0514",
+          "dishId": "cp0547",
           "kbName": "酸梅汤（档口）"
         },
         {
           "name": "荔枝水",
           "price": 4,
           "cat": "特价爆品",
-          "dishId": "cp0515",
+          "dishId": "cp0548",
           "kbName": "荔枝水"
         },
         {
           "name": "森林莓果",
           "price": 4,
           "cat": "特价爆品",
-          "dishId": "cp0516",
+          "dishId": "cp0549",
           "kbName": "森林莓果"
         },
         {
@@ -7510,385 +7906,385 @@
           "name": "柠檬可乐",
           "price": 5,
           "cat": "特价爆品",
-          "dishId": "cp0517",
+          "dishId": "cp0550",
           "kbName": "柠檬可乐"
         },
         {
           "name": "青柚益多多",
           "price": 5,
           "cat": "特价爆品",
-          "dishId": "cp0518",
+          "dishId": "cp0551",
           "kbName": "青柚益多多"
         },
         {
           "name": "经典奶茶(中)",
           "price": 7,
           "cat": "招牌奶茶",
-          "dishId": "cp0519",
+          "dishId": "cp0552",
           "kbName": "经典奶茶(中)"
         },
         {
           "name": "经典奶茶(大)",
           "price": 9,
           "cat": "招牌奶茶",
-          "dishId": "cp0520",
+          "dishId": "cp0553",
           "kbName": "经典奶茶(大)"
         },
         {
           "name": "茉香奶绿(中)",
           "price": 7,
           "cat": "招牌奶茶",
-          "dishId": "cp0521",
+          "dishId": "cp0554",
           "kbName": "茉香奶绿(中)"
         },
         {
           "name": "茉香奶绿(大)",
           "price": 9,
           "cat": "招牌奶茶",
-          "dishId": "cp0522",
+          "dishId": "cp0555",
           "kbName": "茉香奶绿(大)"
         },
         {
           "name": "奥利奥可可奶茶(中)",
           "price": 8,
           "cat": "招牌奶茶",
-          "dishId": "cp0523",
+          "dishId": "cp0556",
           "kbName": "奥利奥可可奶茶(中)"
         },
         {
           "name": "奥利奥可可奶茶(大)",
           "price": 10,
           "cat": "招牌奶茶",
-          "dishId": "cp0524",
+          "dishId": "cp0557",
           "kbName": "奥利奥可可奶茶(大)"
         },
         {
           "name": "杨枝甘露",
           "price": 15,
           "cat": "镇店之宝",
-          "dishId": "cp0525",
+          "dishId": "cp0558",
           "kbName": "杨枝甘露（档口）"
         },
         {
           "name": "再芒也要惯着你",
           "price": 15,
           "cat": "镇店之宝",
-          "dishId": "cp0526",
+          "dishId": "cp0559",
           "kbName": "再芒也要惯着你"
         },
         {
           "name": "泰式咸法酪",
           "price": 20,
           "cat": "镇店之宝",
-          "dishId": "cp0527",
+          "dishId": "cp0560",
           "kbName": "泰式咸法酪"
         },
         {
           "name": "桃胶银耳马蹄乳",
           "price": 13,
           "cat": "好喝必点榜",
-          "dishId": "cp0528",
+          "dishId": "cp0561",
           "kbName": "桃胶银耳马蹄乳"
         },
         {
           "name": "芒果芝士",
           "price": 12,
           "cat": "好喝必点榜",
-          "dishId": "cp0529",
+          "dishId": "cp0562",
           "kbName": "芒果芝士"
         },
         {
           "name": "草莓芝士",
           "price": 12,
           "cat": "好喝必点榜",
-          "dishId": "cp0530",
+          "dishId": "cp0563",
           "kbName": "草莓芝士"
         },
         {
           "name": "奥利奥牛奶冰沙",
           "price": 13,
           "cat": "好喝必点榜",
-          "dishId": "cp0531",
+          "dishId": "cp0564",
           "kbName": "奥利奥牛奶冰沙"
         },
         {
           "name": "香柠芒果茶",
           "price": 10,
           "cat": "好喝必点榜",
-          "dishId": "cp0532",
+          "dishId": "cp0565",
           "kbName": "香柠芒果茶"
         },
         {
           "name": "鲜榨西瓜汁",
           "price": 10,
           "cat": "好喝必点榜",
-          "dishId": "cp0533",
+          "dishId": "cp0566",
           "kbName": "鲜榨西瓜汁"
         },
         {
           "name": "西瓜冰沙",
           "price": 10,
           "cat": "好喝必点榜",
-          "dishId": "cp0534",
+          "dishId": "cp0567",
           "kbName": "西瓜冰沙"
         },
         {
           "name": "羽衣苹果纤体杯",
           "price": 10,
           "cat": "好喝必点榜",
-          "dishId": "cp0535",
+          "dishId": "cp0568",
           "kbName": "羽衣苹果纤体杯"
         },
         {
           "name": "桑葚黑武士",
           "price": 9,
           "cat": "好喝必点榜",
-          "dishId": "cp0536",
+          "dishId": "cp0569",
           "kbName": "桑葚黑武士"
         },
         {
           "name": "芒果百香",
           "price": 8,
           "cat": "好喝必点榜",
-          "dishId": "cp0537",
+          "dishId": "cp0570",
           "kbName": "芒果百香"
         },
         {
           "name": "蜂蜜柚子茶",
           "price": 8,
           "cat": "好喝必点榜",
-          "dishId": "cp0538",
+          "dishId": "cp0571",
           "kbName": "蜂蜜柚子茶"
         },
         {
           "name": "蓝莓果粒爽",
           "price": 7,
           "cat": "好喝必点榜",
-          "dishId": "cp0539",
+          "dishId": "cp0572",
           "kbName": "蓝莓果粒爽"
         },
         {
           "name": "棒打鲜橙",
           "price": 7,
           "cat": "好喝必点榜",
-          "dishId": "cp0540",
+          "dishId": "cp0573",
           "kbName": "棒打鲜橙"
         },
         {
           "name": "蜜桃四季春",
           "price": 7,
           "cat": "好喝必点榜",
-          "dishId": "cp0541",
+          "dishId": "cp0574",
           "kbName": "蜜桃四季春"
         },
         {
           "name": "芭乐茉莉冰奶",
           "price": 10,
           "cat": "网红韩式冰奶",
-          "dishId": "cp0542",
+          "dishId": "cp0575",
           "kbName": "芭乐茉莉冰奶"
         },
         {
           "name": "桑葚茉莉冰奶",
           "price": 10,
           "cat": "网红韩式冰奶",
-          "dishId": "cp0543",
+          "dishId": "cp0576",
           "kbName": "桑葚茉莉冰奶"
         },
         {
           "name": "芒果茉莉冰奶",
           "price": 10,
           "cat": "网红韩式冰奶",
-          "dishId": "cp0544",
+          "dishId": "cp0577",
           "kbName": "芒果茉莉冰奶"
         },
         {
           "name": "葡萄茉莉冰奶",
           "price": 10,
           "cat": "网红韩式冰奶",
-          "dishId": "cp0545",
+          "dishId": "cp0578",
           "kbName": "葡萄茉莉冰奶"
         },
         {
           "name": "草莓茉莉冰奶",
           "price": 10,
           "cat": "网红韩式冰奶",
-          "dishId": "cp0546",
+          "dishId": "cp0579",
           "kbName": "草莓茉莉冰奶"
         },
         {
           "name": "蓝莓茉莉冰奶",
           "price": 10,
           "cat": "网红韩式冰奶",
-          "dishId": "cp0547",
+          "dishId": "cp0580",
           "kbName": "蓝莓茉莉冰奶"
         },
         {
           "name": "菠萝茉莉冰奶",
           "price": 10,
           "cat": "网红韩式冰奶",
-          "dishId": "cp0548",
+          "dishId": "cp0581",
           "kbName": "菠萝茉莉冰奶"
         },
         {
           "name": "车厘子茉莉冰奶",
           "price": 10,
           "cat": "网红韩式冰奶",
-          "dishId": "cp0549",
+          "dishId": "cp0582",
           "kbName": "车厘子茉莉冰奶"
         },
         {
           "name": "冰美式",
           "price": 7,
           "cat": "醇香咖啡",
-          "dishId": "cp0550",
+          "dishId": "cp0583",
           "kbName": "冰美式（档口）"
         },
         {
           "name": "招牌咖啡",
           "price": 7,
           "cat": "醇香咖啡",
-          "dishId": "cp0551",
+          "dishId": "cp0584",
           "kbName": "招牌咖啡"
         },
         {
           "name": "生椰拿铁",
           "price": 8,
           "cat": "醇香咖啡",
-          "dishId": "cp0552",
+          "dishId": "cp0585",
           "kbName": "生椰拿铁（档口）"
         },
         {
           "name": "酸奶桑葚莓莓",
           "price": 9,
           "cat": "招牌酸奶养乐多",
-          "dishId": "cp0553",
+          "dishId": "cp0586",
           "kbName": "酸奶桑葚莓莓"
         },
         {
           "name": "草莓酸奶紫米露",
           "price": 8,
           "cat": "招牌酸奶养乐多",
-          "dishId": "cp0554",
+          "dishId": "cp0587",
           "kbName": "草莓酸奶紫米露"
         },
         {
           "name": "蓝莓酸奶紫米露",
           "price": 8,
           "cat": "招牌酸奶养乐多",
-          "dishId": "cp0555",
+          "dishId": "cp0588",
           "kbName": "蓝莓酸奶紫米露"
         },
         {
           "name": "芒果酸奶紫米露",
           "price": 8,
           "cat": "招牌酸奶养乐多",
-          "dishId": "cp0556",
+          "dishId": "cp0589",
           "kbName": "芒果酸奶紫米露"
         },
         {
           "name": "车厘子酸奶紫米露",
           "price": 8,
           "cat": "招牌酸奶养乐多",
-          "dishId": "cp0557",
+          "dishId": "cp0590",
           "kbName": "车厘子酸奶紫米露"
         },
         {
           "name": "蓝莓养乐多",
           "price": 9,
           "cat": "招牌酸奶养乐多",
-          "dishId": "cp0558",
+          "dishId": "cp0591",
           "kbName": "蓝莓养乐多"
         },
         {
           "name": "草莓养乐多",
           "price": 9,
           "cat": "招牌酸奶养乐多",
-          "dishId": "cp0559",
+          "dishId": "cp0592",
           "kbName": "草莓养乐多"
         },
         {
           "name": "芒果养乐多",
           "price": 9,
           "cat": "招牌酸奶养乐多",
-          "dishId": "cp0560",
+          "dishId": "cp0593",
           "kbName": "芒果养乐多"
         },
         {
           "name": "蜜桃养乐多",
           "price": 9,
           "cat": "招牌酸奶养乐多",
-          "dishId": "cp0561",
+          "dishId": "cp0594",
           "kbName": "蜜桃养乐多"
         },
         {
           "name": "椰果",
           "price": 1,
           "cat": "小料区",
-          "dishId": "cp0968",
+          "dishId": "cp1010",
           "kbName": "椰果"
         },
         {
           "name": "布丁",
           "price": 2,
           "cat": "小料区",
-          "dishId": "cp0969",
+          "dishId": "cp1011",
           "kbName": "布丁"
         },
         {
           "name": "奥利奥碎",
           "price": 2,
           "cat": "小料区",
-          "dishId": "cp0970",
+          "dishId": "cp1012",
           "kbName": "奥利奥碎"
         },
         {
           "name": "芋泥",
           "price": 3,
           "cat": "小料区",
-          "dishId": "cp0971",
+          "dishId": "cp1013",
           "kbName": "芋泥"
         },
         {
           "name": "芝士",
           "price": 5,
           "cat": "小料区",
-          "dishId": "cp0972",
+          "dishId": "cp1014",
           "kbName": "芝士"
         },
         {
           "name": "啵啵",
           "price": 2,
           "cat": "小料区",
-          "dishId": "cp0973",
+          "dishId": "cp1015",
           "kbName": "啵啵"
         },
         {
           "name": "珍珠",
           "price": 2,
           "cat": "小料区",
-          "dishId": "cp0974",
+          "dishId": "cp1016",
           "kbName": "珍珠"
         },
         {
           "name": "芋圆",
           "price": 3,
           "cat": "小料区",
-          "dishId": "cp0975",
+          "dishId": "cp1017",
           "kbName": "芋圆"
         },
         {
           "name": "米麻薯",
           "price": 3,
           "cat": "小料区",
-          "dishId": "cp0976",
+          "dishId": "cp1018",
           "kbName": "米麻薯"
         },
         {
           "name": "雪顶",
           "price": 5,
           "cat": "小料区",
-          "dishId": "cp0977",
+          "dishId": "cp1019",
           "kbName": "雪顶"
         }
       ],
@@ -7920,112 +8316,112 @@
           "name": "招牌牛肉面/河粉",
           "price": 15,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0562",
+          "dishId": "cp0595",
           "kbName": "招牌牛肉面/河粉"
         },
         {
           "name": "经典卤肉面/河粉",
           "price": 15,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0563",
+          "dishId": "cp0596",
           "kbName": "经典卤肉面/河粉"
         },
         {
           "name": "特色羊杂面/河粉",
           "price": 12,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0564",
+          "dishId": "cp0597",
           "kbName": "特色羊杂面/河粉"
         },
         {
           "name": "精品辣肉面/河粉",
           "price": 12,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0565",
+          "dishId": "cp0598",
           "kbName": "精品辣肉面/河粉"
         },
         {
           "name": "虫草花菌丝面/河粉",
           "price": 12,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0566",
+          "dishId": "cp0599",
           "kbName": "虫草花菌丝面/河粉"
         },
         {
           "name": "木耳肉丝面/河粉",
           "price": 12,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0567",
+          "dishId": "cp0600",
           "kbName": "木耳肉丝面/河粉"
         },
         {
           "name": "肉臊芽菜河粉",
           "price": 12,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0568",
+          "dishId": "cp0601",
           "kbName": "肉臊芽菜河粉"
         },
         {
           "name": "老坛酸菜河粉",
           "price": 12,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0569",
+          "dishId": "cp0602",
           "kbName": "老坛酸菜河粉"
         },
         {
           "name": "酸豆角河粉",
           "price": 12,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0570",
+          "dishId": "cp0603",
           "kbName": "酸豆角河粉"
         },
         {
           "name": "青椒肉丝河粉",
           "price": 12,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0571",
+          "dishId": "cp0604",
           "kbName": "青椒肉丝河粉"
         },
         {
           "name": "肉燥芽菜面",
           "price": 11,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0572",
+          "dishId": "cp0605",
           "kbName": "肉燥芽菜面"
         },
         {
           "name": "老坛酸菜面",
           "price": 11,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0573",
+          "dishId": "cp0606",
           "kbName": "老坛酸菜面"
         },
         {
           "name": "肉燥酸豆角面",
           "price": 11,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0574",
+          "dishId": "cp0607",
           "kbName": "肉燥酸豆角面"
         },
         {
           "name": "青椒肉丝面",
           "price": 11,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0575",
+          "dishId": "cp0608",
           "kbName": "青椒肉丝面"
         },
         {
           "name": "原味老汤面",
           "price": 8,
           "cat": "汤面/河粉系列",
-          "dishId": "cp0576",
+          "dishId": "cp0609",
           "kbName": "原味老汤面"
         },
         {
           "name": "招牌炸酱面",
           "price": 11,
           "cat": "炸酱面系列",
-          "dishId": "cp0577",
+          "dishId": "cp0610",
           "kbName": "招牌炸酱面"
         },
         {
@@ -8039,147 +8435,147 @@
           "name": "香菇炸酱面",
           "price": 11,
           "cat": "炸酱面系列",
-          "dishId": "cp0578",
+          "dishId": "cp0611",
           "kbName": "香菇炸酱面"
         },
         {
           "name": "双拼炸酱面",
           "price": 11,
           "cat": "炸酱面系列",
-          "dishId": "cp0579",
+          "dishId": "cp0612",
           "kbName": "双拼炸酱面"
         },
         {
           "name": "特色羊杂拌面/河粉",
           "price": 13,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0580",
+          "dishId": "cp0613",
           "kbName": "特色羊杂拌面/河粉"
         },
         {
           "name": "酸豆角拌面/河粉",
           "price": 12,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0581",
+          "dishId": "cp0614",
           "kbName": "酸豆角拌面/河粉"
         },
         {
           "name": "虫草花拌面/河粉",
           "price": 12,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0582",
+          "dishId": "cp0615",
           "kbName": "虫草花拌面/河粉"
         },
         {
           "name": "青椒肉丝拌面/河粉",
           "price": 12,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0583",
+          "dishId": "cp0616",
           "kbName": "青椒肉丝拌面/河粉"
         },
         {
           "name": "木耳肉丝拌面/河粉",
           "price": 12,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0584",
+          "dishId": "cp0617",
           "kbName": "木耳肉丝拌面/河粉"
         },
         {
           "name": "爽口麻辣拌面/河粉",
           "price": 10,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0585",
+          "dishId": "cp0618",
           "kbName": "爽口麻辣拌面/河粉"
         },
         {
           "name": "精品辣肉拌面/河粉",
           "price": 12,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0586",
+          "dishId": "cp0619",
           "kbName": "精品辣肉拌面/河粉"
         },
         {
           "name": "肉臊芽菜拌面/河粉",
           "price": 12,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0587",
+          "dishId": "cp0620",
           "kbName": "肉臊芽菜拌面/河粉"
         },
         {
           "name": "麻酱鸡丝拌面/河粉",
           "price": 12,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0588",
+          "dishId": "cp0621",
           "kbName": "麻酱鸡丝拌面/河粉"
         },
         {
           "name": "老坛酸菜拌面/河粉",
           "price": 12,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0589",
+          "dishId": "cp0622",
           "kbName": "老坛酸菜拌面/河粉"
         },
         {
           "name": "口留香麻酱拌面/河粉",
           "price": 10,
           "cat": "拌面/河粉系列",
-          "dishId": "cp0590",
+          "dishId": "cp0623",
           "kbName": "口留香麻酱拌面/河粉"
         },
         {
           "name": "卤鸡蛋",
           "price": 1.5,
           "cat": "卤货",
-          "dishId": "cp0466",
+          "dishId": "cp0499",
           "kbName": "卤鸡蛋"
         },
         {
           "name": "卤丸子",
           "price": 2,
           "cat": "卤货",
-          "dishId": "cp0978",
+          "dishId": "cp1020",
           "kbName": "卤丸子"
         },
         {
           "name": "卤香肠",
           "price": 2,
           "cat": "卤货",
-          "dishId": "cp0979",
+          "dishId": "cp1021",
           "kbName": "卤香肠"
         },
         {
           "name": "卤豆干",
           "price": 2,
           "cat": "卤货",
-          "dishId": "cp0980",
+          "dishId": "cp0966",
           "kbName": "卤豆干"
         },
         {
           "name": "卤面筋",
           "price": 2,
           "cat": "卤货",
-          "dishId": "cp0981",
+          "dishId": "cp0969",
           "kbName": "卤面筋"
         },
         {
           "name": "卤肉",
           "price": 7,
           "cat": "卤货",
-          "dishId": "cp0982",
+          "dishId": "cp1022",
           "kbName": "卤肉"
         },
         {
           "name": "羊杂",
           "price": 6,
           "cat": "卤货",
-          "dishId": "cp0983",
+          "dishId": "cp1023",
           "kbName": "羊杂"
         },
         {
           "name": "牛肉",
           "price": 7,
           "cat": "卤货",
-          "dishId": "cp0984",
+          "dishId": "cp1024",
           "kbName": "牛肉"
         }
       ],
@@ -8218,161 +8614,161 @@
           "name": "培根",
           "price": 1,
           "cat": "早餐",
-          "dishId": "cp0985",
+          "dishId": "cp1025",
           "kbName": "培根"
         },
         {
           "name": "肉松",
           "price": 1.5,
           "cat": "早餐",
-          "dishId": "cp0986",
+          "dishId": "cp1026",
           "kbName": "肉松"
         },
         {
           "name": "煎鸡蛋",
           "price": 1.5,
           "cat": "早餐",
-          "dishId": "cp0950",
+          "dishId": "cp0992",
           "kbName": "煎鸡蛋"
         },
         {
           "name": "烤肠",
           "price": 1.5,
           "cat": "早餐",
-          "dishId": "cp0503",
+          "dishId": "cp0536",
           "kbName": "烤肠"
         },
         {
           "name": "火腿片",
           "price": 1.5,
           "cat": "早餐",
-          "dishId": "cp0987",
+          "dishId": "cp1027",
           "kbName": "火腿片"
         },
         {
           "name": "脆骨肠",
           "price": 2.5,
           "cat": "早餐",
-          "dishId": "cp0988",
+          "dishId": "cp1028",
           "kbName": "脆骨肠"
         },
         {
           "name": "里脊肉串",
           "price": 2.5,
           "cat": "早餐",
-          "dishId": "cp0989",
+          "dishId": "cp1029",
           "kbName": "里脊肉串"
         },
         {
           "name": "鸡排",
           "price": 3,
           "cat": "早餐",
-          "dishId": "cp0505",
+          "dishId": "cp0538",
           "kbName": "鸡排"
         },
         {
           "name": "手抓饼+菜",
           "price": 3,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0601",
+          "dishId": "cp0634",
           "kbName": "手抓饼+菜"
         },
         {
           "name": "酸辣土豆丝",
           "price": 3,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0591",
+          "dishId": "cp0624",
           "kbName": "酸辣土豆丝"
         },
         {
           "name": "蒜蓉菠菜",
           "price": 4,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0592",
+          "dishId": "cp0625",
           "kbName": "蒜蓉菠菜"
         },
         {
           "name": "椒麻辣子鸡",
           "price": 6,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0593",
+          "dishId": "cp0626",
           "kbName": "椒麻辣子鸡"
         },
         {
           "name": "红烧鸡腿",
           "price": 6,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0594",
+          "dishId": "cp0627",
           "kbName": "红烧鸡腿"
         },
         {
           "name": "虎皮鸡蛋",
           "price": 1.5,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0595",
+          "dishId": "cp0628",
           "kbName": "虎皮鸡蛋"
         },
         {
           "name": "招牌盐焗鸡",
           "price": 7,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0596",
+          "dishId": "cp0629",
           "kbName": "招牌盐焗鸡"
         },
         {
           "name": "招牌辣椒炒肉",
           "price": 7,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0597",
+          "dishId": "cp0630",
           "kbName": "招牌辣椒炒肉"
         },
         {
           "name": "橙汁锅包肉",
           "price": 7,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0598",
+          "dishId": "cp0631",
           "kbName": "橙汁锅包肉"
         },
         {
           "name": "麻辣排骨",
           "price": 7,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0599",
+          "dishId": "cp0632",
           "kbName": "麻辣排骨"
         },
         {
           "name": "西兰花",
           "price": 4,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0600",
+          "dishId": "cp0633",
           "kbName": "西兰花"
         },
         {
           "name": "两素拼",
           "price": 8.9,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0990",
+          "dishId": "cp1030",
           "kbName": "两素拼"
         },
         {
           "name": "三素拼",
           "price": 11,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0991",
+          "dishId": "cp1031",
           "kbName": "三素拼"
         },
         {
           "name": "一荤两素",
           "price": 13,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0992",
+          "dishId": "cp1032",
           "kbName": "一荤两素"
         },
         {
           "name": "两荤两素",
           "price": 15,
           "cat": "午晚餐美味盖浇饭",
-          "dishId": "cp0993",
+          "dishId": "cp1033",
           "kbName": "两荤两素"
         }
       ],
@@ -8404,56 +8800,56 @@
           "name": "A1套餐(2个汉堡随心选)",
           "price": 10,
           "cat": "汉堡套餐",
-          "dishId": "cp0606",
+          "dishId": "cp0639",
           "kbName": "A1套餐(2个汉堡随心选)"
         },
         {
           "name": "A2套餐(黑椒牛堡+原味鸡腿堡)",
           "price": 12,
           "cat": "汉堡套餐",
-          "dishId": "cp0607",
+          "dishId": "cp0640",
           "kbName": "A2套餐(黑椒牛堡+原味鸡腿堡)"
         },
         {
           "name": "A3套餐(原味鸡腿堡+田园脆鸡堡)",
           "price": 15,
           "cat": "汉堡套餐",
-          "dishId": "cp0608",
+          "dishId": "cp0641",
           "kbName": "A3套餐(原味鸡腿堡+田园脆鸡堡)"
         },
         {
           "name": "A4套餐(香辣鸡腿堡+黑椒牛堡)",
           "price": 17,
           "cat": "汉堡套餐",
-          "dishId": "cp0609",
+          "dishId": "cp0642",
           "kbName": "A4套餐(香辣鸡腿堡+黑椒牛堡)"
         },
         {
           "name": "A5套餐(香辣/原味鸡腿堡+奥尔良手撕鸡)",
           "price": 18,
           "cat": "汉堡套餐",
-          "dishId": "cp0610",
+          "dishId": "cp0643",
           "kbName": "A5套餐(香辣/原味鸡腿堡+奥尔良手撕鸡)"
         },
         {
           "name": "A6套餐(黄油巨无霸鸡腿堡)",
           "price": 19,
           "cat": "汉堡套餐",
-          "dishId": "cp0611",
+          "dishId": "cp0644",
           "kbName": "A6套餐(黄油巨无霸鸡腿堡)"
         },
         {
           "name": "菠萝牛肉汉堡",
           "price": 8,
           "cat": "单品汉堡",
-          "dishId": "cp0612",
+          "dishId": "cp0645",
           "kbName": "菠萝牛肉汉堡"
         },
         {
           "name": "小咖万人迷薯条(小份)",
           "price": 8,
           "cat": "小吃",
-          "dishId": "cp0613",
+          "dishId": "cp0646",
           "kbName": "小咖万人迷薯条(小份)"
         }
       ],
@@ -8485,196 +8881,196 @@
           "name": "红烧牛肉面",
           "price": 15,
           "cat": "汤面系列",
-          "dishId": "cp0614",
+          "dishId": "cp0394",
           "kbName": "红烧牛肉面"
         },
         {
           "name": "麻辣肥肠面",
           "price": 15,
           "cat": "汤面系列",
-          "dishId": "cp0615",
+          "dishId": "cp0647",
           "kbName": "麻辣肥肠面"
         },
         {
           "name": "麻辣牛肉面",
           "price": 15,
           "cat": "汤面系列",
-          "dishId": "cp0616",
+          "dishId": "cp0648",
           "kbName": "麻辣牛肉面"
         },
         {
           "name": "番茄牛肉面",
           "price": 15,
           "cat": "汤面系列",
-          "dishId": "cp0617",
+          "dishId": "cp0649",
           "kbName": "番茄牛肉面"
         },
         {
           "name": "番茄排骨面",
           "price": 13,
           "cat": "汤面系列",
-          "dishId": "cp0618",
+          "dishId": "cp0650",
           "kbName": "番茄排骨面"
         },
         {
           "name": "红烧卤肉面",
           "price": 13,
           "cat": "汤面系列",
-          "dishId": "cp0619",
+          "dishId": "cp0651",
           "kbName": "红烧卤肉面"
         },
         {
           "name": "香辣羊杂面",
           "price": 12,
           "cat": "汤面系列",
-          "dishId": "cp0620",
+          "dishId": "cp0652",
           "kbName": "香辣羊杂面"
         },
         {
           "name": "辣肉鸡汤面",
           "price": 13,
           "cat": "汤面系列",
-          "dishId": "cp0621",
+          "dishId": "cp0653",
           "kbName": "辣肉鸡汤面"
         },
         {
           "name": "清汤牛肉面",
           "price": 12,
           "cat": "汤面系列",
-          "dishId": "cp0622",
+          "dishId": "cp0654",
           "kbName": "清汤牛肉面"
         },
         {
           "name": "传统猪肉面",
           "price": 12,
           "cat": "汤面系列",
-          "dishId": "cp0623",
+          "dishId": "cp0655",
           "kbName": "传统猪肉面"
         },
         {
           "name": "肉沫酸豆角面",
           "price": 12,
           "cat": "汤面系列",
-          "dishId": "cp0624",
+          "dishId": "cp0656",
           "kbName": "肉沫酸豆角面"
         },
         {
           "name": "麻辣火腿面",
           "price": 12,
           "cat": "汤面系列",
-          "dishId": "cp0625",
+          "dishId": "cp0657",
           "kbName": "麻辣火腿面"
         },
         {
           "name": "红烧排骨面",
           "price": 13,
           "cat": "汤面系列",
-          "dishId": "cp0626",
+          "dishId": "cp0658",
           "kbName": "红烧排骨面"
         },
         {
           "name": "肉沫酸菜面",
           "price": 12,
           "cat": "汤面系列",
-          "dishId": "cp0627",
+          "dishId": "cp0659",
           "kbName": "肉沫酸菜面"
         },
         {
           "name": "西红柿鸡蛋面",
           "price": 9,
           "cat": "汤面系列",
-          "dishId": "cp0628",
+          "dishId": "cp0660",
           "kbName": "西红柿鸡蛋面"
         },
         {
           "name": "麻辣汤面",
           "price": 9,
           "cat": "汤面系列",
-          "dishId": "cp0629",
+          "dishId": "cp0661",
           "kbName": "麻辣汤面"
         },
         {
           "name": "辣肉拌面",
           "price": 12,
           "cat": "拌面系列",
-          "dishId": "cp0630",
+          "dishId": "cp0662",
           "kbName": "辣肉拌面"
         },
         {
           "name": "孜然牛肉拌面",
           "price": 15,
           "cat": "拌面系列",
-          "dishId": "cp0631",
+          "dishId": "cp0663",
           "kbName": "孜然牛肉拌面"
         },
         {
           "name": "鲜椒牛肉拌面",
           "price": 15,
           "cat": "拌面系列",
-          "dishId": "cp0632",
+          "dishId": "cp0664",
           "kbName": "鲜椒牛肉拌面"
         },
         {
           "name": "椒麻鸡拌面",
           "price": 12,
           "cat": "拌面系列",
-          "dishId": "cp0633",
+          "dishId": "cp0665",
           "kbName": "椒麻鸡拌面"
         },
         {
           "name": "肉沫炸酱面",
           "price": 12,
           "cat": "拌面系列",
-          "dishId": "cp0634",
+          "dishId": "cp0666",
           "kbName": "肉沫炸酱面"
         },
         {
           "name": "香肉丝拌面",
           "price": 12,
           "cat": "拌面系列",
-          "dishId": "cp0635",
+          "dishId": "cp0667",
           "kbName": "香肉丝拌面"
         },
         {
           "name": "招牌肉酱面",
           "price": 12,
           "cat": "拌面系列",
-          "dishId": "cp0636",
+          "dishId": "cp0668",
           "kbName": "招牌肉酱面"
         },
         {
           "name": "肉沫豆角拌面",
           "price": 12,
           "cat": "拌面系列",
-          "dishId": "cp0637",
+          "dishId": "cp0669",
           "kbName": "肉沫豆角拌面"
         },
         {
           "name": "孜然火腿拌面",
           "price": 12,
           "cat": "拌面系列",
-          "dishId": "cp0638",
+          "dishId": "cp0670",
           "kbName": "孜然火腿拌面"
         },
         {
           "name": "肉沫酸菜拌面",
           "price": 12,
           "cat": "拌面系列",
-          "dishId": "cp0639",
+          "dishId": "cp0671",
           "kbName": "肉沫酸菜拌面"
         },
         {
           "name": "擂椒拌面",
           "price": 10,
           "cat": "拌面系列",
-          "dishId": "cp0640",
+          "dishId": "cp0672",
           "kbName": "擂椒拌面"
         },
         {
           "name": "煮方便面",
           "price": 5,
           "cat": "早餐系列",
-          "dishId": "cp0641",
+          "dishId": "cp0673",
           "kbName": "煮方便面"
         },
         {
@@ -8688,49 +9084,49 @@
           "name": "鸡蛋灌饼夹土豆丝",
           "price": 6.5,
           "cat": "早餐系列",
-          "dishId": "cp0642",
+          "dishId": "cp0674",
           "kbName": "鸡蛋灌饼夹土豆丝"
         },
         {
           "name": "鸡蛋灌饼夹烤肠",
           "price": 6.5,
           "cat": "早餐系列",
-          "dishId": "cp0643",
+          "dishId": "cp0675",
           "kbName": "鸡蛋灌饼夹烤肠"
         },
         {
           "name": "鸡蛋灌饼夹鸡排",
           "price": 6.5,
           "cat": "早餐系列",
-          "dishId": "cp0644",
+          "dishId": "cp0676",
           "kbName": "鸡蛋灌饼夹鸡排"
         },
         {
           "name": "鸡蛋灌饼夹酥肉",
           "price": 6.5,
           "cat": "早餐系列",
-          "dishId": "cp0645",
+          "dishId": "cp0677",
           "kbName": "鸡蛋灌饼夹酥肉"
         },
         {
           "name": "卤鸡蛋",
           "price": 1.5,
           "cat": "早餐系列",
-          "dishId": "cp0466",
+          "dishId": "cp0499",
           "kbName": "卤鸡蛋"
         },
         {
           "name": "烤肠",
           "price": 1.5,
           "cat": "早餐系列",
-          "dishId": "cp0503",
+          "dishId": "cp0536",
           "kbName": "烤肠"
         },
         {
           "name": "大肉肠",
           "price": 3.5,
           "cat": "早餐系列",
-          "dishId": "cp0994",
+          "dishId": "cp1034",
           "kbName": "大肉肠"
         }
       ],
@@ -8762,7 +9158,7 @@
           "name": "烤鸭饭(香酥鸭)",
           "price": 14.8,
           "cat": "招牌饭类",
-          "dishId": "cp0646",
+          "dishId": "cp0678",
           "kbName": "烤鸭饭(香酥鸭)"
         },
         {
@@ -8776,14 +9172,14 @@
           "name": "鸡排鸡腿双拼饭",
           "price": 14.8,
           "cat": "招牌饭类",
-          "dishId": "cp0647",
+          "dishId": "cp0679",
           "kbName": "鸡排鸡腿双拼饭"
         },
         {
           "name": "叉烧鸡腿双拼饭",
           "price": 15.8,
           "cat": "招牌饭类",
-          "dishId": "cp0648",
+          "dishId": "cp0680",
           "kbName": "叉烧鸡腿双拼饭"
         }
       ],
@@ -8952,14 +9348,14 @@
           "name": "自选烤盘饭",
           "price": 9.9,
           "cat": "主营",
-          "dishId": "cp0649",
+          "dishId": "cp0681",
           "kbName": "自选烤盘饭"
         },
         {
           "name": "米饭",
           "price": 1,
           "cat": "主营",
-          "dishId": "cp0900",
+          "dishId": "cp0930",
           "kbName": "米饭（档口）"
         }
       ],
@@ -8991,42 +9387,42 @@
           "name": "自选铁板炒饭",
           "price": 10.8,
           "cat": "主营",
-          "dishId": "cp0650",
+          "dishId": "cp0682",
           "kbName": "自选铁板炒饭"
         },
         {
           "name": "单加蟹排",
           "price": 3,
           "cat": "单加品类",
-          "dishId": "cp0995",
+          "dishId": "cp1035",
           "kbName": "单加蟹排"
         },
         {
           "name": "单加虾仁",
           "price": 5,
           "cat": "单加品类",
-          "dishId": "cp0996",
+          "dishId": "cp1036",
           "kbName": "单加虾仁"
         },
         {
           "name": "单加培根",
           "price": 3,
           "cat": "单加品类",
-          "dishId": "cp0997",
+          "dishId": "cp1037",
           "kbName": "单加培根"
         },
         {
           "name": "单加鸡丁",
           "price": 3,
           "cat": "单加品类",
-          "dishId": "cp0998",
+          "dishId": "cp1038",
           "kbName": "单加鸡丁"
         },
         {
           "name": "单加猪肉片",
           "price": 4,
           "cat": "单加品类",
-          "dishId": "cp0999",
+          "dishId": "cp1039",
           "kbName": "单加猪肉片"
         }
       ],
@@ -9058,133 +9454,133 @@
           "name": "经典咖喱蛋包饭",
           "price": 9.9,
           "cat": "蛋包饭",
-          "dishId": "cp0651",
+          "dishId": "cp0683",
           "kbName": "经典咖喱蛋包饭"
         },
         {
           "name": "香酥鸡排咖喱蛋包饭",
           "price": 12.9,
           "cat": "蛋包饭",
-          "dishId": "cp0652",
+          "dishId": "cp0684",
           "kbName": "香酥鸡排咖喱蛋包饭"
         },
         {
           "name": "盐酥鸡块咖喱蛋包饭",
           "price": 12.9,
           "cat": "蛋包饭",
-          "dishId": "cp0653",
+          "dishId": "cp0685",
           "kbName": "盐酥鸡块咖喱蛋包饭"
         },
         {
           "name": "半只炸鸡咖喱蛋包饭",
           "price": 14.9,
           "cat": "蛋包饭",
-          "dishId": "cp0654",
+          "dishId": "cp0686",
           "kbName": "半只炸鸡咖喱蛋包饭"
         },
         {
           "name": "火腿滑蛋饭",
           "price": 9.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0655",
+          "dishId": "cp0687",
           "kbName": "火腿滑蛋饭"
         },
         {
           "name": "腊肠滑蛋饭",
           "price": 9.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0656",
+          "dishId": "cp0688",
           "kbName": "腊肠滑蛋饭"
         },
         {
           "name": "蜜汁鸡块滑蛋饭",
           "price": 12.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0657",
+          "dishId": "cp0689",
           "kbName": "蜜汁鸡块滑蛋饭"
         },
         {
           "name": "椒麻鸡丁滑蛋饭",
           "price": 12.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0658",
+          "dishId": "cp0690",
           "kbName": "椒麻鸡丁滑蛋饭"
         },
         {
           "name": "鲜辣跳水鸡丁滑蛋饭",
           "price": 12.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0659",
+          "dishId": "cp0691",
           "kbName": "鲜辣跳水鸡丁滑蛋饭"
         },
         {
           "name": "荔枝鸡块滑蛋饭",
           "price": 12.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0660",
+          "dishId": "cp0692",
           "kbName": "荔枝鸡块滑蛋饭"
         },
         {
           "name": "孜然烤肉鸡块滑蛋饭",
           "price": 12.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0661",
+          "dishId": "cp0693",
           "kbName": "孜然烤肉鸡块滑蛋饭"
         },
         {
           "name": "鱼香肉丝滑蛋饭",
           "price": 12.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0662",
+          "dishId": "cp0694",
           "kbName": "鱼香肉丝滑蛋饭"
         },
         {
           "name": "大盘鸡滑蛋饭",
           "price": 12.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0663",
+          "dishId": "cp0695",
           "kbName": "大盘鸡滑蛋饭"
         },
         {
           "name": "蟹黄鸡丁滑蛋饭",
           "price": 12.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0664",
+          "dishId": "cp0696",
           "kbName": "蟹黄鸡丁滑蛋饭"
         },
         {
           "name": "糖醋麻辣鸡丁滑蛋饭",
           "price": 12.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0665",
+          "dishId": "cp0697",
           "kbName": "糖醋麻辣鸡丁滑蛋饭"
         },
         {
           "name": "韩式泡菜肉片滑蛋饭",
           "price": 14.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0666",
+          "dishId": "cp0698",
           "kbName": "韩式泡菜肉片滑蛋饭"
         },
         {
           "name": "鲍汁三鲜滑蛋饭",
           "price": 14.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0667",
+          "dishId": "cp0699",
           "kbName": "鲍汁三鲜滑蛋饭"
         },
         {
           "name": "蒜蓉龙虾滑蛋饭",
           "price": 14.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0668",
+          "dishId": "cp0700",
           "kbName": "蒜蓉龙虾滑蛋饭"
         },
         {
           "name": "番茄虾仁滑蛋饭",
           "price": 14.9,
           "cat": "滑蛋饭",
-          "dishId": "cp0474",
+          "dishId": "cp0507",
           "kbName": "番茄虾仁滑蛋饭"
         }
       ],
@@ -9216,147 +9612,147 @@
           "name": "牛骨鲜汤米线",
           "price": 10.9,
           "cat": "招牌系列",
-          "dishId": "cp0669",
+          "dishId": "cp0701",
           "kbName": "牛骨鲜汤米线"
         },
         {
           "name": "日光番茄米线/面",
           "price": 12.9,
           "cat": "招牌系列",
-          "dishId": "cp0670",
+          "dishId": "cp0702",
           "kbName": "日光番茄米线/面"
         },
         {
           "name": "招牌肉酱米线/面",
           "price": 12.9,
           "cat": "招牌系列",
-          "dishId": "cp0671",
+          "dishId": "cp0703",
           "kbName": "招牌肉酱米线/面"
         },
         {
           "name": "山野泡椒米线/面",
           "price": 12.9,
           "cat": "招牌系列",
-          "dishId": "cp0672",
+          "dishId": "cp0704",
           "kbName": "山野泡椒米线/面"
         },
         {
           "name": "招牌肉酱干拌米线/面",
           "price": 12.9,
           "cat": "清爽系列",
-          "dishId": "cp0673",
+          "dishId": "cp0705",
           "kbName": "招牌肉酱干拌米线/面"
         },
         {
           "name": "云贵烧椒干拌米线/面",
           "price": 12.9,
           "cat": "清爽系列",
-          "dishId": "cp0674",
+          "dishId": "cp0706",
           "kbName": "云贵烧椒干拌米线/面"
         },
         {
           "name": "剁椒番茄干拌米线/面",
           "price": 12.9,
           "cat": "清爽系列",
-          "dishId": "cp0675",
+          "dishId": "cp0707",
           "kbName": "剁椒番茄干拌米线/面"
         },
         {
           "name": "擂椒皮蛋干拌米线/面",
           "price": 12.9,
           "cat": "清爽系列",
-          "dishId": "cp0676",
+          "dishId": "cp0708",
           "kbName": "擂椒皮蛋干拌米线/面"
         },
         {
           "name": "肉沫土豆泥干拌米线/面",
           "price": 12.9,
           "cat": "清爽系列",
-          "dishId": "cp0677",
+          "dishId": "cp0709",
           "kbName": "肉沫土豆泥干拌米线/面"
         },
         {
           "name": "鲜切牛肉",
           "price": 6,
           "cat": "加盖区",
-          "dishId": "cp1000",
+          "dishId": "cp1040",
           "kbName": "鲜切牛肉"
         },
         {
           "name": "鲜切毛肚",
           "price": 6,
           "cat": "加盖区",
-          "dishId": "cp1001",
+          "dishId": "cp1041",
           "kbName": "鲜切毛肚"
         },
         {
           "name": "肥肠",
           "price": 6,
           "cat": "加盖区",
-          "dishId": "cp1002",
+          "dishId": "cp1042",
           "kbName": "肥肠"
         },
         {
           "name": "蕨菜丝",
           "price": 3,
           "cat": "加盖区",
-          "dishId": "cp1003",
+          "dishId": "cp1043",
           "kbName": "蕨菜丝"
         },
         {
           "name": "小酥肉",
           "price": 3,
           "cat": "加盖区",
-          "dishId": "cp0949",
+          "dishId": "cp0991",
           "kbName": "小酥肉"
         },
         {
           "name": "手打牛肉丸",
           "price": 3,
           "cat": "加盖区",
-          "dishId": "cp1004",
+          "dishId": "cp1044",
           "kbName": "手打牛肉丸"
         },
         {
           "name": "豌豆苗",
           "price": 3,
           "cat": "加盖区",
-          "dishId": "cp1005",
+          "dishId": "cp1045",
           "kbName": "豌豆苗"
         },
         {
           "name": "豌豆尖",
           "price": 3,
           "cat": "加盖区",
-          "dishId": "cp1006",
+          "dishId": "cp1046",
           "kbName": "豌豆尖（档口）"
         },
         {
           "name": "炸蛋",
           "price": 3,
           "cat": "加盖区",
-          "dishId": "cp1007",
+          "dishId": "cp1047",
           "kbName": "炸蛋"
         },
         {
           "name": "煎蛋",
           "price": 1.5,
           "cat": "加盖区",
-          "dishId": "cp1008",
+          "dishId": "cp1048",
           "kbName": "煎蛋（档口）"
         },
         {
           "name": "卤蛋",
           "price": 1.5,
           "cat": "加盖区",
-          "dishId": "cp0929",
+          "dishId": "cp0967",
           "kbName": "卤蛋（档口）"
         },
         {
           "name": "响铃卷",
           "price": 1.5,
           "cat": "加盖区",
-          "dishId": "cp1009",
+          "dishId": "cp1049",
           "kbName": "响铃卷"
         }
       ],
@@ -9388,210 +9784,210 @@
           "name": "香肠鸡蛋饭",
           "price": 12,
           "cat": "招牌必点",
-          "dishId": "cp0678",
+          "dishId": "cp0710",
           "kbName": "香肠鸡蛋饭"
         },
         {
           "name": "藤爽鸡肉粒饭",
           "price": 13,
           "cat": "招牌必点",
-          "dishId": "cp0679",
+          "dishId": "cp0711",
           "kbName": "藤爽鸡肉粒饭"
         },
         {
           "name": "黑椒鸡肉粒饭",
           "price": 13,
           "cat": "招牌必点",
-          "dishId": "cp0680",
+          "dishId": "cp0712",
           "kbName": "黑椒鸡肉粒饭"
         },
         {
           "name": "掌门牛肉饭",
           "price": 16,
           "cat": "招牌必点",
-          "dishId": "cp0681",
+          "dishId": "cp0713",
           "kbName": "掌门牛肉饭"
         },
         {
           "name": "藤爽牛肉粒饭",
           "price": 17,
           "cat": "招牌必点",
-          "dishId": "cp0682",
+          "dishId": "cp0714",
           "kbName": "藤爽牛肉粒饭"
         },
         {
           "name": "藤爽牛肉饭",
           "price": 16,
           "cat": "招牌必点",
-          "dishId": "cp0683",
+          "dishId": "cp0715",
           "kbName": "藤爽牛肉饭"
         },
         {
           "name": "酸菜五花饭",
           "price": 14,
           "cat": "招牌必点",
-          "dishId": "cp0684",
+          "dishId": "cp0716",
           "kbName": "酸菜五花饭"
         },
         {
           "name": "藤爽牛排饭",
           "price": 18,
           "cat": "经典饭面",
-          "dishId": "cp0685",
+          "dishId": "cp0717",
           "kbName": "藤爽牛排饭"
         },
         {
           "name": "街头牛排",
           "price": 18,
           "cat": "经典饭面",
-          "dishId": "cp0686",
+          "dishId": "cp0718",
           "kbName": "街头牛排"
         },
         {
           "name": "黑椒鸡肉粒意面",
           "price": 13,
           "cat": "经典饭面",
-          "dishId": "cp0702",
+          "dishId": "cp0734",
           "kbName": "黑椒鸡肉粒意面"
         },
         {
           "name": "番茄鸡肉粒意面",
           "price": 13,
           "cat": "经典饭面",
-          "dishId": "cp0703",
+          "dishId": "cp0735",
           "kbName": "番茄鸡肉粒意面"
         },
         {
           "name": "番茄香肠意面",
           "price": 12,
           "cat": "经典饭面",
-          "dishId": "cp0704",
+          "dishId": "cp0736",
           "kbName": "番茄香肠意面"
         },
         {
           "name": "黑椒鸡饭",
           "price": 13,
           "cat": "更多选择",
-          "dishId": "cp0687",
+          "dishId": "cp0719",
           "kbName": "黑椒鸡饭"
         },
         {
           "name": "香辣鸡肉粒面",
           "price": 17,
           "cat": "更多选择",
-          "dishId": "cp0705",
+          "dishId": "cp0737",
           "kbName": "香辣鸡肉粒面"
         },
         {
           "name": "藤爽猪肉粒饭",
           "price": 14,
           "cat": "更多选择",
-          "dishId": "cp0688",
+          "dishId": "cp0720",
           "kbName": "藤爽猪肉粒饭"
         },
         {
           "name": "黑椒牛肉粒意面",
           "price": 17,
           "cat": "更多选择",
-          "dishId": "cp0706",
+          "dishId": "cp0738",
           "kbName": "黑椒牛肉粒意面"
         },
         {
           "name": "黑椒猪排粒饭",
           "price": 16,
           "cat": "更多选择",
-          "dishId": "cp0689",
+          "dishId": "cp0721",
           "kbName": "黑椒猪排粒饭"
         },
         {
           "name": "香辣猪排粒饭",
           "price": 15,
           "cat": "更多选择",
-          "dishId": "cp0690",
+          "dishId": "cp0722",
           "kbName": "香辣猪排粒饭"
         },
         {
           "name": "香辣鸡肉面",
           "price": 15,
           "cat": "更多选择",
-          "dishId": "cp0707",
+          "dishId": "cp0739",
           "kbName": "香辣鸡肉面"
         },
         {
           "name": "香辣五花粒饭",
           "price": 14,
           "cat": "更多选择",
-          "dishId": "cp0691",
+          "dishId": "cp0723",
           "kbName": "香辣五花粒饭"
         },
         {
           "name": "金牌鸡饭",
           "price": 13,
           "cat": "更多选择",
-          "dishId": "cp0692",
+          "dishId": "cp0724",
           "kbName": "金牌鸡饭"
         },
         {
           "name": "香辣鸡排粒饭",
           "price": 15,
           "cat": "更多选择",
-          "dishId": "cp0693",
+          "dishId": "cp0725",
           "kbName": "香辣鸡排粒饭"
         },
         {
           "name": "黄金猪排粒饭",
           "price": 16,
           "cat": "更多选择",
-          "dishId": "cp0694",
+          "dishId": "cp0726",
           "kbName": "黄金猪排粒饭"
         },
         {
           "name": "德克萨斯猪肉粒饭",
           "price": 14,
           "cat": "招牌推荐",
-          "dishId": "cp0695",
+          "dishId": "cp0727",
           "kbName": "德克萨斯猪肉粒饭"
         },
         {
           "name": "香辣鸡肉意面",
           "price": 14,
           "cat": "双拼系列",
-          "dishId": "cp0696",
+          "dishId": "cp0728",
           "kbName": "香辣鸡肉意面"
         },
         {
           "name": "香辣五花粒饭（大）",
           "price": 15,
           "cat": "双拼系列",
-          "dishId": "cp0697",
+          "dishId": "cp0729",
           "kbName": "香辣五花粒饭（大）"
         },
         {
           "name": "鸡肉粒拼牛肉粒饭",
           "price": 15,
           "cat": "双拼系列",
-          "dishId": "cp0698",
+          "dishId": "cp0730",
           "kbName": "鸡肉粒拼牛肉粒饭"
         },
         {
           "name": "猪肉粒拼牛肉粒饭",
           "price": 16,
           "cat": "双拼系列",
-          "dishId": "cp0699",
+          "dishId": "cp0731",
           "kbName": "猪肉粒拼牛肉粒饭"
         },
         {
           "name": "鲜虾意面",
           "price": 18,
           "cat": "新品上市",
-          "dishId": "cp0700",
+          "dishId": "cp0732",
           "kbName": "鲜虾意面"
         },
         {
           "name": "奶香芝士鸡排面",
           "price": 14,
           "cat": "新品上市",
-          "dishId": "cp0701",
+          "dishId": "cp0733",
           "kbName": "奶香芝士鸡排面"
         }
       ],
@@ -9623,315 +10019,315 @@
           "name": "老坛酸菜鱼/肥牛",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0708",
+          "dishId": "cp0740",
           "kbName": "老坛酸菜鱼/肥牛"
         },
         {
           "name": "金汤酸菜鱼/肥牛",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0709",
+          "dishId": "cp0741",
           "kbName": "金汤酸菜鱼/肥牛"
         },
         {
           "name": "麻辣水煮鱼/肥牛",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0710",
+          "dishId": "cp0742",
           "kbName": "麻辣水煮鱼/肥牛"
         },
         {
           "name": "青花椒鱼/肥牛",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0711",
+          "dishId": "cp0743",
           "kbName": "青花椒鱼/肥牛"
         },
         {
           "name": "蕃茄鱼/肥牛",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0712",
+          "dishId": "cp0744",
           "kbName": "蕃茄鱼/肥牛"
         },
         {
           "name": "麻辣肉片/酥肉",
           "price": 13,
           "cat": "午晚餐系列",
-          "dishId": "cp0713",
+          "dishId": "cp0745",
           "kbName": "麻辣肉片/酥肉"
         },
         {
           "name": "金汤肉片/酥肉",
           "price": 13,
           "cat": "午晚餐系列",
-          "dishId": "cp0714",
+          "dishId": "cp0746",
           "kbName": "金汤肉片/酥肉"
         },
         {
           "name": "酸菜肉片/酥肉",
           "price": 13,
           "cat": "午晚餐系列",
-          "dishId": "cp0715",
+          "dishId": "cp0747",
           "kbName": "酸菜肉片/酥肉"
         },
         {
           "name": "青花椒肉片/酥肉",
           "price": 13,
           "cat": "午晚餐系列",
-          "dishId": "cp0716",
+          "dishId": "cp0748",
           "kbName": "青花椒肉片/酥肉"
         },
         {
           "name": "菌菇肉片/酥肉",
           "price": 13,
           "cat": "午晚餐系列",
-          "dishId": "cp0717",
+          "dishId": "cp0749",
           "kbName": "菌菇肉片/酥肉"
         },
         {
           "name": "蕃茄烤鱼",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0718",
+          "dishId": "cp0750",
           "kbName": "蕃茄烤鱼"
         },
         {
           "name": "金汤烤鱼",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0719",
+          "dishId": "cp0751",
           "kbName": "金汤烤鱼"
         },
         {
           "name": "麻辣烤鱼",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0720",
+          "dishId": "cp0752",
           "kbName": "麻辣烤鱼（档口）"
         },
         {
           "name": "青花椒烤鱼",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0721",
+          "dishId": "cp0753",
           "kbName": "青花椒烤鱼（档口）"
         },
         {
           "name": "金汤猪肚鸡",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0722",
+          "dishId": "cp0754",
           "kbName": "金汤猪肚鸡"
         },
         {
           "name": "酸菜猪肚鸡",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0723",
+          "dishId": "cp0755",
           "kbName": "酸菜猪肚鸡"
         },
         {
           "name": "麻辣猪肚鸡",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0724",
+          "dishId": "cp0756",
           "kbName": "麻辣猪肚鸡"
         },
         {
           "name": "蕃茄猪肚鸡",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0725",
+          "dishId": "cp0757",
           "kbName": "蕃茄猪肚鸡"
         },
         {
           "name": "毛血旺",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0726",
+          "dishId": "cp0758",
           "kbName": "毛血旺（档口）"
         },
         {
           "name": "麻辣肥肠",
           "price": 16,
           "cat": "午晚餐系列",
-          "dishId": "cp0727",
+          "dishId": "cp0759",
           "kbName": "麻辣肥肠"
         },
         {
           "name": "干锅烤鱼",
           "price": 15,
           "cat": "午晚餐系列",
-          "dishId": "cp0728",
+          "dishId": "cp0760",
           "kbName": "干锅烤鱼"
         },
         {
           "name": "干锅肥牛",
           "price": 15,
           "cat": "午晚餐系列",
-          "dishId": "cp0729",
+          "dishId": "cp0761",
           "kbName": "干锅肥牛"
         },
         {
           "name": "干锅猪肚鸡",
           "price": 15,
           "cat": "午晚餐系列",
-          "dishId": "cp0730",
+          "dishId": "cp0762",
           "kbName": "干锅猪肚鸡"
         },
         {
           "name": "干锅肥肠",
           "price": 16,
           "cat": "午晚餐系列",
-          "dishId": "cp0731",
+          "dishId": "cp0763",
           "kbName": "干锅肥肠（档口）"
         },
         {
           "name": "干锅五花肉",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0732",
+          "dishId": "cp0764",
           "kbName": "干锅五花肉"
         },
         {
           "name": "干锅小酥肉",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0733",
+          "dishId": "cp0765",
           "kbName": "干锅小酥肉"
         },
         {
           "name": "干锅脆骨肠",
           "price": 14,
           "cat": "午晚餐系列",
-          "dishId": "cp0734",
+          "dishId": "cp0766",
           "kbName": "干锅脆骨肠"
         },
         {
           "name": "干锅肉片",
           "price": 13,
           "cat": "午晚餐系列",
-          "dishId": "cp0735",
+          "dishId": "cp0767",
           "kbName": "干锅肉片"
         },
         {
           "name": "干锅培根",
           "price": 13,
           "cat": "午晚餐系列",
-          "dishId": "cp0736",
+          "dishId": "cp0768",
           "kbName": "干锅培根"
         },
         {
           "name": "手抓饼+鸡蛋",
           "price": 4.5,
           "cat": "营养早餐",
-          "dishId": "cp0737",
+          "dishId": "cp0769",
           "kbName": "手抓饼+鸡蛋"
         },
         {
           "name": "手抓饼+香肠",
           "price": 4.5,
           "cat": "营养早餐",
-          "dishId": "cp0739",
+          "dishId": "cp0771",
           "kbName": "手抓饼+香肠"
         },
         {
           "name": "手抓饼+里脊肉",
           "price": 5.5,
           "cat": "营养早餐",
-          "dishId": "cp0740",
+          "dishId": "cp0772",
           "kbName": "手抓饼+里脊肉"
         },
         {
           "name": "手抓饼+黑椒鸡扒",
           "price": 6,
           "cat": "营养早餐",
-          "dishId": "cp0741",
+          "dishId": "cp0773",
           "kbName": "手抓饼+黑椒鸡扒"
         },
         {
           "name": "手抓饼+火山烤肠",
           "price": 6.5,
           "cat": "营养早餐",
-          "dishId": "cp0742",
+          "dishId": "cp0774",
           "kbName": "手抓饼+火山烤肠"
         },
         {
           "name": "紫菜鱼丸粉丝汤",
           "price": 6,
           "cat": "营养早餐",
-          "dishId": "cp0743",
+          "dishId": "cp0775",
           "kbName": "紫菜鱼丸粉丝汤"
         },
         {
           "name": "肥牛卷",
           "price": 4,
           "cat": "单加料",
-          "dishId": "cp1010",
+          "dishId": "cp1050",
           "kbName": "肥牛卷"
         },
         {
           "name": "鱼片",
           "price": 4,
           "cat": "单加料",
-          "dishId": "cp1011",
+          "dishId": "cp1051",
           "kbName": "鱼片"
         },
         {
           "name": "肉片",
           "price": 4,
           "cat": "单加料",
-          "dishId": "cp1012",
+          "dishId": "cp1052",
           "kbName": "肉片"
         },
         {
           "name": "小酥肉",
           "price": 4,
           "cat": "单加料",
-          "dishId": "cp0949",
+          "dishId": "cp0991",
           "kbName": "小酥肉"
         },
         {
           "name": "蔬菜",
           "price": 2,
           "cat": "单加料",
-          "dishId": "cp1013",
+          "dishId": "cp1053",
           "kbName": "蔬菜"
         },
         {
           "name": "面/土豆粉",
           "price": 1,
           "cat": "单加料",
-          "dishId": "cp1014",
+          "dishId": "cp1054",
           "kbName": "面/土豆粉"
         },
         {
           "name": "五花",
           "price": 5,
           "cat": "单加料",
-          "dishId": "cp1015",
+          "dishId": "cp1055",
           "kbName": "五花"
         },
         {
           "name": "烤鱼加料",
           "price": 5,
           "cat": "单加料",
-          "dishId": "cp1016",
+          "dishId": "cp1056",
           "kbName": "烤鱼加料"
         },
         {
           "name": "茶叶蛋",
           "price": 1.5,
           "cat": "单加料",
-          "dishId": "cp1017",
+          "dishId": "cp1057",
           "kbName": "茶叶蛋"
         },
         {
           "name": "素菜",
           "price": 1.5,
           "cat": "单加料",
-          "dishId": "cp1018",
+          "dishId": "cp1058",
           "kbName": "素菜"
         },
         {
@@ -10125,210 +10521,210 @@
           "name": "炸酱拌面",
           "price": 10,
           "cat": "拌面",
-          "dishId": "cp0744",
+          "dishId": "cp0776",
           "kbName": "炸酱拌面"
         },
         {
           "name": "椒麻鸡拌面",
           "price": 12,
           "cat": "拌面",
-          "dishId": "cp0633",
+          "dishId": "cp0665",
           "kbName": "椒麻鸡拌面"
         },
         {
           "name": "豌杂拌面",
           "price": 11,
           "cat": "拌面",
-          "dishId": "cp0745",
+          "dishId": "cp0777",
           "kbName": "豌杂拌面"
         },
         {
           "name": "酸辣鸡丝拌面",
           "price": 12,
           "cat": "拌面",
-          "dishId": "cp0746",
+          "dishId": "cp0778",
           "kbName": "酸辣鸡丝拌面"
         },
         {
           "name": "葱油拌面",
           "price": 10,
           "cat": "拌面",
-          "dishId": "cp0747",
+          "dishId": "cp0779",
           "kbName": "葱油拌面"
         },
         {
           "name": "芝麻酱拌面",
           "price": 8,
           "cat": "拌面",
-          "dishId": "cp0748",
+          "dishId": "cp0780",
           "kbName": "芝麻酱拌面"
         },
         {
           "name": "香辣拌面",
           "price": 11,
           "cat": "拌面",
-          "dishId": "cp0749",
+          "dishId": "cp0781",
           "kbName": "香辣拌面"
         },
         {
           "name": "咸蛋黄拌面",
           "price": 13,
           "cat": "拌面",
-          "dishId": "cp0750",
+          "dishId": "cp0413",
           "kbName": "咸蛋黄拌面（档口）"
         },
         {
           "name": "孜然烤肉拌面",
           "price": 12,
           "cat": "拌面",
-          "dishId": "cp0751",
+          "dishId": "cp0782",
           "kbName": "孜然烤肉拌面"
         },
         {
           "name": "重庆拌面",
           "price": 12,
           "cat": "拌面",
-          "dishId": "cp0752",
+          "dishId": "cp0783",
           "kbName": "重庆拌面"
         },
         {
           "name": "泡椒鸡杂汤拌面",
           "price": 8,
           "cat": "拌面",
-          "dishId": "cp0753",
+          "dishId": "cp0784",
           "kbName": "泡椒鸡杂汤拌面"
         },
         {
           "name": "麻辣爆肚拌面",
           "price": 12,
           "cat": "拌面",
-          "dishId": "cp0754",
+          "dishId": "cp0785",
           "kbName": "麻辣爆肚拌面"
         },
         {
           "name": "香菇酱拌面",
           "price": 13,
           "cat": "拌面",
-          "dishId": "cp0755",
+          "dishId": "cp0786",
           "kbName": "香菇酱拌面"
         },
         {
           "name": "酸辣柠檬拌面",
           "price": 13,
           "cat": "拌面",
-          "dishId": "cp0756",
+          "dishId": "cp0787",
           "kbName": "酸辣柠檬拌面"
         },
         {
           "name": "臊子面",
           "price": 9,
           "cat": "汤面",
-          "dishId": "cp0757",
+          "dishId": "cp0393",
           "kbName": "臊子面"
         },
         {
           "name": "火腿小面",
           "price": 10,
           "cat": "汤面",
-          "dishId": "cp0758",
+          "dishId": "cp0788",
           "kbName": "火腿小面"
         },
         {
           "name": "笋干肉丝面",
           "price": 13,
           "cat": "汤面",
-          "dishId": "cp0759",
+          "dishId": "cp0789",
           "kbName": "笋干肉丝面"
         },
         {
           "name": "酸菜肉丝面",
           "price": 12,
           "cat": "汤面",
-          "dishId": "cp0760",
+          "dishId": "cp0790",
           "kbName": "酸菜肉丝面"
         },
         {
           "name": "肥肠面",
           "price": 14,
           "cat": "汤面",
-          "dishId": "cp0761",
+          "dishId": "cp0791",
           "kbName": "肥肠面"
         },
         {
           "name": "榨菜肉丝面",
           "price": 14,
           "cat": "汤面",
-          "dishId": "cp0762",
+          "dishId": "cp0792",
           "kbName": "榨菜肉丝面"
         },
         {
           "name": "腊肠小面",
           "price": 12,
           "cat": "汤面",
-          "dishId": "cp0763",
+          "dishId": "cp0793",
           "kbName": "腊肠小面"
         },
         {
           "name": "清汤小面",
           "price": 10,
           "cat": "汤面",
-          "dishId": "cp0764",
+          "dishId": "cp0794",
           "kbName": "清汤小面"
         },
         {
           "name": "酸豆角肉末面",
           "price": 8,
           "cat": "汤面",
-          "dishId": "cp0765",
+          "dishId": "cp0795",
           "kbName": "酸豆角肉末面"
         },
         {
           "name": "土豆泥肉酱拌面",
           "price": 12,
           "cat": "汤面",
-          "dishId": "cp0766",
+          "dishId": "cp0796",
           "kbName": "土豆泥肉酱拌面（档口）"
         },
         {
           "name": "红烧肉面",
           "price": 11,
           "cat": "汤面",
-          "dishId": "cp0767",
+          "dishId": "cp0797",
           "kbName": "红烧肉面"
         },
         {
           "name": "酸/麻辣小面",
           "price": 12,
           "cat": "汤面",
-          "dishId": "cp0768",
+          "dishId": "cp0798",
           "kbName": "酸/麻辣小面"
         },
         {
           "name": "辣子鸡块面",
           "price": 8,
           "cat": "汤面",
-          "dishId": "cp0769",
+          "dishId": "cp0799",
           "kbName": "辣子鸡块面"
         },
         {
           "name": "清汤抄手",
           "price": 8,
           "cat": "早餐抄手",
-          "dishId": "cp0770",
+          "dishId": "cp0800",
           "kbName": "清汤抄手"
         },
         {
           "name": "红油抄手",
           "price": 8,
           "cat": "早餐抄手",
-          "dishId": "cp0771",
+          "dishId": "cp0801",
           "kbName": "红油抄手"
         },
         {
           "name": "红油炸酱干拌抄手",
           "price": 9,
           "cat": "早餐抄手",
-          "dishId": "cp0772",
+          "dishId": "cp0802",
           "kbName": "红油炸酱干拌抄手"
         }
       ],
@@ -10360,56 +10756,56 @@
           "name": "西红柿鸡蛋面",
           "price": 9,
           "cat": "现炒浇头面",
-          "dishId": "cp0628",
+          "dishId": "cp0660",
           "kbName": "西红柿鸡蛋面"
         },
         {
           "name": "肉沫茄丁面",
           "price": 11,
           "cat": "现炒浇头面",
-          "dishId": "cp0773",
+          "dishId": "cp0803",
           "kbName": "肉沫茄丁面"
         },
         {
           "name": "酱爆鸡丁面",
           "price": 12,
           "cat": "现炒浇头面",
-          "dishId": "cp0774",
+          "dishId": "cp0804",
           "kbName": "酱爆鸡丁面"
         },
         {
           "name": "鱼香肉丝面",
           "price": 12,
           "cat": "现炒浇头面",
-          "dishId": "cp0775",
+          "dishId": "cp0805",
           "kbName": "鱼香肉丝面"
         },
         {
           "name": "香菇肉片面",
           "price": 13,
           "cat": "现炒浇头面",
-          "dishId": "cp0776",
+          "dishId": "cp0806",
           "kbName": "香菇肉片面"
         },
         {
           "name": "辣椒炒肉面",
           "price": 13,
           "cat": "现炒浇头面",
-          "dishId": "cp0777",
+          "dishId": "cp0807",
           "kbName": "辣椒炒肉面"
         },
         {
           "name": "辣炒猪肝面",
           "price": 13,
           "cat": "现炒浇头面",
-          "dishId": "cp0778",
+          "dishId": "cp0808",
           "kbName": "辣炒猪肝面"
         },
         {
           "name": "虾仁鸡丁面",
           "price": 15,
           "cat": "现炒浇头面",
-          "dishId": "cp0779",
+          "dishId": "cp0809",
           "kbName": "虾仁鸡丁面"
         },
         {
@@ -10448,21 +10844,21 @@
           "name": "炝银条",
           "price": 2,
           "cat": "风味小炒系列",
-          "dishId": "cp0780",
+          "dishId": "cp0810",
           "kbName": "炝银条"
         },
         {
           "name": "巧手长豆角",
           "price": 4,
           "cat": "风味小炒系列",
-          "dishId": "cp0781",
+          "dishId": "cp0811",
           "kbName": "巧手长豆角"
         },
         {
           "name": "干锅杏鲍菇",
           "price": 5,
           "cat": "风味小炒系列",
-          "dishId": "cp0782",
+          "dishId": "cp0812",
           "kbName": "干锅杏鲍菇"
         },
         {
@@ -10476,35 +10872,35 @@
           "name": "保府过油肉",
           "price": 5,
           "cat": "风味小炒系列",
-          "dishId": "cp0783",
+          "dishId": "cp0813",
           "kbName": "保府过油肉"
         },
         {
           "name": "蜜汁藕盒",
           "price": 4,
           "cat": "风味小炒系列",
-          "dishId": "cp0784",
+          "dishId": "cp0814",
           "kbName": "蜜汁藕盒"
         },
         {
           "name": "湘西小炒肉",
           "price": 5,
           "cat": "风味小炒系列",
-          "dishId": "cp0785",
+          "dishId": "cp0815",
           "kbName": "湘西小炒肉"
         },
         {
           "name": "花椒酥鸡",
           "price": 7,
           "cat": "风味小炒系列",
-          "dishId": "cp0786",
+          "dishId": "cp0816",
           "kbName": "花椒酥鸡"
         },
         {
           "name": "特色椒麻鸡",
           "price": 7,
           "cat": "风味小炒系列",
-          "dishId": "cp0787",
+          "dishId": "cp0817",
           "kbName": "特色椒麻鸡"
         },
         {
@@ -10518,21 +10914,21 @@
           "name": "拉丝面筋",
           "price": 4,
           "cat": "风味小炒系列",
-          "dishId": "cp0788",
+          "dishId": "cp0818",
           "kbName": "拉丝面筋"
         },
         {
           "name": "烧汁豆腐",
           "price": 4,
           "cat": "风味小炒系列",
-          "dishId": "cp0789",
+          "dishId": "cp0819",
           "kbName": "烧汁豆腐"
         },
         {
           "name": "干锅脆豆腐",
           "price": 4,
           "cat": "风味小炒系列",
-          "dishId": "cp0790",
+          "dishId": "cp0820",
           "kbName": "干锅脆豆腐"
         },
         {
@@ -10546,35 +10942,35 @@
           "name": "葱爆肉卷",
           "price": 7,
           "cat": "风味小炒系列",
-          "dishId": "cp0791",
+          "dishId": "cp0821",
           "kbName": "葱爆肉卷"
         },
         {
           "name": "番茄牛丸",
           "price": 6,
           "cat": "风味小炒系列",
-          "dishId": "cp0792",
+          "dishId": "cp0822",
           "kbName": "番茄牛丸"
         },
         {
           "name": "藕片炒肉",
           "price": 6,
           "cat": "风味小炒系列",
-          "dishId": "cp0793",
+          "dishId": "cp0823",
           "kbName": "藕片炒肉"
         },
         {
           "name": "蒜苔炒肉",
           "price": 5,
           "cat": "风味小炒系列",
-          "dishId": "cp0794",
+          "dishId": "cp0824",
           "kbName": "蒜苔炒肉（档口）"
         },
         {
           "name": "口水鸭",
           "price": 8,
           "cat": "风味小炒系列",
-          "dishId": "cp0795",
+          "dishId": "cp0825",
           "kbName": "口水鸭"
         },
         {
@@ -10588,49 +10984,49 @@
           "name": "香酥鸡",
           "price": 7,
           "cat": "风味小炒系列",
-          "dishId": "cp0796",
+          "dishId": "cp0826",
           "kbName": "香酥鸡"
         },
         {
           "name": "牛牛烤肉",
           "price": 6,
           "cat": "风味小炒系列",
-          "dishId": "cp0797",
+          "dishId": "cp0827",
           "kbName": "牛牛烤肉"
         },
         {
           "name": "老汤猪肘",
           "price": 8,
           "cat": "风味小炒系列",
-          "dishId": "cp0798",
+          "dishId": "cp0828",
           "kbName": "老汤猪肘"
         },
         {
           "name": "土豆炖牛肉",
           "price": 10,
           "cat": "风味小炒系列",
-          "dishId": "cp0799",
+          "dishId": "cp0829",
           "kbName": "土豆炖牛肉"
         },
         {
           "name": "油淋橄榄菜",
           "price": 2,
           "cat": "风味小炒系列",
-          "dishId": "cp0800",
+          "dishId": "cp0830",
           "kbName": "油淋橄榄菜"
         },
         {
           "name": "香辣虾",
           "price": 8,
           "cat": "风味小炒系列",
-          "dishId": "cp0801",
+          "dishId": "cp0831",
           "kbName": "香辣虾"
         },
         {
           "name": "轰炸大鸡腿",
           "price": 6,
           "cat": "风味小炒系列",
-          "dishId": "cp0802",
+          "dishId": "cp0832",
           "kbName": "轰炸大鸡腿"
         },
         {
@@ -10644,21 +11040,21 @@
           "name": "香辣翅根",
           "price": 6,
           "cat": "风味小炒系列",
-          "dishId": "cp0803",
+          "dishId": "cp0833",
           "kbName": "香辣翅根"
         },
         {
           "name": "吮味羊骨",
           "price": 12,
           "cat": "风味小炒系列",
-          "dishId": "cp0804",
+          "dishId": "cp0834",
           "kbName": "吮味羊骨"
         },
         {
           "name": "小炒菜花",
           "price": 5,
           "cat": "风味小炒系列",
-          "dishId": "cp0805",
+          "dishId": "cp0835",
           "kbName": "小炒菜花"
         },
         {
@@ -10686,7 +11082,7 @@
           "name": "土豆片炒熏肉",
           "price": 6,
           "cat": "风味小炒系列",
-          "dishId": "cp0806",
+          "dishId": "cp0836",
           "kbName": "土豆片炒熏肉"
         },
         {
@@ -10732,49 +11128,49 @@
           "name": "原味鱼籽拌饭",
           "price": 11,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0807",
+          "dishId": "cp0837",
           "kbName": "原味鱼籽拌饭"
         },
         {
           "name": "微辣鱼籽拌饭",
           "price": 12.5,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0808",
+          "dishId": "cp0838",
           "kbName": "微辣鱼籽拌饭"
         },
         {
           "name": "中辣鱼籽拌饭",
           "price": 12.5,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0809",
+          "dishId": "cp0839",
           "kbName": "中辣鱼籽拌饭"
         },
         {
           "name": "蒜香鱼籽拌饭",
           "price": 13.5,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0810",
+          "dishId": "cp0840",
           "kbName": "蒜香鱼籽拌饭"
         },
         {
           "name": "炒鸡拌饭",
           "price": 12,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0811",
+          "dishId": "cp0841",
           "kbName": "炒鸡拌饭"
         },
         {
           "name": "芝士鱼籽拌饭",
           "price": 14,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0812",
+          "dishId": "cp0842",
           "kbName": "芝士鱼籽拌饭"
         },
         {
           "name": "金枪鱼拌饭",
           "price": 14,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0813",
+          "dishId": "cp0843",
           "kbName": "金枪鱼拌饭"
         },
         {
@@ -10788,105 +11184,105 @@
           "name": "鱿鱼拌饭",
           "price": 15,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0814",
+          "dishId": "cp0844",
           "kbName": "鱿鱼拌饭"
         },
         {
           "name": "辣炒鸡拌饭",
           "price": 13,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0815",
+          "dishId": "cp0845",
           "kbName": "辣炒鸡拌饭"
         },
         {
           "name": "蒜香鸡拌饭",
           "price": 13.5,
           "cat": "招牌秘制拌饭系列",
-          "dishId": "cp0471",
+          "dishId": "cp0504",
           "kbName": "蒜香鸡拌饭"
         },
         {
           "name": "炸鸡汤饭",
           "price": 14,
           "cat": "汤饭系列",
-          "dishId": "cp0816",
+          "dishId": "cp0846",
           "kbName": "炸鸡汤饭"
         },
         {
           "name": "牛肉汤饭",
           "price": 16,
           "cat": "汤饭系列",
-          "dishId": "cp0817",
+          "dishId": "cp0847",
           "kbName": "牛肉汤饭"
         },
         {
           "name": "泡菜汤饭",
           "price": 12,
           "cat": "汤饭系列",
-          "dishId": "cp0818",
+          "dishId": "cp0848",
           "kbName": "泡菜汤饭"
         },
         {
           "name": "裙带丝",
           "price": 3,
           "cat": "单加料",
-          "dishId": "cp1019",
+          "dishId": "cp1059",
           "kbName": "裙带丝"
         },
         {
           "name": "辣白菜",
           "price": 2,
           "cat": "单加料",
-          "dishId": "cp1020",
+          "dishId": "cp1060",
           "kbName": "辣白菜"
         },
         {
           "name": "芝士",
           "price": 3,
           "cat": "单加料",
-          "dishId": "cp0972",
+          "dishId": "cp1014",
           "kbName": "芝士"
         },
         {
           "name": "溏心蛋",
           "price": 1.5,
           "cat": "单加料",
-          "dishId": "cp1021",
+          "dishId": "cp1061",
           "kbName": "溏心蛋"
         },
         {
           "name": "鱿鱼",
           "price": 3.5,
           "cat": "单加料",
-          "dishId": "cp1022",
+          "dishId": "cp1062",
           "kbName": "鱿鱼"
         },
         {
           "name": "玉米粒",
           "price": 2,
           "cat": "单加料",
-          "dishId": "cp1023",
+          "dishId": "cp1063",
           "kbName": "玉米粒"
         },
         {
           "name": "鱼籽",
           "price": 3,
           "cat": "单加料",
-          "dishId": "cp1024",
+          "dishId": "cp1064",
           "kbName": "鱼籽"
         },
         {
           "name": "烤肉肠",
           "price": 3,
           "cat": "单加料",
-          "dishId": "cp1025",
+          "dishId": "cp1065",
           "kbName": "烤肉肠"
         },
         {
           "name": "金枪鱼",
           "price": 3.5,
           "cat": "单加料",
-          "dishId": "cp1026",
+          "dishId": "cp1066",
           "kbName": "金枪鱼"
         }
       ],
@@ -10918,7 +11314,7 @@
           "name": "肉沫杂酱面",
           "price": 13,
           "cat": "招牌面",
-          "dishId": "cp0819",
+          "dishId": "cp0849",
           "kbName": "肉沫杂酱面"
         },
         {
@@ -10932,35 +11328,35 @@
           "name": "酸菜肉丝面",
           "price": 13,
           "cat": "招牌面",
-          "dishId": "cp0760",
+          "dishId": "cp0790",
           "kbName": "酸菜肉丝面"
         },
         {
           "name": "酸菜面",
           "price": 10,
           "cat": "招牌面",
-          "dishId": "cp0820",
+          "dishId": "cp0850",
           "kbName": "酸菜面"
         },
         {
           "name": "剁椒面",
           "price": 10,
           "cat": "招牌面",
-          "dishId": "cp0821",
+          "dishId": "cp0851",
           "kbName": "剁椒面"
         },
         {
           "name": "番茄鸡蛋面",
           "price": 10,
           "cat": "招牌面",
-          "dishId": "cp0822",
+          "dishId": "cp0852",
           "kbName": "番茄鸡蛋面（档口）"
         },
         {
           "name": "浓香大骨面",
           "price": 10,
           "cat": "招牌面",
-          "dishId": "cp0823",
+          "dishId": "cp0853",
           "kbName": "浓香大骨面"
         },
         {
@@ -10974,77 +11370,77 @@
           "name": "藤椒肉丝面",
           "price": 13,
           "cat": "招牌面",
-          "dishId": "cp0824",
+          "dishId": "cp0854",
           "kbName": "藤椒肉丝面"
         },
         {
           "name": "藤椒面",
           "price": 10,
           "cat": "招牌面",
-          "dishId": "cp0825",
+          "dishId": "cp0855",
           "kbName": "藤椒面"
         },
         {
           "name": "草本牛肉面",
           "price": 14,
           "cat": "招牌面",
-          "dishId": "cp0826",
+          "dishId": "cp0856",
           "kbName": "草本牛肉面"
         },
         {
           "name": "川香鸡丝面",
           "price": 14,
           "cat": "招牌面",
-          "dishId": "cp0827",
+          "dishId": "cp0857",
           "kbName": "川香鸡丝面"
         },
         {
           "name": "海鲜炒面",
           "price": 14,
           "cat": "招牌面",
-          "dishId": "cp0828",
+          "dishId": "cp0858",
           "kbName": "海鲜炒面"
         },
         {
           "name": "豌杂面",
           "price": 13,
           "cat": "招牌面",
-          "dishId": "cp0829",
+          "dishId": "cp0859",
           "kbName": "豌杂面"
         },
         {
           "name": "锅贴",
           "price": 1.5,
           "cat": "早餐",
-          "dishId": "cp0830",
+          "dishId": "cp0860",
           "kbName": "锅贴（档口）"
         },
         {
           "name": "烧饼夹蛋",
           "price": 4,
           "cat": "早餐",
-          "dishId": "cp0831",
+          "dishId": "cp0861",
           "kbName": "烧饼夹蛋"
         },
         {
           "name": "煮玉米",
           "price": 4,
           "cat": "早餐",
-          "dishId": "cp0832",
+          "dishId": "cp0862",
           "kbName": "煮玉米"
         },
         {
           "name": "烧饼夹火腿片",
           "price": 5,
           "cat": "早餐",
-          "dishId": "cp0833",
+          "dishId": "cp0863",
           "kbName": "烧饼夹火腿片"
         },
         {
           "name": "草本牛骨粉/方便面",
           "price": 5,
           "cat": "早餐",
-          "dishId": "cp0834",
+          "dishId": "cp0864",
           "kbName": "草本牛骨粉/方便面"
         },
         {
@@ -11058,42 +11454,42 @@
           "name": "煎鸡蛋",
           "price": 1.5,
           "cat": "小料",
-          "dishId": "cp0950",
+          "dishId": "cp0992",
           "kbName": "煎鸡蛋"
         },
         {
           "name": "卤蛋",
           "price": 1.5,
           "cat": "小料",
-          "dishId": "cp0929",
+          "dishId": "cp0967",
           "kbName": "卤蛋（档口）"
         },
         {
           "name": "肉丸",
           "price": 1,
           "cat": "小料",
-          "dishId": "cp1027",
+          "dishId": "cp1067",
           "kbName": "肉丸"
         },
         {
           "name": "兰花干",
           "price": 1,
           "cat": "小料",
-          "dishId": "cp0922",
+          "dishId": "cp0952",
           "kbName": "兰花干"
         },
         {
           "name": "肉丝/肉酱",
           "price": 3,
           "cat": "小料",
-          "dishId": "cp1028",
+          "dishId": "cp1068",
           "kbName": "肉丝/肉酱"
         },
         {
           "name": "虎皮尖椒",
           "price": 2,
           "cat": "小料",
-          "dishId": "cp1029",
+          "dishId": "cp1069",
           "kbName": "虎皮尖椒"
         }
       ],
@@ -11125,35 +11521,35 @@
           "name": "煮板栗南瓜",
           "price": 8,
           "cat": "早餐",
-          "dishId": "cp0853",
+          "dishId": "cp0883",
           "kbName": "煮板栗南瓜"
         },
         {
           "name": "煮玉米",
           "price": 4,
           "cat": "早餐",
-          "dishId": "cp0832",
+          "dishId": "cp0862",
           "kbName": "煮玉米"
         },
         {
           "name": "煮红薯",
           "price": 6,
           "cat": "早餐",
-          "dishId": "cp0851",
+          "dishId": "cp0881",
           "kbName": "煮红薯"
         },
         {
           "name": "煮紫薯",
           "price": 8,
           "cat": "早餐",
-          "dishId": "cp0852",
+          "dishId": "cp0882",
           "kbName": "煮紫薯"
         },
         {
           "name": "卤蛋",
           "price": 1.5,
           "cat": "早餐",
-          "dishId": "cp0929",
+          "dishId": "cp0967",
           "kbName": "卤蛋（档口）"
         },
         {
@@ -11167,112 +11563,112 @@
           "name": "麻辣鸡腿馅饼",
           "price": 5,
           "cat": "麦多馅饼",
-          "dishId": "cp0845",
+          "dishId": "cp0875",
           "kbName": "麻辣鸡腿馅饼"
         },
         {
           "name": "奥尔良鸡腿馅饼",
           "price": 5,
           "cat": "麦多馅饼",
-          "dishId": "cp0846",
+          "dishId": "cp0876",
           "kbName": "奥尔良鸡腿馅饼"
         },
         {
           "name": "照烧鸡腿馅饼",
           "price": 5,
           "cat": "麦多馅饼",
-          "dishId": "cp0847",
+          "dishId": "cp0877",
           "kbName": "照烧鸡腿馅饼"
         },
         {
           "name": "素三鲜馅饼",
           "price": 3,
           "cat": "麦多馅饼",
-          "dishId": "cp0848",
+          "dishId": "cp0878",
           "kbName": "素三鲜馅饼"
         },
         {
           "name": "叉烧肉馅饼",
           "price": 6,
           "cat": "麦多馅饼",
-          "dishId": "cp0849",
+          "dishId": "cp0879",
           "kbName": "叉烧肉馅饼"
         },
         {
           "name": "猪肉香菇馅饼",
           "price": 6,
           "cat": "麦多馅饼",
-          "dishId": "cp0850",
+          "dishId": "cp0880",
           "kbName": "猪肉香菇馅饼"
         },
         {
           "name": "手抓饼+菜",
           "price": 3,
           "cat": "麦多馅饼",
-          "dishId": "cp0601",
+          "dishId": "cp0634",
           "kbName": "手抓饼+菜"
         },
         {
           "name": "浓香鸡排饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0835",
+          "dishId": "cp0865",
           "kbName": "浓香鸡排饭"
         },
         {
           "name": "藤椒鸡排饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0836",
+          "dishId": "cp0866",
           "kbName": "藤椒鸡排饭"
         },
         {
           "name": "培根扒饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0837",
+          "dishId": "cp0867",
           "kbName": "培根扒饭"
         },
         {
           "name": "黑椒鸭腿饭",
           "price": 15,
           "cat": "午晚餐",
-          "dishId": "cp0838",
+          "dishId": "cp0868",
           "kbName": "黑椒鸭腿饭"
         },
         {
           "name": "香酥猪扒饭",
           "price": 16,
           "cat": "午晚餐",
-          "dishId": "cp0839",
+          "dishId": "cp0869",
           "kbName": "香酥猪扒饭"
         },
         {
           "name": "香肠扒饭",
           "price": 10,
           "cat": "午晚餐",
-          "dishId": "cp0840",
+          "dishId": "cp0870",
           "kbName": "香肠扒饭"
         },
         {
           "name": "奥尔良鸡排饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0841",
+          "dishId": "cp0871",
           "kbName": "奥尔良鸡排饭"
         },
         {
           "name": "黑椒鸭胸饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0842",
+          "dishId": "cp0872",
           "kbName": "黑椒鸭胸饭"
         },
         {
           "name": "霸王肉串饭",
           "price": 12.5,
           "cat": "午晚餐",
-          "dishId": "cp0843",
+          "dishId": "cp0873",
           "kbName": "霸王肉串饭"
         },
         {
@@ -11286,21 +11682,21 @@
           "name": "鸡蛋扒饭",
           "price": 10,
           "cat": "午晚餐",
-          "dishId": "cp0844",
+          "dishId": "cp0874",
           "kbName": "鸡蛋扒饭"
         },
         {
           "name": "煎蛋",
           "price": 1.5,
           "cat": "午晚餐",
-          "dishId": "cp1008",
+          "dishId": "cp1048",
           "kbName": "煎蛋（档口）"
         },
         {
           "name": "烤红薯",
           "price": 8,
           "cat": "午晚餐",
-          "dishId": "cp0854",
+          "dishId": "cp0884",
           "kbName": "烤红薯（档口）"
         }
       ],
@@ -11606,231 +12002,231 @@
           "name": "沸腾鱼/肥牛",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0855",
+          "dishId": "cp0885",
           "kbName": "沸腾鱼/肥牛"
         },
         {
           "name": "番茄鱼/肥牛",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0856",
+          "dishId": "cp0886",
           "kbName": "番茄鱼/肥牛"
         },
         {
           "name": "藤椒鱼/肥牛",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0857",
+          "dishId": "cp0887",
           "kbName": "藤椒鱼/肥牛"
         },
         {
           "name": "泡椒鱼/肥牛",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0858",
+          "dishId": "cp0888",
           "kbName": "泡椒鱼/肥牛"
         },
         {
           "name": "菌汤鱼/肥牛",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0859",
+          "dishId": "cp0889",
           "kbName": "菌汤鱼/肥牛"
         },
         {
           "name": "金汤酸菜鱼/肥牛",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0709",
+          "dishId": "cp0741",
           "kbName": "金汤酸菜鱼/肥牛"
         },
         {
           "name": "老坛酸菜鱼/肥牛",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0708",
+          "dishId": "cp0740",
           "kbName": "老坛酸菜鱼/肥牛"
         },
         {
           "name": "茉莉牛油鱼片/肥牛",
           "price": 15,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0860",
+          "dishId": "cp0890",
           "kbName": "茉莉牛油鱼片/肥牛"
         },
         {
           "name": "麻辣酥肉/肉片",
           "price": 13,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0861",
+          "dishId": "cp0891",
           "kbName": "麻辣酥肉/肉片"
         },
         {
           "name": "番茄酥肉/肉片",
           "price": 13,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0862",
+          "dishId": "cp0892",
           "kbName": "番茄酥肉/肉片"
         },
         {
           "name": "藤椒酥肉/肉片",
           "price": 13,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0863",
+          "dishId": "cp0893",
           "kbName": "藤椒酥肉/肉片"
         },
         {
           "name": "金汤酥肉/肉片",
           "price": 13,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0864",
+          "dishId": "cp0894",
           "kbName": "金汤酥肉/肉片"
         },
         {
           "name": "酸菜酥肉/肉片",
           "price": 13,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0865",
+          "dishId": "cp0895",
           "kbName": "酸菜酥肉/肉片"
         },
         {
           "name": "菌汤酥肉/肉片",
           "price": 13,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0866",
+          "dishId": "cp0896",
           "kbName": "菌汤酥肉/肉片"
         },
         {
           "name": "泡椒酥肉/肉片",
           "price": 13,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0867",
+          "dishId": "cp0897",
           "kbName": "泡椒酥肉/肉片"
         },
         {
           "name": "茉莉牛油酥肉/肉片",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0868",
+          "dishId": "cp0898",
           "kbName": "茉莉牛油酥肉/肉片"
         },
         {
           "name": "麻辣无骨鱼",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0869",
+          "dishId": "cp0899",
           "kbName": "麻辣无骨鱼"
         },
         {
           "name": "藤椒无骨鱼",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0870",
+          "dishId": "cp0900",
           "kbName": "藤椒无骨鱼"
         },
         {
           "name": "泡椒无骨鱼",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0871",
+          "dishId": "cp0901",
           "kbName": "泡椒无骨鱼"
         },
         {
           "name": "番茄无骨鱼",
           "price": 14,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0872",
+          "dishId": "cp0902",
           "kbName": "番茄无骨鱼"
         },
         {
           "name": "茉莉牛油无骨鱼",
           "price": 15,
           "cat": "麻辣沸腾鱼系列",
-          "dishId": "cp0873",
+          "dishId": "cp0903",
           "kbName": "茉莉牛油无骨鱼"
         },
         {
           "name": "烤鱼饭",
           "price": 14,
           "cat": "首创烤鱼饭系列",
-          "dishId": "cp0874",
+          "dishId": "cp0904",
           "kbName": "烤鱼饭"
         },
         {
           "name": "烤鸡饭",
           "price": 14,
           "cat": "首创烤鱼饭系列",
-          "dishId": "cp0875",
+          "dishId": "cp0905",
           "kbName": "烤鸡饭"
         },
         {
           "name": "蒜香鸡胸饭",
           "price": 14.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0876",
+          "dishId": "cp0906",
           "kbName": "蒜香鸡胸饭"
         },
         {
           "name": "黑椒鱼片饭",
           "price": 14.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0877",
+          "dishId": "cp0907",
           "kbName": "黑椒鱼片饭"
         },
         {
           "name": "奥尔良鸡饭",
           "price": 14.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0878",
+          "dishId": "cp0908",
           "kbName": "奥尔良鸡饭"
         },
         {
           "name": "藤椒鸡胸饭",
           "price": 14.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0879",
+          "dishId": "cp0909",
           "kbName": "藤椒鸡胸饭"
         },
         {
           "name": "手撕海苔鸡胸饭",
           "price": 14.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0880",
+          "dishId": "cp0910",
           "kbName": "手撕海苔鸡胸饭"
         },
         {
           "name": "秘制翅根饭",
           "price": 15.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0881",
+          "dishId": "cp0911",
           "kbName": "秘制翅根饭"
         },
         {
           "name": "芝士鱼柳饭",
           "price": 15.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0882",
+          "dishId": "cp0912",
           "kbName": "芝士鱼柳饭"
         },
         {
           "name": "嫩煎牛排饭",
           "price": 16.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0883",
+          "dishId": "cp0913",
           "kbName": "嫩煎牛排饭"
         },
         {
           "name": "彩椒牛肉饭",
           "price": 16.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0884",
+          "dishId": "cp0914",
           "kbName": "彩椒牛肉饭"
         },
         {
           "name": "鲜虾时蔬饭",
           "price": 16.8,
           "cat": "健康轻食餐",
-          "dishId": "cp0885",
+          "dishId": "cp0915",
           "kbName": "鲜虾时蔬饭"
         },
         {
@@ -11844,154 +12240,154 @@
           "name": "培根三明治",
           "price": 4,
           "cat": "营养早餐系列",
-          "dishId": "cp0886",
+          "dishId": "cp0916",
           "kbName": "培根三明治"
         },
         {
           "name": "火腿三明治",
           "price": 4,
           "cat": "营养早餐系列",
-          "dishId": "cp0887",
+          "dishId": "cp0917",
           "kbName": "火腿三明治"
         },
         {
           "name": "鸡排三明治",
           "price": 5,
           "cat": "营养早餐系列",
-          "dishId": "cp0888",
+          "dishId": "cp0918",
           "kbName": "鸡排三明治"
         },
         {
           "name": "鸡蛋+鸡肉饼",
           "price": 5,
           "cat": "营养早餐系列",
-          "dishId": "cp0889",
+          "dishId": "cp0919",
           "kbName": "鸡蛋+鸡肉饼"
         },
         {
           "name": "鸡蛋+里脊",
           "price": 6,
           "cat": "营养早餐系列",
-          "dishId": "cp0890",
+          "dishId": "cp0920",
           "kbName": "鸡蛋+里脊"
         },
         {
           "name": "鸡蛋+藤椒鸡排",
           "price": 6.5,
           "cat": "营养早餐系列",
-          "dishId": "cp0891",
+          "dishId": "cp0921",
           "kbName": "鸡蛋+藤椒鸡排"
         },
         {
           "name": "手抓饼+培根",
           "price": 4,
           "cat": "营养早餐系列",
-          "dishId": "cp0738",
+          "dishId": "cp0770",
           "kbName": "手抓饼+培根"
         },
         {
           "name": "手抓饼+肉松",
           "price": 4,
           "cat": "营养早餐系列",
-          "dishId": "cp0892",
+          "dishId": "cp0922",
           "kbName": "手抓饼+肉松"
         },
         {
           "name": "手抓饼+鸡蛋",
           "price": 4.5,
           "cat": "营养早餐系列",
-          "dishId": "cp0737",
+          "dishId": "cp0769",
           "kbName": "手抓饼+鸡蛋"
         },
         {
           "name": "手抓饼+火腿",
           "price": 4.5,
           "cat": "营养早餐系列",
-          "dishId": "cp0893",
+          "dishId": "cp0923",
           "kbName": "手抓饼+火腿"
         },
         {
           "name": "手抓饼+脆骨肠",
           "price": 5,
           "cat": "营养早餐系列",
-          "dishId": "cp0894",
+          "dishId": "cp0924",
           "kbName": "手抓饼+脆骨肠"
         },
         {
           "name": "手抓饼+里脊肉串",
           "price": 5.5,
           "cat": "营养早餐系列",
-          "dishId": "cp0895",
+          "dishId": "cp0925",
           "kbName": "手抓饼+里脊肉串"
         },
         {
           "name": "手抓饼+黑椒鸡扒",
           "price": 6,
           "cat": "营养早餐系列",
-          "dishId": "cp0741",
+          "dishId": "cp0773",
           "kbName": "手抓饼+黑椒鸡扒"
         },
         {
           "name": "单加土豆粉",
           "price": 1,
           "cat": "加料区",
-          "dishId": "cp1030",
+          "dishId": "cp1070",
           "kbName": "单加土豆粉"
         },
         {
           "name": "单加泡面",
           "price": 1,
           "cat": "加料区",
-          "dishId": "cp1031",
+          "dishId": "cp1071",
           "kbName": "单加泡面"
         },
         {
           "name": "单加手工抻面",
           "price": 1,
           "cat": "加料区",
-          "dishId": "cp1032",
+          "dishId": "cp1072",
           "kbName": "单加手工抻面"
         },
         {
           "name": "单加肉片",
           "price": 4,
           "cat": "加料区",
-          "dishId": "cp1033",
+          "dishId": "cp1073",
           "kbName": "单加肉片"
         },
         {
           "name": "单加酥肉",
           "price": 4,
           "cat": "加料区",
-          "dishId": "cp1034",
+          "dishId": "cp1074",
           "kbName": "单加酥肉"
         },
         {
           "name": "单加无骨鱼",
           "price": 4,
           "cat": "加料区",
-          "dishId": "cp1035",
+          "dishId": "cp1075",
           "kbName": "单加无骨鱼"
         },
         {
           "name": "单加黑鱼片",
           "price": 5,
           "cat": "加料区",
-          "dishId": "cp1036",
+          "dishId": "cp1076",
           "kbName": "单加黑鱼片"
         },
         {
           "name": "单加肥牛",
           "price": 5,
           "cat": "加料区",
-          "dishId": "cp1037",
+          "dishId": "cp1077",
           "kbName": "单加肥牛"
         },
         {
           "name": "单加烤鱼",
           "price": 5,
           "cat": "加料区",
-          "dishId": "cp1038",
+          "dishId": "cp1078",
           "kbName": "单加烤鱼"
         }
       ],
