@@ -107,7 +107,10 @@
   .cat[aria-pressed="true"]{border-color:var(--brand);background:linear-gradient(180deg,#fff5ef,#fffdfb);box-shadow:0 4px 12px rgba(255,106,61,.13)}
 
   /* 标签 chips */
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+  /* 忌口分组标题（水产 / 肉与内脏 / …）：忌口一多，平铺一大片就找不着了 */
+  .alg-group{margin-top:11px}
+  .alg-group .alg-group-title{font-size:11.5px;color:var(--muted);margin:0 0 6px;letter-spacing:.2px}
   .chip{
     cursor:pointer;font-family:inherit;font-size:13px;color:#5b4a3d;background:#fffdfb;
     border:1.5px solid var(--line);border-radius:999px;padding:7px 12px;transition:all .14s
@@ -1366,6 +1369,8 @@ const CRAVE_TAG_KEYS = {
 };
 
 const ALLERGIES = DB.vocab.allergies;
+/* 忌口按组展示（水产 / 肉与内脏 / 蛋奶豆谷 / 蔬菜香料 / 其他）——列表一长，平铺就找不着了 */
+const ALLERGY_GROUPS = DB.vocab.allergyGroups || [{ title:'', items:ALLERGIES }];
 
 const TASTE_TAGS = DB.vocab.tasteTags;
 
@@ -2594,11 +2599,14 @@ function shopIntents(rec, anchors){
 /* ------------------------------ 5. 智能体核心：打分 ------------------------------ */
 
 const ALG_MAP = DB.vocab.algMap;
+/* 老名字（花生 / 海鲜/虾蟹）的兼容映射：只给"历史存档里的忌口"用，
+ * 保证改名之后老用户的忌口不会静默失效（过敏是安全问题，宁可保守）。 */
+const ALG_ALIAS = DB.vocab.algAlias || {};
 
 // 忌口：把用户选择的忌口词展开成食材标签
 function allergyTags(){
   const out = new Set();
-  state.profile.allergies.forEach(a => (ALG_MAP[a]||[]).forEach(t => out.add(t)));
+  state.profile.allergies.forEach(a => (ALG_MAP[a] || ALG_ALIAS[a] || []).forEach(t => out.add(t)));
   return out;
 }
 
@@ -3724,11 +3732,13 @@ function renderChips(){
   });
 
   const allergy = $('#allergyList'); allergy.innerHTML = '';
-  ALLERGIES.forEach(t => {
+  const hasAllergy = t => state.profile.allergies.indexOf(t) !== -1;
+  const mkAllergyChip = (t, legacy) => {
     const b = document.createElement('button');
-    b.className = 'chip danger'; b.type='button';
-    b.textContent = t;
-    b.setAttribute('aria-pressed', String(state.profile.allergies.includes(t)));
+    b.className = 'chip danger'; b.type = 'button';
+    b.textContent = legacy ? (t + '（旧口径）') : t;
+    if(legacy) b.title = '这是改名之前存下来的忌口，按老口径继续生效。想换成新选项：先点掉它，再到上面勾新的。';
+    b.setAttribute('aria-pressed', String(hasAllergy(t)));
     b.onclick = () => {
       const i = state.profile.allergies.indexOf(t);
       if(i === -1) state.profile.allergies.push(t); else state.profile.allergies.splice(i,1);
@@ -3736,8 +3746,36 @@ function renderChips(){
        * 这样用户能看见"有改动还没保存"，也知道自己存到哪个账号了。 */
       renderChips(); renderProfile(); renderAllergyState();
     };
-    allergy.appendChild(b);
+    return b;
+  };
+  /* 分组渲染：忌口一多，平铺一大片就找不着了 */
+  ALLERGY_GROUPS.forEach(g => {
+    const box = document.createElement('div');
+    box.className = 'alg-group';
+    if(g.title){
+      const lab = document.createElement('div');
+      lab.className = 'alg-group-title';
+      lab.textContent = g.title;
+      box.appendChild(lab);
+    }
+    const row = document.createElement('div'); row.className = 'chips';
+    (g.items || []).forEach(t => row.appendChild(mkAllergyChip(t, false)));
+    box.appendChild(row);
+    allergy.appendChild(box);
   });
+  /* 历史忌口：不在新列表里的（比如改名前的「海鲜/虾蟹」）也显示出来。
+   * 它们仍在生效——藏起来就等于"看不见却一直拦着你"，那是更糟的体验。 */
+  const stray = (state.profile.allergies || []).filter(a => ALLERGIES.indexOf(a) === -1);
+  if(stray.length){
+    const box = document.createElement('div'); box.className = 'alg-group';
+    const lab = document.createElement('div'); lab.className = 'alg-group-title';
+    lab.textContent = '历史忌口（旧口径，仍在生效）';
+    box.appendChild(lab);
+    const row = document.createElement('div'); row.className = 'chips';
+    stray.forEach(t => row.appendChild(mkAllergyChip(t, true)));
+    box.appendChild(row);
+    allergy.appendChild(box);
+  }
 
   const taste = $('#tasteList'); taste.innerHTML = '';
   TASTE_TAGS.forEach(t => {

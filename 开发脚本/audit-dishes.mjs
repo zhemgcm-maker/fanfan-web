@@ -12,11 +12,13 @@ const document={querySelector(s){if(!cache.has(s))cache.set(s,fakeEl());return c
 const store=new Map();
 const localStorage={getItem:k=>store.has(k)?store.get(k):null,setItem:()=>{},removeItem:()=>{}};
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.A={DISHES,ALG_MAP,dishCats,CRAVE_TAGS,craveHits,CAT_CRAVE_TAGS};')
+  code + '\nglobalThis.A={DISHES,ALG_MAP,ALG_ALIAS,dishCats,CRAVE_TAGS,craveHits,CAT_CRAVE_TAGS};')
   (document, localStorage, (f)=>setTimeout(f,0), ()=>Promise.reject(new Error('x')));
 const A = globalThis.A;
 
-const ALG_OK = new Set(Object.values(A.ALG_MAP).flat());
+/* 词表 = 界面忌口的映射 + 老名字的兼容映射（历史存档里的"花生""海鲜/虾蟹"还在生效，
+ * 它们映射到的 token 也要算合法，否则会被误报成"不认识的致敏标签"）。 */
+const ALG_OK = new Set([...Object.values(A.ALG_MAP), ...Object.values(A.ALG_ALIAS || {})].flat());
 const CAT_OK = new Set(['rice','noodle','other']);
 const ROLE_OK = new Set(['single','main','side','staple','soup','drink']);
 let problems = [];

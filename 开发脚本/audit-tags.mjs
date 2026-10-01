@@ -35,7 +35,7 @@ const store = new Map();
 const localStorage = { getItem:k => (store.has(k) ? store.get(k) : null),
                        setItem:(k,v) => store.set(k, String(v)), removeItem:k => store.delete(k) };
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__A={state,DISHES,CATS,CAT_CRAVE_TAGS,CRAVE_TAG_KEYS,TAG_ONLY_KEYS,ALG_MAP,craveHits};')
+  code + '\nglobalThis.__A={state,DISHES,CATS,CAT_CRAVE_TAGS,CRAVE_TAG_KEYS,TAG_ONLY_KEYS,ALG_MAP,ALG_ALIAS,craveHits};')
   (document, localStorage, f => setTimeout(f, 0), () => Promise.reject(new Error('offline')));
 const A = globalThis.__A;
 
@@ -50,7 +50,10 @@ const TASTE_KEYS = ['清淡','重口','汤','干拌','辣','甜口','酸辣','�
 const PERIOD_KEYS = ['快','清淡','汤','蛋','下饭','扎实','热','小吃','甜口','聚餐','肉','烧烤','辣','啤酒'];
 const MEAT_KEYS = ['猪','牛','羊','鸡','鸭','鱼','虾','蟹','贝','驴肉'];
 TASTE_KEYS.concat(PERIOD_KEYS, MEAT_KEYS).forEach(k => KEYS.add(k));
-const ALG_OK = new Set(Object.values(A.ALG_MAP).flat());
+/* 合法 token = 界面忌口的映射 + 老名字的兼容映射。
+ * 「海鲜」就是个历史标签：它是真实食材，但新的忌口口径已经拆成 虾蟹贝 / 鱼，
+ * 所以它只在"老存档"那条路上被引用，不能算错。 */
+const ALG_OK = new Set([...Object.values(A.ALG_MAP), ...Object.values(A.ALG_ALIAS || {})].flat());
 const CUI_OK = new Set(A.DISHES.map(d => d.cui));      // 25 个枚举（以库内实际取值为准）
 const CAT_OK = ['rice', 'noodle', 'other'];
 const ROLE_OK = ['single', 'main', 'side', 'staple', 'soup', 'drink'];
