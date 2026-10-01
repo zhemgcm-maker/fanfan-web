@@ -6252,6 +6252,20 @@ async function toolSearchShops(a){
   const kw = String(args.keyword || '').trim();
   if(!kw) return { error:'keyword 不能为空' };
   if(state.settings.online === 'off') return { error:'这台设备把联网检索关掉了（设置 › 联网搜索）' };
+  /* 校内食堂模式：搜店搜的就是采到的档口，不走高德、不用定位。
+   * 以前这里直连高德，于是登录后用 Agent 决策时会端出校外的饭店——
+   * 用户明明选了「校内食堂」，推荐表里却是街上的店。 */
+  if(isCampus()){
+    const cap = clamp(Number(args.limit) || 12, 1, 20);
+    const all = (SHOP_DB.shops || []).filter(s => s.place === 'campus');
+    const hit = all.filter(s => s.name.indexOf(kw) !== -1 ||
+      (s.menu || []).some(m => String(m.name).indexOf(kw) !== -1));
+    const list = (hit.length ? hit : all).map(canteenShopToRestaurant);
+    agentRememberShops(list);
+    return { keyword:kw, radius_m:0, source:'campus', count:Math.min(list.length, cap),
+             shops:list.slice(0, cap).map(shopBrief),
+             note:'校内食堂没有"周边搜店"这回事：下面是采到的档口（能不能做某道菜看菜单）' };
+  }
   const radius = clamp(Number(args.radius_m) || 3000, 300, 10000);
   const lim = clamp(Number(args.limit) || 12, 1, 20);
   const origin = await agentOrigin();
@@ -6278,6 +6292,13 @@ async function toolSearchShops(a){
 async function toolGetNearby(a){
   const args = a || {};
   if(state.settings.online === 'off') return { error:'这台设备把联网检索关掉了' };
+  if(isCampus()){
+    const cap = clamp(Number(args.limit) || 15, 1, 25);
+    const list = (SHOP_DB.shops || []).filter(s => s.place === 'campus').map(canteenShopToRestaurant);
+    agentRememberShops(list);
+    return { radius_m:0, count:Math.min(list.length, cap), shops:list.slice(0, cap).map(shopBrief),
+             note:'校内食堂：下面是全部档口，不存在"距离远近"这回事' };
+  }
   const radius = clamp(Number(args.radius_m) || 2000, 300, 10000);
   const lim = clamp(Number(args.limit) || 15, 1, 25);
   const origin = await agentOrigin();
@@ -6340,6 +6361,18 @@ async function toolListShopsForDish(a){
   const dish = dishById(String(args.dish_id || ''));
   if(!dish) return { error:'知识库里没有这个 dish_id：' + args.dish_id };
   if(state.settings.online === 'off') return { error:'这台设备把联网检索关掉了' };
+  if(isCampus()){
+    const list = (SHOP_DB.shops || []).filter(s => s.place === 'campus').map(canteenShopToRestaurant);
+    agentRememberShops(list);
+    const canMake = list.filter(sp => shopCanMake(sp, dish));
+    if(!canMake.length){
+      return { dish_id:dish.id, dish_name:dish.name, count:0, can_make_count:0, shops:[],
+               note:'校内食堂没有任何档口能做「' + dish.name + '」，换一道 search_dishes 里的菜' };
+    }
+    return { dish_id:dish.id, dish_name:dish.name, count:canMake.length, can_make_count:canMake.length,
+             shops:canMake.map(sp => Object.assign(shopBrief(sp), { can_make:true })),
+             note:'这些校内档口都能做这道菜，finalize 请只用这些店' };
+  }
   const radius = clamp(Number(args.radius_m) || 3500, 300, 10000);
   const lim = clamp(Number(args.limit) || 8, 1, 20);
   const origin = await agentOrigin();
