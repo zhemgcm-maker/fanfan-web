@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-30",
+  "updatedAt": "2026-10-01",
   "shops": [
     {
       "id": "local-兰湘子",
@@ -20,6 +20,7 @@
         "辣椒炒肉"
       ],
       "cuisineRefWhole": true,
+      "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-25",
@@ -222,6 +223,7 @@
       ],
       "cuisineRefKeys": [],
       "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-20",
@@ -899,6 +901,7 @@
         "拌粉"
       ],
       "cuisineRefWhole": true,
+      "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-25",
@@ -1106,6 +1109,7 @@
         "臭鳜鱼"
       ],
       "cuisineRefWhole": true,
+      "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-25",
@@ -1330,6 +1334,7 @@
         "重庆"
       ],
       "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-22",
@@ -1530,6 +1535,7 @@
       "cuisineRef": [],
       "cuisineRefKeys": [],
       "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "自己拍菜单",
       "collectedAt": "2026-09-19",
@@ -1931,6 +1937,7 @@
         "快餐"
       ],
       "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-22",
@@ -2166,6 +2173,7 @@
         "鸡爪煲"
       ],
       "cuisineRefWhole": true,
+      "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-25",
@@ -2297,6 +2305,10 @@
         "醉花小岸"
       ],
       "cuisineRefWhole": true,
+      "cuisineRefExclude": [
+        "烤鱼",
+        "清江鱼"
+      ],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-30",
@@ -2445,6 +2457,7 @@
         "华莱士"
       ],
       "cuisineRefWhole": true,
+      "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
       "collectedAt": "2026-09-25",

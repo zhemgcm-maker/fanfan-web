@@ -96,6 +96,9 @@ for(const f of files){
     /* cuisineRefWhole：被上面这些关键词命中的同类店，可以整份借这份菜单（不再逐道比菜的菜系）。
      * 肉蟹煲这类菜只能用这个：高德给肉蟹煲店的是"中餐厅"，程序推成「家常」，菜却按江浙/川写。 */
     cuisineRefWhole: !!p.cuisineRefWhole,
+    /* cuisineRefExclude：招牌菜不借名单——光靠"同菜系"借不到这些菜，
+     * 只有命中 cuisineRefKeys 的同类店才能借（醉花小岸的烤鱼只借给烤鱼店，不借给所有川菜馆）。 */
+    cuisineRefExclude: p.cuisineRefExclude || [],
     confidence: 'confirmed',              // confirmed = 菜单是实际采集来的，不是推断
     source: p.source || '自己拍菜单',
     collectedAt: p.collectedAt || '',

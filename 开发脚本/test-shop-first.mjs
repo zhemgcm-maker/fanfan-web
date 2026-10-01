@@ -116,7 +116,26 @@ console.log('   店分项：' + Object.entries(scored.parts).map(([k, v]) => k +
   ok(!!scored.parts[k], '评分包含维度「' + k + '」');
 });
 ok(scored.parts['菜品覆盖'].raw > 0, '菜品覆盖得分 ' + scored.parts['菜品覆盖'].raw + '（这家店能做多道候选菜）');
-ok(scored.reasons.some(x => x.indexOf('都能做') !== -1), '给用户的理由里说明了"能做几道"：' + scored.reasons.filter(x=>x.indexOf('都能做')!==-1).join(''));
+/* 「你想吃的 N 道菜这家店都能做」这句只在覆盖 ≥5 道时才说（cover*2.4 封顶 16，所以 ≥12 分）。
+ * 少于 5 道就不该给这句大话——招牌菜不借之后，川菜馆能做的候选菜变少了，这是对的。 */
+const coverRaw = scored.parts['菜品覆盖'].raw;
+const coverReason = scored.reasons.find(x => x.indexOf('都能做') !== -1);
+ok(coverRaw >= 12 ? !!coverReason : !coverReason,
+   coverRaw >= 12 ? ('覆盖 ' + coverRaw + ' 分 → 给了「都能做」的理由：' + coverReason)
+                  : ('覆盖只有 ' + coverRaw + ' 分（<5 道）→ 不给「都能做」那句大话'));
+
+/* 招牌菜不借：参照方（醉花小岸）在数据里声明了 cuisineRefExclude，它家的招牌烤鱼
+ * 只借给命中"烤鱼"关键词的同类店——川菜馆不能再因为菜系是川就被判成能做它。
+ * （这条是本次修的真 bug：界面说能做、点进去配出一桌别的菜。） */
+const zhxaFish = api.DISHES.find(d => d.id === 'zhxa01');
+if(zhxaFish){
+  ok(api.restaurantServes(chuan, zhxaFish) === false,
+     '川菜馆不借「' + zhxaFish.name + '」（参照方声明了招牌菜不借）');
+  const fakeFishShop = { id:'amap-TESTFISH', name:'某某烤鱼(保定店)', cui:['家常'], tags:['中餐厅'],
+                         type:'餐饮服务;中餐厅', sig:[] };
+  ok(api.restaurantServes(fakeFishShop, zhxaFish) === true,
+     '同类「烤鱼」店照样能借到「' + zhxaFish.name + '」');
+}
 
 console.log('\n=== 四、走完整流程 + 手动换店（人在环）===');
 await api.run(); await settle();
