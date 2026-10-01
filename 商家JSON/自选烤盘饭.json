@@ -1,0 +1,31 @@
+{
+  "id": "local-自选烤盘饭",
+  "name": "自选烤盘饭",
+  "city": "保定",
+  "scope": "local",
+  "amapId": "",
+  "cuisineRef": [
+    "烧烤"
+  ],
+  "cuisineRefKeys": [
+    "自选烤盘饭",
+    "烤盘饭",
+    "称重",
+    "烧烤味",
+    "荤素任选"
+  ],
+  "menu": [
+    {
+      "name": "自选烤盘饭",
+      "price": 9.9,
+      "cat": "主营"
+    },
+    {
+      "name": "米饭",
+      "price": 1,
+      "cat": "主营"
+    }
+  ],
+  "source": "菜单整理录入（用户提供）",
+  "collectedAt": "2026-10-01"
+}

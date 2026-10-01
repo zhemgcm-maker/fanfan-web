@@ -6,6 +6,12 @@
       "id": "local-兰湘子",
       "name": "兰湘子·湘菜小炒",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "brand",
       "amapId": "B0K33R6PBI",
       "branchName": "兰湘子·湘菜小炒(保定未来石万达店)",
@@ -212,9 +218,152 @@
       "uncertain": []
     },
     {
+      "id": "local-口水鸡",
+      "name": "口水鸡",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学二校区",
+      "canteen": "第三食堂",
+      "stall": "口水鸡",
+      "cuisine": "川",
+      "avg": 13,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "素拼什锦",
+          "price": 10,
+          "cat": "口水鸡档口",
+          "dishId": "ksj02",
+          "kbName": "素拼什锦"
+        },
+        {
+          "name": "口水鸡",
+          "price": 12,
+          "cat": "口水鸡档口",
+          "dishId": "ksj01",
+          "kbName": "口水鸡（档口）"
+        },
+        {
+          "name": "口水鸡双拼金针菇",
+          "price": 12,
+          "cat": "口水鸡档口",
+          "dishId": "ksj03",
+          "kbName": "口水鸡双拼金针菇"
+        },
+        {
+          "name": "口水鸡双拼豆皮",
+          "price": 12,
+          "cat": "口水鸡档口",
+          "dishId": "ksj04",
+          "kbName": "口水鸡双拼豆皮"
+        },
+        {
+          "name": "口水鸡双拼火锅丸子",
+          "price": 12,
+          "cat": "口水鸡档口",
+          "dishId": "ksj05",
+          "kbName": "口水鸡双拼火锅丸子"
+        },
+        {
+          "name": "口水鸡双拼鸡肉丸子",
+          "price": 13,
+          "cat": "口水鸡档口",
+          "dishId": "ksj06",
+          "kbName": "口水鸡双拼鸡肉丸子"
+        },
+        {
+          "name": "口水鸡双拼锅包肉",
+          "price": 13,
+          "cat": "口水鸡档口",
+          "dishId": "ksj07",
+          "kbName": "口水鸡双拼锅包肉"
+        },
+        {
+          "name": "口水鸡双拼鸡柳",
+          "price": 14,
+          "cat": "口水鸡档口",
+          "dishId": "ksj08",
+          "kbName": "口水鸡双拼鸡柳"
+        },
+        {
+          "name": "口水鸡双拼里脊肉",
+          "price": 14,
+          "cat": "口水鸡档口",
+          "dishId": "ksj09",
+          "kbName": "口水鸡双拼里脊肉"
+        },
+        {
+          "name": "单加金针菇",
+          "price": 1.5,
+          "cat": "单加料",
+          "dishId": "ksj10",
+          "kbName": "单加金针菇"
+        },
+        {
+          "name": "单加豆皮",
+          "price": 1.5,
+          "cat": "单加料",
+          "dishId": "ksj11",
+          "kbName": "单加豆皮"
+        },
+        {
+          "name": "单加火锅丸子",
+          "price": 1.5,
+          "cat": "单加料",
+          "dishId": "ksj12",
+          "kbName": "单加火锅丸子"
+        },
+        {
+          "name": "单加锅包肉",
+          "price": 3,
+          "cat": "单加料",
+          "dishId": "ksj13",
+          "kbName": "单加锅包肉"
+        },
+        {
+          "name": "单加里脊肉",
+          "price": 3,
+          "cat": "单加料",
+          "dishId": "ksj14",
+          "kbName": "单加里脊肉"
+        },
+        {
+          "name": "单加鸡柳",
+          "price": 3,
+          "cat": "单加料",
+          "dishId": "ksj15",
+          "kbName": "单加鸡柳"
+        },
+        {
+          "name": "单加鸡肉丸子",
+          "price": 3,
+          "cat": "单加料",
+          "dishId": "ksj16",
+          "kbName": "单加鸡肉丸子"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-女掌柜土家菜馆",
       "name": "女掌柜土家菜馆",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "branch",
       "amapId": "B0FFGWFUGT",
       "branchName": "女掌柜土家菜馆",
@@ -887,6 +1036,12 @@
       "id": "local-小江溪",
       "name": "小江溪·山野江西菜(保定万博广场店)",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "branch",
       "amapId": "B0L25SCNXX",
       "branchName": "小江溪·山野江西菜(保定万博广场店)",
@@ -1096,6 +1251,12 @@
       "id": "local-小菜园",
       "name": "小菜园新徽菜",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "brand",
       "amapId": "B0L0VSHX8E",
       "branchName": "小菜园新徽菜(保定未来石万达店)",
@@ -1318,6 +1479,12 @@
       "id": "local-川香苑",
       "name": "川香苑",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "branch",
       "amapId": "B0K05HVF6L",
       "branchName": "川香苑",
@@ -1529,6 +1696,12 @@
       "id": "local-沙县小吃",
       "name": "沙县小吃",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "brand",
       "amapId": "",
       "branchName": "",
@@ -1916,9 +2089,187 @@
       "uncertain": []
     },
     {
+      "id": "local-港式烧卤饭",
+      "name": "港式烧卤饭",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学二校区",
+      "canteen": "第三食堂",
+      "stall": "港式烧卤饭",
+      "cuisine": "粤",
+      "avg": 14,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "烧鸭饭",
+          "price": 14,
+          "cat": "招牌必点·饭类",
+          "dishId": "gz01",
+          "kbName": "烧鸭饭"
+        },
+        {
+          "name": "烧鸡饭",
+          "price": 14,
+          "cat": "招牌必点·饭类",
+          "dishId": "gz02",
+          "kbName": "烧鸡饭"
+        },
+        {
+          "name": "白切鸡饭",
+          "price": 14,
+          "cat": "招牌必点·饭类",
+          "dishId": "gz03",
+          "kbName": "白切鸡饭"
+        },
+        {
+          "name": "蜜汁鸡腿饭",
+          "price": 14,
+          "cat": "招牌必点·饭类",
+          "dishId": "gz04",
+          "kbName": "蜜汁鸡腿饭"
+        },
+        {
+          "name": "卤肉饭",
+          "price": 15.5,
+          "cat": "招牌必点·饭类",
+          "dishId": "gz05",
+          "kbName": "卤肉饭"
+        },
+        {
+          "name": "蜜汁叉烧饭",
+          "price": 15.5,
+          "cat": "招牌必点·饭类",
+          "dishId": "gz06",
+          "kbName": "蜜汁叉烧饭"
+        },
+        {
+          "name": "猪脚腊肠饭",
+          "price": 15.5,
+          "cat": "招牌必点·饭类",
+          "dishId": "gz07",
+          "kbName": "猪脚腊肠饭"
+        },
+        {
+          "name": "鸡腿粉",
+          "price": 10,
+          "cat": "经典粉类",
+          "dishId": "gz08",
+          "kbName": "鸡腿粉"
+        },
+        {
+          "name": "广式腊肠粉",
+          "price": 10,
+          "cat": "经典粉类",
+          "dishId": "gz09",
+          "kbName": "广式腊肠粉"
+        },
+        {
+          "name": "牛肉丸粉",
+          "price": 10,
+          "cat": "经典粉类",
+          "dishId": "gz10",
+          "kbName": "牛肉丸粉"
+        },
+        {
+          "name": "烧鸭粉",
+          "price": 12,
+          "cat": "经典粉类",
+          "dishId": "gz11",
+          "kbName": "烧鸭粉"
+        },
+        {
+          "name": "叉烧粉",
+          "price": 13,
+          "cat": "经典粉类",
+          "dishId": "gz12",
+          "kbName": "叉烧粉"
+        },
+        {
+          "name": "猪脚粉",
+          "price": 15,
+          "cat": "经典粉类",
+          "dishId": "gz13",
+          "kbName": "猪脚粉"
+        },
+        {
+          "name": "香烧鸭",
+          "price": 6,
+          "cat": "单加料",
+          "dishId": "gz14",
+          "kbName": "香烧鸭（单加）"
+        },
+        {
+          "name": "蜜汁鸡腿",
+          "price": 6,
+          "cat": "单加料",
+          "dishId": "gz15",
+          "kbName": "蜜汁鸡腿（单加）"
+        },
+        {
+          "name": "嫩烧鸡",
+          "price": 6,
+          "cat": "单加料",
+          "dishId": "gz16",
+          "kbName": "嫩烧鸡（单加）"
+        },
+        {
+          "name": "香卤肉",
+          "price": 6,
+          "cat": "单加料",
+          "dishId": "gz17",
+          "kbName": "香卤肉（单加）"
+        },
+        {
+          "name": "蜜汁叉烧",
+          "price": 6,
+          "cat": "单加料",
+          "dishId": "gz18",
+          "kbName": "蜜汁叉烧（单加）"
+        },
+        {
+          "name": "白切鸡",
+          "price": 6,
+          "cat": "单加料",
+          "dishId": "gz19",
+          "kbName": "白切鸡（单加）"
+        },
+        {
+          "name": "广式腊肠",
+          "price": 3,
+          "cat": "单加料",
+          "dishId": "gz20",
+          "kbName": "广式腊肠（单加）"
+        },
+        {
+          "name": "鲜牛肉丸",
+          "price": 5,
+          "cat": "单加料",
+          "dishId": "gz21",
+          "kbName": "鲜牛肉丸（单加）"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-熊麻婆",
       "name": "熊麻婆现炒浇头面·饭（保定市永华北大街店）",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "branch",
       "amapId": "B0MUH1QNEC",
       "branchName": "熊麻婆现炒浇头面.饭(保定市永华北大街店)",
@@ -2157,6 +2508,12 @@
       "id": "local-胖哥俩肉蟹煲",
       "name": "胖哥俩肉蟹煲",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "brand",
       "amapId": "B0JUGD3FC6",
       "branchName": "胖哥俩肉蟹煲(保定万博广场店)",
@@ -2288,6 +2645,12 @@
       "id": "local-醉花小岸",
       "name": "醉花小岸",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "brand",
       "amapId": "",
       "branchName": "醉花小岸(未来石店)",
@@ -2437,6 +2800,12 @@
       "id": "local-麦当劳",
       "name": "麦当劳",
       "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "cuisine": "",
+      "avg": 0,
       "scope": "brand",
       "amapId": "B0FFKKGJSV",
       "branchName": "麦当劳(保定麦当劳复兴路餐厅)",

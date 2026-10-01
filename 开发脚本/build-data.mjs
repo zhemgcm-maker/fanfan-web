@@ -78,6 +78,18 @@ for(const f of files){
     id: 'local-' + path.basename(f, '.json'),
     name: p.shop || path.basename(f, '.json'),
     city: p.city || '保定',
+    /* 校内食堂专用字段（2026-10-01 加）：
+     *   place   = 'campus' 表示这是食堂档口，只在「校内食堂」模式里出现，
+     *             不走高德、不需要定位（档口在高德上根本不是一个 POI）。
+     *   campus  = 学校/校区，canteen = 哪个食堂，stall = 档口名（一般同店名）。
+     *   cuisine = 这家档口的菜系（食堂档口名推不出菜系，得写死一个）。
+     *   avg     = 人均参考价，用来算"这顿大概多少钱"。 */
+    place: p.place || '',
+    campus: p.campus || '',
+    canteen: p.canteen || '',
+    stall: p.stall || (p.place === 'campus' ? (p.shop || '') : ''),
+    cuisine: p.cuisine || '',
+    avg: p.avg || 0,
     /* scope 决定这份菜单的作用范围：
      *   branch = 本店确认（在某一家分店实拍，amapId 精确绑定，只对那一家生效）
      *   brand  = 品牌参照（同品牌同名分店共用，价格标成参考价；跨城市不共享）

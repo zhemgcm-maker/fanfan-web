@@ -83,8 +83,11 @@ var FANFAN_DB = {
     {"id":"s07","name":"醋溜土豆丝","cat":"other","role":"side","cui":"家常","price":18,"spicy":0,"tags":["蔬菜","酸辣","家常","快"],"alg":[],"desc":"酸脆爽口，最便宜的下饭菜","hot":85},
     {"id":"s08","name":"蒜蓉粉丝蒸娃娃菜","cat":"other","role":"side","cui":"粤","price":24,"spicy":0,"tags":["蔬菜","清淡","蒸","鲜"],"alg":["蒜"],"desc":"清蒸带蒜香，少油好吃","hot":77},
     {"id":"s09","name":"老醋花生","cat":"other","role":"side","cui":"家常","price":16,"spicy":0,"tags":["凉","下酒","酸"],"alg":["花生"],"desc":"下酒神器，越嚼越香","hot":73},
-    {"id":"t01","name":"米饭","cat":"other","role":"staple","cui":"家常","price":2,"spicy":0,"tags":["主食","碳水"],"alg":[],"desc":"论碗算，续饭另加","hot":99},
-    {"id":"t02","name":"花卷／馒头","cat":"other","role":"staple","cui":"家常","price":3,"spicy":0,"tags":["主食","碳水"],"alg":["麦"],"desc":"配炖菜最合适","hot":88},
+    /* universal:true = "通用主食"：任何一家店都能配（见 restaurantServes）。
+     * 采集来的菜单几乎从不写米饭馒头，但一桌菜少不了一碗饭——只有这两样豁免，
+     * 水饺 / 刀削面 / 铁板水晶粉那些虽然也是 staple，却是各家自己的菜，不能到处送。 */
+    {"id":"t01","name":"米饭","cat":"other","role":"staple","universal":true,"cui":"家常","price":2,"spicy":0,"tags":["主食","碳水"],"alg":[],"desc":"论碗算，续饭另加","hot":99},
+    {"id":"t02","name":"花卷／馒头","cat":"other","role":"staple","universal":true,"cui":"家常","price":3,"spicy":0,"tags":["主食","碳水"],"alg":["麦"],"desc":"配炖菜最合适","hot":88},
     {"id":"t03","name":"保定火烧","cat":"other","role":"staple","cui":"保定","price":5,"spicy":0,"tags":["主食","火烧","保定","碳水"],"alg":["麦"],"desc":"外脆里软，夹菜吃也行","hot":86},
     {"id":"t04","name":"手工水饺","cat":"other","role":"staple","cui":"家常","price":22,"spicy":0,"tags":["主食","猪","麦","热"],"alg":["猪","麦"],"desc":"现包现煮，一盘管饱","hot":84},
     {"id":"t05","name":"刀削面","cat":"other","role":"staple","cui":"西北","price":18,"spicy":1,"tags":["主食","面","汤","暖"],"alg":["麦"],"desc":"刀削面配卤，吃面就点它","hot":83},
@@ -855,6 +858,51 @@ var FANFAN_DB = {
     {"id":"zhxa16","name":"菠萝蒜香鸡","cat":"other","role":"side","cui":"家常","price":36,"spicy":0,"tags":["鸡","菠萝","蒜香","酸甜","清淡","热"],"alg":["鸡","蒜"],"desc":"鸡肉搭配新鲜菠萝，蒜香带果香，酸甜清爽不腻口","hot":64},
     // —— 由「商家数据库」采集写入：方便面荷包蛋
     {"id":"zhxa17","name":"方便面荷包蛋","cat":"noodle","cui":"家常","price":10,"spicy":0,"tags":["面","蛋","主食","快","热"],"alg":["麦","蛋"],"desc":"方便面搭配煎荷包蛋，简单暖心，饱腹小食","hot":60},
+    /* ===== 校内食堂：华北电力大学二校区 第三食堂 · 港式烧卤饭（2026-10-01 采集） =====
+     * place:"campus" = 只在「校内食堂」模式下参与推荐，校外推荐不会端出食堂的菜。
+     * 单加料（¥3~6 的加菜）单独建条目、名字带（单加），不跟库里那道 ¥42/¥48 的
+     * 「蜜汁叉烧」「白切鸡」合并——合并的话预算会按 42 元算，食堂这一顿就配不出来了。 */
+    {"id":"gz01","name":"烧鸭饭","cat":"rice","cui":"粤","price":14,"spicy":0,"place":"campus","tags":["鸭","烧腊","下饭","热"],"alg":["鸭"],"desc":"现斩烧鸭配饭，皮脆肉嫩，送例汤","hot":88},
+    {"id":"gz02","name":"烧鸡饭","cat":"rice","cui":"粤","price":14,"spicy":0,"place":"campus","tags":["鸡","烧腊","下饭","热"],"alg":["鸡"],"desc":"整块烧鸡排，咸香下饭","hot":86},
+    {"id":"gz03","name":"白切鸡饭","cat":"rice","cui":"粤","price":14,"spicy":0,"place":"campus","tags":["鸡","清淡","鲜嫩","下饭"],"alg":["鸡","葱","姜"],"desc":"白切鸡配姜蓉，清爽不腻","hot":82},
+    {"id":"gz04","name":"蜜汁鸡腿饭","cat":"rice","cui":"粤","price":14,"spicy":0,"place":"campus","tags":["鸡","烧腊","甜口","下饭"],"alg":["鸡"],"desc":"蜜汁鸡腿，甜香入味","hot":85},
+    {"id":"gz05","name":"卤肉饭","cat":"rice","cui":"粤","price":15.5,"spicy":0,"place":"campus","tags":["猪","卤味","下饭","软糯"],"alg":["猪"],"desc":"卤肉浇饭，肥瘦相间","hot":80},
+    {"id":"gz06","name":"蜜汁叉烧饭","cat":"rice","cui":"粤","price":15.5,"spicy":0,"place":"campus","tags":["猪","烧腊","甜口","下饭"],"alg":["猪"],"desc":"蜜汁叉烧配饭，甜润带焦边","hot":84},
+    {"id":"gz07","name":"猪脚腊肠饭","cat":"rice","cui":"粤","price":15.5,"spicy":0,"place":"campus","tags":["猪","腊味","下饭","软糯"],"alg":["猪"],"desc":"猪脚软糯配腊肠，顶饱","hot":78},
+    {"id":"gz08","name":"鸡腿粉","cat":"noodle","cui":"粤","price":10,"spicy":0,"place":"campus","tags":["粉","鸡","汤","清淡"],"alg":["鸡"],"desc":"鸡腿配米粉汤，实惠管饱","hot":76},
+    {"id":"gz09","name":"广式腊肠粉","cat":"noodle","cui":"粤","price":10,"spicy":0,"place":"campus","tags":["粉","腊味","汤","咸香"],"alg":["猪"],"desc":"腊肠切片配米粉，广式味","hot":74},
+    {"id":"gz10","name":"牛肉丸粉","cat":"noodle","cui":"粤","price":10,"spicy":0,"place":"campus","tags":["粉","牛","汤","鲜"],"alg":["牛"],"desc":"手打牛肉丸弹牙，汤头鲜甜","hot":72},
+    {"id":"gz11","name":"烧鸭粉","cat":"noodle","cui":"粤","price":12,"spicy":0,"place":"campus","tags":["粉","鸭","汤","烧腊"],"alg":["鸭"],"desc":"烧鸭浇粉，皮香汤鲜","hot":77},
+    {"id":"gz12","name":"叉烧粉","cat":"noodle","cui":"粤","price":13,"spicy":0,"place":"campus","tags":["粉","猪","汤","甜口"],"alg":["猪"],"desc":"叉烧配粉，甜咸交融","hot":75},
+    {"id":"gz13","name":"猪脚粉","cat":"noodle","cui":"粤","price":15,"spicy":0,"place":"campus","tags":["粉","猪","汤","软糯"],"alg":["猪"],"desc":"猪脚炖得软烂，配粉刚好","hot":73},
+    {"id":"gz14","name":"香烧鸭（单加）","cat":"other","role":"side","cui":"粤","price":6,"spicy":0,"place":"campus","tags":["鸭","烧腊","小吃","加料"],"alg":["鸭"],"desc":"单加一份烧鸭，可双拼","hot":81},
+    {"id":"gz15","name":"蜜汁鸡腿（单加）","cat":"other","role":"side","cui":"粤","price":6,"spicy":0,"place":"campus","tags":["鸡","烧腊","甜口","加料"],"alg":["鸡"],"desc":"单加一只蜜汁鸡腿","hot":79},
+    {"id":"gz16","name":"嫩烧鸡（单加）","cat":"other","role":"side","cui":"粤","price":6,"spicy":0,"place":"campus","tags":["鸡","烧腊","鲜嫩","加料"],"alg":["鸡"],"desc":"单加一份嫩烧鸡","hot":77},
+    {"id":"gz17","name":"香卤肉（单加）","cat":"other","role":"side","cui":"粤","price":6,"spicy":0,"place":"campus","tags":["猪","卤味","下饭","加料"],"alg":["猪"],"desc":"单加一份卤肉，肥而不腻","hot":75},
+    {"id":"gz18","name":"蜜汁叉烧（单加）","cat":"other","role":"side","cui":"粤","price":6,"spicy":0,"place":"campus","tags":["猪","烧腊","甜口","加料"],"alg":["猪"],"desc":"单加一份叉烧","hot":76},
+    {"id":"gz19","name":"白切鸡（单加）","cat":"other","role":"side","cui":"粤","price":6,"spicy":0,"place":"campus","tags":["鸡","清淡","鲜嫩","加料"],"alg":["鸡","葱","姜"],"desc":"单加一份白切鸡","hot":74},
+    {"id":"gz20","name":"广式腊肠（单加）","cat":"other","role":"side","cui":"粤","price":3,"spicy":0,"place":"campus","tags":["猪","腊味","加料","咸香"],"alg":["猪"],"desc":"单加一根广式腊肠","hot":68},
+    {"id":"gz21","name":"鲜牛肉丸（单加）","cat":"other","role":"side","cui":"粤","price":5,"spicy":0,"place":"campus","tags":["牛","小吃","鲜","加料"],"alg":["牛"],"desc":"单加一份手打牛肉丸","hot":72},
+    /* —— 校内食堂：华电二校区 第三食堂 · 口水鸡档口（2026-10-01 采集） ——
+     * 这个档口卖的"口水鸡"和库里那道 c08（¥36 的整份川菜）不是一样东西：
+     * 这里是一份 ¥12 的档口份，所以单独建条目（名字带"（档口）"），菜单里用 sameAs 指过来，
+     * 免得预算按 ¥36 算、或者勾了「花生/坚果」的人被漏掉（c08 的 alg 里有花生，档口这份也是红油带花生碎）。 */
+    {"id":"ksj01","name":"口水鸡（档口）","cat":"rice","cats":["rice"],"role":"main","cui":"川","price":12,"spicy":3,"place":"campus","tags":["鸡","辣","凉","重口","下饭","川"],"alg":["鸡","花生"],"desc":"红油口水鸡，档口现拌，麻辣鲜香","hot":90},
+    {"id":"ksj02","name":"素拼什锦","cat":"other","role":"side","cui":"家常","price":10,"spicy":1,"place":"campus","tags":["蔬菜","凉","素","清淡","快"],"alg":[],"desc":"什锦素菜拼盘，清爽解腻","hot":68},
+    {"id":"ksj03","name":"口水鸡双拼金针菇","cat":"rice","cats":["rice"],"role":"main","cui":"川","price":12,"spicy":3,"place":"campus","tags":["鸡","辣","凉","重口","菌菇"],"alg":["鸡","花生","菌菇"],"desc":"口水鸡配金针菇，一份两吃","hot":82},
+    {"id":"ksj04","name":"口水鸡双拼豆皮","cat":"rice","cats":["rice"],"role":"main","cui":"川","price":12,"spicy":3,"place":"campus","tags":["鸡","辣","凉","重口","豆"],"alg":["鸡","花生","豆"],"desc":"口水鸡配豆皮，吸味又顶饱","hot":80},
+    {"id":"ksj05","name":"口水鸡双拼火锅丸子","cat":"rice","cats":["rice"],"role":"main","cui":"川","price":12,"spicy":3,"place":"campus","tags":["鸡","辣","凉","重口","丸子"],"alg":["鸡","花生"],"desc":"口水鸡配火锅丸子","hot":78},
+    {"id":"ksj06","name":"口水鸡双拼鸡肉丸子","cat":"rice","cats":["rice"],"role":"main","cui":"川","price":13,"spicy":3,"place":"campus","tags":["鸡","辣","凉","重口","丸子"],"alg":["鸡","花生"],"desc":"口水鸡配鸡肉丸子，全是鸡","hot":79},
+    {"id":"ksj07","name":"口水鸡双拼锅包肉","cat":"rice","cats":["rice"],"role":"main","cui":"川","price":13,"spicy":3,"place":"campus","tags":["鸡","猪","辣","凉","重口"],"alg":["鸡","花生","猪"],"desc":"口水鸡配锅包肉，酸甜压辣","hot":81},
+    {"id":"ksj08","name":"口水鸡双拼鸡柳","cat":"rice","cats":["rice"],"role":"main","cui":"川","price":14,"spicy":3,"place":"campus","tags":["鸡","辣","凉","重口","炸"],"alg":["鸡","花生"],"desc":"口水鸡配炸鸡柳","hot":80},
+    {"id":"ksj09","name":"口水鸡双拼里脊肉","cat":"rice","cats":["rice"],"role":"main","cui":"川","price":14,"spicy":3,"place":"campus","tags":["鸡","猪","辣","凉","重口"],"alg":["鸡","花生","猪"],"desc":"口水鸡配里脊肉，肉量管够","hot":79},
+    {"id":"ksj10","name":"单加金针菇","cat":"other","role":"side","cui":"川","price":1.5,"spicy":0,"place":"campus","tags":["菌菇","加料","凉"],"alg":["菌菇"],"desc":"单加一份金针菇","hot":70},
+    {"id":"ksj11","name":"单加豆皮","cat":"other","role":"side","cui":"川","price":1.5,"spicy":0,"place":"campus","tags":["豆","加料","凉"],"alg":["豆"],"desc":"单加一份豆皮","hot":70},
+    {"id":"ksj12","name":"单加火锅丸子","cat":"other","role":"side","cui":"川","price":1.5,"spicy":0,"place":"campus","tags":["丸子","加料","凉"],"alg":[],"desc":"单加一份火锅丸子","hot":68},
+    {"id":"ksj13","name":"单加锅包肉","cat":"other","role":"side","cui":"川","price":3,"spicy":0,"place":"campus","tags":["猪","炸","酸甜","加料"],"alg":["猪"],"desc":"单加一份锅包肉","hot":72},
+    {"id":"ksj14","name":"单加里脊肉","cat":"other","role":"side","cui":"川","price":3,"spicy":0,"place":"campus","tags":["猪","加料","嫩"],"alg":["猪"],"desc":"单加一份里脊肉","hot":71},
+    {"id":"ksj15","name":"单加鸡柳","cat":"other","role":"side","cui":"川","price":3,"spicy":0,"place":"campus","tags":["鸡","炸","加料"],"alg":["鸡"],"desc":"单加一份炸鸡柳","hot":73},
+    {"id":"ksj16","name":"单加鸡肉丸子","cat":"other","role":"side","cui":"川","price":3,"spicy":0,"place":"campus","tags":["鸡","丸子","加料"],"alg":["鸡"],"desc":"单加一份鸡肉丸子","hot":70},
   ],
   "cities": {
     "baoding": {
