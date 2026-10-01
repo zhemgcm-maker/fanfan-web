@@ -2945,6 +2945,15 @@ function scoreRestaurant(restaurant, dish, ctx){
  * 于是界面上说"这家店能做你想吃的"，点进去配桌却判"做不了"，最后端出一桌不相关的菜。 */
 function refWholeKeys(ref){ return (ref && (ref.wholeKeys || (ref.cuisineRefWhole ? ref.cuisineRefKeys : null))) || []; }
 function shopTextOf(shop){ return String((shop && shop.name) || '') + ' ' + ((shop && shop.tags) || []).join(' ') + ' ' + ((shop && shop.type) || ''); }
+/* 这家店是不是"被 cuisineRefKeys 关键词命中的同类店"（烤鱼店、肉蟹煲店这类）？
+ * 是的话返回它整份借来的那份菜单，否则 null。 */
+function borrowedMenuFor(shop){
+  const ref = cuisineRefFor(shop);
+  const keys = refWholeKeys(ref);
+  if(!ref || !keys.length) return null;
+  if(!keys.some(k => k && shopTextOf(shop).indexOf(k) !== -1)) return null;
+  return dbMenuDishes(ref).length ? ref : null;
+}
 function refServes(shop, dish){
   const ref = cuisineRefFor(shop);
   if(!ref) return false;
@@ -2980,6 +2989,11 @@ function restaurantServes(restaurant, dish){
   if(db) return menuHasDish(db, dish);
   // 主食（米饭/馒头/火烧）和饮品几乎所有店都能提供——组一桌菜时必须能配上
   if(dish.role === 'staple' || dish.role === 'drink') return true;
+  /* 整份借来菜单的同类店（烤鱼店借烤鱼菜单）：这份菜单就是它的全部，
+   * 跟"自己有采集菜单"的店一个口径。不然"标签交集"那条老口径会把
+   * 别的菜系的菜也推断进来——实测烤鱼店的可选清单里混进了保定家常菜。 */
+  const borrowed = borrowedMenuFor(restaurant);
+  if(borrowed) return menuHasDish(borrowed, dish);
   /* 同城同菜系的采集菜单可以当参考：它只在"这家店没采集过"时出现，而且只做加法——
    * 能多认一道菜，绝不会因为"菜单里没有"就否决（那不是这家店的菜单）。
    * 另外只认同菜系的菜：川菜馆借了女掌柜的菜单，也不能因此"会做湘菜"——
@@ -3001,9 +3015,8 @@ function shopMenuSource(restaurant){
   /* 自己没采过菜单、但被 cuisineRefKeys 认成"同类店"（烤鱼、肉蟹煲这类）：
    * 整份借参照菜单当它的菜单。以前这里只认"自己的菜单"，配桌时会退回"全库按菜系推断"，
    * 于是烤鱼店里给你配出保定家常菜——界面上写着能做你想吃的，配出来却是另一桌。 */
-  const ref = cuisineRefFor(restaurant);
-  const keys = refWholeKeys(ref);
-  if(ref && keys.length && keys.some(k => k && shopTextOf(restaurant).indexOf(k) !== -1)){
+  const ref = borrowedMenuFor(restaurant);
+  if(ref){
     const rd = dbMenuDishes(ref);
     if(rd.length) return { dishes: rd, db: ref, borrowed: true };
   }
@@ -3022,6 +3035,19 @@ function shopCanMake(shop, dish){
   if(restaurantServes(shop, dish)) return true;
   if(dishExclusiveToRefs(dish)) return false;          // 招牌菜不跟着菜系走
   return (shop.cui || []).includes(dish.cui);
+}
+
+/* 一道菜"在这家店、这一顿里"到底能不能上桌——和配桌用的三道闸完全一致：
+ *   ① 这家店能做（菜单 / 品牌参照 / 同类店参照）
+ *   ② 过辣度与忌口（hardFilter，含 24 小时内点过「不喜欢」的）
+ *   ③ 价格进得了这一桌（和 buildCombo 里锚定菜那条规则一样，按整桌额度算）
+ * 卡片上的「能做：…」必须用它来算。以前那里只判①，
+ * 于是卡片写「能做麻辣烤鱼」、点进去却被辣度或预算筛掉换成了别的菜。 */
+function dishUsableAt(shop, dish){
+  if(!shop || !dish) return false;
+  if(!restaurantServes(shop, dish)) return false;
+  if(!hardFilter(dish).ok) return false;
+  return dish.price <= tableCap();
 }
 
 /* ------------------------------ 6. 智能体主流程 ------------------------------ */
@@ -3308,10 +3334,21 @@ function buildCombo(restaurant, anchorDish){
     return true;
   }
 
-  // ① 锚定菜（用户当下最想吃的那道）优先，且价格不能一上来就超预算
-  if(anchorDish && restaurantServes(restaurant, anchorDish) && hardFilter(anchorDish).ok && anchorDish.price <= cap){
-    const s = scoreDish(anchorDish, { ignoreBudget:true });
-    tryAdd({ dish:anchorDish, role:anchorDish.role || 'single', score:s.total, reasons:s.reasons, anchor:true });
+  // ① 锚定菜（用户当下最想吃的那道）优先，且价格不能一上来就超预算。
+  //    被拒的话要**留下原因**（写进结果卡），不能静默换成别的菜——
+  //    实测用户会以为"我要的麻辣烤鱼怎么变成蒜香烤鱼了"。
+  let anchorSkip = '';
+  if(anchorDish){
+    const f = hardFilter(anchorDish);
+    if(!restaurantServes(restaurant, anchorDish)) anchorSkip = '这家店做不了「' + anchorDish.name + '」';
+    else if(!f.ok) anchorSkip = '「' + anchorDish.name + '」被排除了（' + f.why + '）';
+    else if(anchorDish.price > cap) anchorSkip = '「' + anchorDish.name + '」¥' + anchorDish.price + ' 超出这一桌的额度 ¥' + cap;
+    else {
+      const s = scoreDish(anchorDish, { ignoreBudget:true });
+      if(!tryAdd({ dish:anchorDish, role:anchorDish.role || 'single', score:s.total, reasons:s.reasons, anchor:true })){
+        anchorSkip = '「' + anchorDish.name + '」和这一桌已有的菜撞主料了';
+      }
+    }
   }
 
   // ② 按结构补齐主位：在预算内挑分最高的一道（类别优先由 byRole 统一负责）
@@ -3387,6 +3424,7 @@ function buildCombo(restaurant, anchorDish){
     score: +comboScore.toFixed(1),
     budgetScore: +budgetScore.toFixed(1),
     balance,
+    anchorSkip,
     reasons: [budgetReason].concat(balanceReasons)
   };
 }
@@ -3434,18 +3472,26 @@ function pickAnchors(rec, preferShop){
     const sweet = (rec.extras || []).filter(s => hitCount(s) > 0);
     if(sweet.length) anchors = sweet.slice(0, 3);
   }
-  // 用户手动指定了一家店：把锚定菜换掉——用"这家店能做的候选菜"当主角，
-  // 这样"点一家店"就真的能出结果，而不是因为原来的主菜这家店做不了而失败
+  /* 用户手动指定了一家店：**不换锚定菜**。
+   * 以前这里会把锚定菜整个换成"这家店能做的最高分菜"，于是出现
+   * "卡片上写着能做麻辣烤鱼、点进去端来蒜香烤鱼"这种事——卡片说什么，点进去就该是什么。
+   * 现在只在"你想吃的那些"里保留这家店真能进这一桌的（dishUsableAt：能力 + 辣度忌口 + 预算）。 */
   if(preferShop){
+    const wanted = anchors.filter(a => dishUsableAt(preferShop, a.dish));
+    if(wanted.length) anchors = wanted;
+    else {
+    /* 一道你想吃的都做不了/进不了：才退回"这家店能做的候选菜"，让"点这家店"至少有个结果。
+     * 上层（useShop/useDish）会如实告诉用户"这一桌不是你想吃的那道"。 */
     const pool = CANDIDATE_DISHES.concat(anchors.map(a => a.dish));
     const seen = new Set();
     const fit = pool
       .filter(d => d && !seen.has(d.id) && seen.add(d.id))
-      .filter(d => shopCanMake(preferShop, d))
+      .filter(d => dishUsableAt(preferShop, d))
       .map(d => { const sc = scoreDish(d, { ignoreBudget:true }); return { dish:d, total:sc.total, parts:sc.parts, reasons:sc.reasons }; })
       .sort((a, b) => b.total - a.total)
       .slice(0, 6);
-    if(fit.length) anchors = fit;
+    anchors = fit;
+    }
   }
   return anchors;
 }
@@ -4826,16 +4872,20 @@ function renderResult(combo, meal, extra, online){
     ? dishShopOptions(state.lastRec, online, 6).filter(o => !combo.anchorDish || o.dish.id !== combo.anchorDish.id).slice(0, 5)
     : [];
   const shopChoices = (online && online.shops ? online.shops : [])
-    /* 判定必须和配桌用同一个（restaurantServes），并且把"到底能做哪几道"写出来：
-     * 以前这里算的是数量、用的是更宽松的 shopCanMake，于是"能做 5 道你想吃的"被读成
-     * "能做我想吃的烤鱼"，点进去才发现配的是别的菜（烤鱼店配出一桌保定家常菜）。 */
+    /* 判定必须和"配桌"完全一致（dishUsableAt：这家店能做 + 过辣度忌口 + 进得了这一桌的预算），
+     * 并且把"到底能做哪几道"写出来、点哪一道就用哪一道：
+     * 以前只判"能力"，卡片写着能做麻辣烤鱼、点进去却被辣度或预算筛掉换成了别的菜。 */
     .map(sp => {
-      const canDishes = CANDIDATE_DISHES.filter(cd => restaurantServes(sp, cd));
+      const canDishes = CANDIDATE_DISHES.filter(cd => dishUsableAt(sp, cd));
+      // 优先给"你今天想吃的那几道"排前面，店卡上带的也是这第一道
+      const hitOf = d => (craveHits(d).hitTags.length + craveHits(d).textHits.length) > 0 ? 1 : 0;
+      const ordered = canDishes.slice().sort((a, b) => hitOf(b) - hitOf(a));
       return {
         shop: sp,
-        can: canDishes.length,
-        names: canDishes.slice(0, 2).map(d => d.name),
-        hasAnchor: !!(combo.anchorDish && restaurantServes(sp, combo.anchorDish))
+        can: ordered.length,
+        names: ordered.slice(0, 2).map(d => d.name),
+        useDishId: ordered.length ? ordered[0].id : '',
+        hasAnchor: !!(combo.anchorDish && ordered.some(d => d.id === combo.anchorDish.id))
       };
     })
     .filter(x => x.can > 0 && x.shop.id !== r.id)
@@ -4870,6 +4920,12 @@ function renderResult(combo, meal, extra, online){
             '」类里没有找到，这几道是从其它类别补进来的：' + state.lastCrossCat.slice(0,4).join('、') + '。</p>'
           : '') +
         '<div class="combo-list">' + combo.items.map(comboItemRow).join('') + '</div>' +
+        /* 锚定菜被换掉时如实说明（辣度 / 忌口 / 预算 / 这家店不会做）——
+         * 以前什么都不说，用户只会觉得"我要的菜怎么没了"。 */
+        (combo.anchorSkip
+          ? '<p class="note" style="margin:8px 0 0;color:#b0461f">⚠️ ' + esc(combo.anchorSkip) +
+            '，这一桌改配了这家店能做的菜</p>'
+          : '') +
         '<div class="combo-total"><span>合计 <b>¥' + combo.total + '</b>' + (combo.items.length > 1 ? '（' + combo.items.length + ' 道）' : '') + '</span>' +
           '<span>' + (state.mode === 'delivery' ? '外卖' : '到店') + ' 人均 ¥' + combo.perPerson + '</span></div>' +
         '<div class="kv" style="margin-top:10px"><span class="k">推荐店铺</span><span class="v"><b>' + r.name + '</b>' +
@@ -4919,13 +4975,13 @@ function renderResult(combo, meal, extra, online){
       : '') +
     (shopChoices.length
       ? '<div class="alt-list"><div class="mini-title" style="color:#8b7a6c">附近这些店也能做你想吃的（点一下换这家）</div>' +
-        shopChoices.map(x => '<div class="shop-card" data-shop="' + esc(x.shop.id) + '">' +
+        shopChoices.map(x => '<div class="shop-card" data-shop="' + esc(x.shop.id) + '" data-dish="' + esc(x.useDishId) + '">' +
           '<span class="a-emoji">🏠</span><span class="a-main">' +
             '<span class="a-name">' + esc(x.shop.name) + (x.shop.area ? '（' + esc(x.shop.area) + '）' : '') + '</span>' +
             '<span class="a-sub">' + x.shop.km + 'km ｜ 评分 ' + (x.shop.rating || '暂无') + ' ｜ 人均 ¥' + x.shop.avg +
               ' ｜ 能做：' + esc(x.names.join('、')) + (x.can > x.names.length ? ' 等 ' + x.can + ' 道' : '') + '</span>' +
           '</span><span class="r-arrow">›</span></div>').join('') +
-        '<p class="note" style="margin:6px 0 0">换店之后会按这家店重新配一桌菜（同一家店一次点齐）</p></div>'
+        '<p class="note" style="margin:6px 0 0">点哪一条就是「那一行写的菜 @ 这家店」——同一家店一次点齐</p></div>'
       : '') + restartHTML();
 
   box.classList.add('show');
@@ -4940,9 +4996,9 @@ function renderResult(combo, meal, extra, online){
     card.addEventListener('click', () => useDish(card.getAttribute('data-dish')));
   });
 
-  // 点"这些店也能做你想吃的" → 就地把主推荐换成那家店
+  // 点"这些店也能做你想吃的" → 就用那一行写的菜 + 那家店（不换主角）
   box.querySelectorAll('.shop-card').forEach(card => {
-    card.addEventListener('click', () => useShop(card.getAttribute('data-shop')));
+    card.addEventListener('click', () => useDish(card.getAttribute('data-dish'), card.getAttribute('data-shop')));
   });
 
   // 记下这一单，供大模型点评用
@@ -5086,13 +5142,20 @@ function dislikeDish(dish, restaurant){
   setTimeout(()=>run(), 420);
 }
 
-/* 用户点了"这一档里的另一道菜" → 用这道菜和它的店重新配一桌 */
-function useDish(dishId){
+/* 用户点了"这一档里的另一道菜" → 用这道菜和它的店重新配一桌。
+ * 第二个参数可选：指定店。店卡上写着「能做：麻辣烤鱼」时，点进去必须还是
+ * 麻辣烤鱼 @ 那家店——卡片呈现什么，点进去就是什么。 */
+function useDish(dishId, shopId){
   const rec = state.lastRec, online = state.lastOnline;
   if(!rec || !online){ toast('先点一次「开始推荐」，再换菜'); return; }
   const st = (rec.scored || []).concat(rec.mains || []).find(x => x.dish.id === dishId);
   if(!st){ toast('这道菜已经不在候选里了，重新推荐一次吧'); return; }
-  const shop = shopsForDish(st.dish, online)[0];
+  const list = shopsForDish(st.dish, online);
+  if(shopId && !list.some(x => x.restaurant.id === shopId)){
+    toast('这家店做不了「' + st.dish.name + '」（或者它被你的辣度／忌口／预算排除了）');
+    return;
+  }
+  const shop = (shopId && list.find(x => x.restaurant.id === shopId)) || list[0];
   if(!shop){ toast('这道菜附近暂时没搜到能做的店'); return; }
   const combo = buildCombo(shop.restaurant, st.dish);
   if(!combo.items.length){ toast('这家店配不出这一桌，换一条试试'); return; }
