@@ -83,9 +83,14 @@ ok(D.shopCanMake(fake, chuanDish) === false, '沙县小吃做不了川菜主推�
 console.log('\n=== 五、采集过菜单的店：一桌菜只能从菜单里配 ===');
 const combo = D.buildCombo(fake, onMenu);
 const names = combo.items.map(i => i.dish.name);
-const allFromMenu = combo.items.every(i => D.menuHasDish(dbShop, i.dish));
+/* 口径（2026-10-01 细化）：菜单是封闭集合，**唯一例外是主食和饮品**——
+ * 程序本来就把它们当成"几乎所有店都能提供"（见 restaurantServes 开头那条），
+ * 而采集来的菜单里常常没写米饭/饮料；不补这一份，有菜单的店就永远配不出主食
+ * （实测烤鱼店的一桌只能是"一条鱼 + 一个配菜"）。 */
+const isStapleOrDrink = i => (i.dish.role === 'staple' || i.dish.role === 'drink');
+const allFromMenu = combo.items.every(i => D.menuHasDish(dbShop, i.dish) || isStapleOrDrink(i));
 ok(combo.items.length > 0, '配出了一桌：' + names.join(' ＋ '));
-ok(allFromMenu, '这一桌的每道菜都在真实菜单里（不会凭空补菜）');
+ok(allFromMenu, '这一桌的每道菜都在真实菜单里（主食/饮品除外，它们本来就通用）');
 
 console.log('\n=== 六、店只来自高德：数据库里的店没搜到就不会出现 ===');
 D.state.cat = 'noodle'; D.state.craveTags = ['汤面']; D.state.craveText = '';

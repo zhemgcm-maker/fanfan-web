@@ -1922,10 +1922,7 @@
       "scope": "branch",
       "amapId": "B0MUH1QNEC",
       "branchName": "熊麻婆现炒浇头面.饭(保定市永华北大街店)",
-      "cuisineRef": [
-        "家常",
-        "保定"
-      ],
+      "cuisineRef": [],
       "cuisineRefKeys": [
         "盖饭",
         "盖浇饭",
@@ -1936,7 +1933,7 @@
         "拌面",
         "快餐"
       ],
-      "cuisineRefWhole": false,
+      "cuisineRefWhole": true,
       "cuisineRefExclude": [],
       "confidence": "confirmed",
       "source": "菜单整理录入（用户提供）",
