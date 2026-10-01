@@ -1,0 +1,24 @@
+{
+  "id": "local-状元热卤拌饭",
+  "name": "状元热卤拌饭",
+  "city": "保定",
+  "scope": "local",
+  "amapId": "",
+  "cuisineRef": ["粤"],
+  "cuisineRefKeys": ["状元热卤拌饭", "港式", "热卤", "拌饭", "梅菜烧肉", "卤肉饭"],
+  "menu": [
+    { "name": "港式酥肉饭", "price": 12, "cat": "主营" },
+    { "name": "港式腊肠饭", "price": 12, "cat": "主营" },
+    { "name": "红酒黑鸭煲饭", "price": 13, "cat": "主营" },
+    { "name": "红酒麻辣鸭腿饭", "price": 13, "cat": "主营" },
+    { "name": "咖喱鸡肉饭", "price": 13, "cat": "主营" },
+    { "name": "港式鸡块", "price": 13, "cat": "主营" },
+    { "name": "港式半只鸡", "price": 14, "cat": "主营" },
+    { "name": "港式把子肉", "price": 14, "cat": "主营" },
+    { "name": "梅菜烧肉饭", "price": 14, "cat": "主营" },
+    { "name": "黑金卤肉饭", "price": 14, "cat": "主营" },
+    { "name": "番茄牛肉饭", "price": 15, "cat": "主营" }
+  ],
+  "source": "菜单整理录入（用户提供）",
+  "collectedAt": "2026-10-01"
+}

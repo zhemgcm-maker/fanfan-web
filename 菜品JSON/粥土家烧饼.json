@@ -1,0 +1,18 @@
+[
+  { "id": "zts01", "name": "古法八宝粥", "cat": "other", "cui": "家常", "price": 5, "spicy": 0, "tags": ["粥", "甜", "早餐", "暖身"], "alg": [], "desc": "古法八宝粥，香甜软糯", "hot": 80 },
+  { "id": "zts02", "name": "椰奶", "cat": "other", "cui": "家常", "price": 3, "spicy": 0, "tags": ["椰奶", "甜", "饮品", "清淡"], "alg": ["乳"], "desc": "椰奶饮品，香甜可口", "hot": 65 },
+  { "id": "zts03", "name": "小米南瓜粥", "cat": "other", "cui": "家常", "price": 3, "spicy": 0, "tags": ["粥", "清淡", "早餐", "养胃"], "alg": [], "desc": "小米南瓜粥，清淡养胃", "hot": 78 },
+  { "id": "zts04", "name": "皮蛋瘦肉粥", "cat": "other", "cui": "家常", "price": 3, "spicy": 0, "tags": ["粥", "皮蛋", "猪", "早餐"], "alg": ["蛋", "猪"], "desc": "皮蛋瘦肉粥，经典咸粥", "hot": 80 },
+  { "id": "zts05", "name": "绿豆豆沙粥", "cat": "other", "cui": "家常", "price": 3, "spicy": 0, "tags": ["粥", "绿豆", "甜", "解暑"], "alg": [], "desc": "绿豆豆沙粥，解暑甜粥", "hot": 70 },
+  { "id": "zts06", "name": "稻香黑米粥", "cat": "other", "cui": "家常", "price": 3, "spicy": 0, "tags": ["粥", "黑米", "甜", "养生"], "alg": [], "desc": "稻香黑米粥，香甜养生", "hot": 72 },
+  { "id": "zts07", "name": "牛奶燕麦粥", "cat": "other", "cui": "家常", "price": 3, "spicy": 0, "tags": ["粥", "牛奶", "燕麦", "早餐"], "alg": ["乳", "麦"], "desc": "牛奶燕麦粥，营养早餐", "hot": 73 },
+  { "id": "zts08", "name": "茉莉冰豆浆", "cat": "other", "cui": "家常", "price": 4, "spicy": 0, "tags": ["豆浆", "茉莉", "凉", "饮品"], "alg": ["豆"], "desc": "茉莉冰豆浆，清香解暑", "hot": 70 },
+  { "id": "zts09", "name": "哈密西米露", "cat": "other", "cui": "家常", "price": 4, "spicy": 0, "tags": ["哈密瓜", "西米", "甜", "凉"], "alg": [], "desc": "哈密西米露，清甜爽口", "hot": 68 },
+  { "id": "zts10", "name": "雪梨银耳粥", "cat": "other", "cui": "家常", "price": 4, "spicy": 0, "tags": ["雪梨", "银耳", "润", "养生"], "alg": [], "desc": "雪梨银耳粥，润肺养颜", "hot": 72 },
+  { "id": "zts11", "name": "土家烧饼", "cat": "other", "cui": "家常", "price": 4, "spicy": 0, "tags": ["烧饼", "烤", "咸香", "招牌"], "alg": ["麦"], "desc": "土家烧饼，外酥里软", "hot": 85 },
+  { "id": "zts12", "name": "烤肠", "cat": "other", "cui": "家常", "price": 2, "spicy": 0, "tags": ["猪", "烤", "小吃", "快"], "alg": ["猪"], "desc": "烤肠，香脆可口", "hot": 70 },
+  { "id": "zts13", "name": "鸡柳", "cat": "other", "cui": "家常", "price": 2, "spicy": 0, "tags": ["鸡", "炸", "小吃", "快"], "alg": ["鸡", "麦"], "desc": "鸡柳，外酥里嫩", "hot": 72 },
+  { "id": "zts14", "name": "鸡排", "cat": "other", "cui": "家常", "price": 3, "spicy": 0, "tags": ["鸡", "炸", "小吃", "香"], "alg": ["鸡", "麦"], "desc": "鸡排，外酥里嫩", "hot": 75 },
+  { "id": "zts15", "name": "冰镇绿豆沙", "cat": "other", "cui": "家常", "price": 3, "spicy": 0, "tags": ["绿豆", "凉", "解暑", "甜"], "alg": [], "desc": "冰镇绿豆沙，解暑神器", "hot": 73 },
+  { "id": "zts16", "name": "冰镇红豆沙", "cat": "other", "cui": "家常", "price": 3, "spicy": 0, "tags": ["红豆", "凉", "甜", "解暑"], "alg": [], "desc": "冰镇红豆沙，香甜解暑", "hot": 71 }
+]

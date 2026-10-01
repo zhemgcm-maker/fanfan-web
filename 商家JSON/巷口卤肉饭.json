@@ -1,0 +1,27 @@
+{
+  "id": "local-巷口卤肉饭",
+  "name": "巷口卤肉饭",
+  "city": "保定",
+  "scope": "local",
+  "amapId": "",
+  "cuisineRef": ["家常"],
+  "cuisineRefKeys": ["卤肉饭", "巷口", "酱鸭饭", "猪肘饭", "卤味"],
+  "menu": [
+    { "name": "焦香鸭腿饭", "price": 12, "cat": "主营" },
+    { "name": "香酥鸡块饭", "price": 12, "cat": "主营" },
+    { "name": "黑金酱鸭饭", "price": 13, "cat": "主营" },
+    { "name": "招牌卤肉饭", "price": 14, "cat": "主营" },
+    { "name": "鲜椒鸡肉饭", "price": 12, "cat": "主营" },
+    { "name": "黑金鸡肉饭", "price": 13, "cat": "主营" },
+    { "name": "小鸡蘑菇饭", "price": 13, "cat": "主营" },
+    { "name": "酱香猪肘饭", "price": 15, "cat": "主营" },
+    { "name": "尖椒", "price": 2, "cat": "卤味" },
+    { "name": "肠", "price": 2, "cat": "卤味" },
+    { "name": "兰花干", "price": 2, "cat": "卤味" },
+    { "name": "双椒煎蛋", "price": 2, "cat": "卤味" },
+    { "name": "虎皮鸡爪", "price": 2.5, "cat": "卤味" },
+    { "name": "黄瓜条", "price": 0.5, "cat": "卤味" }
+  ],
+  "source": "菜单整理录入（用户提供）",
+  "collectedAt": "2026-10-01"
+}
