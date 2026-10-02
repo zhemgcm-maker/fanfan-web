@@ -1196,7 +1196,7 @@
   <div class="me-head" style="margin-bottom:10px">
     <div class="me-avatar">🧭</div>
     <div style="flex:1;min-width:0">
-      <div class="mh-name">发现商家</div>
+      <div class="mh-name">发现美食</div>
       <div class="mh-sub" id="findSub">—</div>
     </div>
   </div>
@@ -1212,7 +1212,7 @@
       <span class="t-icon ff-tab" id="aiFaceTab"></span><span>饭饭AI</span>
     </button>
     <button type="button" id="tabFind" role="tab" aria-selected="false">
-      <span class="t-icon">🧭</span><span>发现</span>
+      <span class="t-icon">🧭</span><span>发现美食</span>
     </button>
     <button type="button" id="tabMe" role="tab" aria-selected="false">
     <span class="t-icon">👤</span><span>我的</span><span class="t-dot" id="meDot"></span>
@@ -3468,7 +3468,7 @@ function renderPlaceUI(){
       ? '已收录 <b>' + list.length + '</b> 个档口（' +
         groups.map(g => esc(g.key) + ' ' + g.names.length + ' 个').join('、') +
         '）。<br>菜品和价格来自实地采集，不用定位、不用联网就能配。' +
-        '<br><button class="btn ghost small" id="goFind" type="button" style="margin-top:8px">🧭 去「发现」看每个档口的完整菜单</button>'
+        '<br><button class="btn ghost small" id="goFind" type="button" style="margin-top:8px">🧭 去「发现美食」看每个档口的完整菜单</button>'
       : (!s0
           ? '⚠️ 还没选学校。去「我的 › 我的习惯 › 学校」选一所，才会给这所学校的食堂档口。'
           : '⚠️ <b>' + esc(s0.name) + '</b> 还没有录入食堂档口（库里现在有 ' + campusStallsAll().length +
