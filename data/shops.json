@@ -652,6 +652,525 @@
       "uncertain": []
     },
     {
+      "id": "local-不知名牛肉粉",
+      "name": "不知名牛肉粉",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "不知名牛肉粉",
+      "cuisine": "家常",
+      "avg": 14,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "养生菌汤拌粉",
+          "price": 10,
+          "cat": "拌粉系列",
+          "dishId": "cp1078",
+          "kbName": "养生菌汤拌粉"
+        },
+        {
+          "name": "香辣牛杂拌粉",
+          "price": 13,
+          "cat": "拌粉系列",
+          "dishId": "cp1079",
+          "kbName": "香辣牛杂拌粉"
+        },
+        {
+          "name": "香辣牛丸拌粉",
+          "price": 13,
+          "cat": "拌粉系列",
+          "dishId": "cp1080",
+          "kbName": "香辣牛丸拌粉"
+        },
+        {
+          "name": "香辣牛肉拌粉",
+          "price": 15,
+          "cat": "拌粉系列",
+          "dishId": "cp1081",
+          "kbName": "香辣牛肉拌粉"
+        },
+        {
+          "name": "番茄牛肉拌粉",
+          "price": 15,
+          "cat": "拌粉系列",
+          "dishId": "cp1082",
+          "kbName": "番茄牛肉拌粉"
+        },
+        {
+          "name": "养生菌汤牛肉拌粉",
+          "price": 15,
+          "cat": "拌粉系列",
+          "dishId": "cp1083",
+          "kbName": "养生菌汤牛肉拌粉"
+        },
+        {
+          "name": "老坛酸菜牛肉拌粉",
+          "price": 15,
+          "cat": "拌粉系列",
+          "dishId": "cp1084",
+          "kbName": "老坛酸菜牛肉拌粉"
+        },
+        {
+          "name": "咸蛋黄拌面",
+          "price": 9.8,
+          "cat": "拌面系列",
+          "dishId": "cp0412",
+          "kbName": "咸蛋黄拌面（档口）"
+        },
+        {
+          "name": "酸辣柠檬拌面",
+          "price": 9.8,
+          "cat": "拌面系列",
+          "dishId": "cp0785",
+          "kbName": "酸辣柠檬拌面"
+        },
+        {
+          "name": "正宗朝鲜冷面",
+          "price": 10,
+          "cat": "拌面系列",
+          "dishId": "cp1085",
+          "kbName": "正宗朝鲜冷面"
+        },
+        {
+          "name": "酸辣柠檬时花拌面",
+          "price": 14.8,
+          "cat": "拌面系列",
+          "dishId": "cp1086",
+          "kbName": "酸辣柠檬时花拌面"
+        },
+        {
+          "name": "咸蛋黄牛肉拌面",
+          "price": 14.8,
+          "cat": "拌面系列",
+          "dishId": "cp1087",
+          "kbName": "咸蛋黄牛肉拌面"
+        },
+        {
+          "name": "酸辣柠檬牛肉拌面",
+          "price": 14.8,
+          "cat": "拌面系列",
+          "dishId": "cp1088",
+          "kbName": "酸辣柠檬牛肉拌面"
+        },
+        {
+          "name": "韭菜鸡蛋水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp1089",
+          "kbName": "韭菜鸡蛋水饺（档口）"
+        },
+        {
+          "name": "猪肉大葱水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp0244",
+          "kbName": "猪肉大葱水饺"
+        },
+        {
+          "name": "牛肉大葱水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp0243",
+          "kbName": "牛肉大葱水饺"
+        },
+        {
+          "name": "鲜肉虾仁水饺",
+          "price": 19.8,
+          "cat": "水饺系列",
+          "dishId": "cp1090",
+          "kbName": "鲜肉虾仁水饺"
+        },
+        {
+          "name": "猪肉芹菜水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp1091",
+          "kbName": "猪肉芹菜水饺"
+        },
+        {
+          "name": "猪肉香菇水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp1092",
+          "kbName": "猪肉香菇水饺"
+        },
+        {
+          "name": "猪肉酸菜水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp0444",
+          "kbName": "猪肉酸菜水饺"
+        },
+        {
+          "name": "香辣鱿鱼水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp1093",
+          "kbName": "香辣鱿鱼水饺"
+        },
+        {
+          "name": "羊肉大葱水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp1094",
+          "kbName": "羊肉大葱水饺"
+        },
+        {
+          "name": "猪肉玉米水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp1095",
+          "kbName": "猪肉玉米水饺"
+        },
+        {
+          "name": "鲅鱼水饺",
+          "price": 19.8,
+          "cat": "水饺系列",
+          "dishId": "cp1096",
+          "kbName": "鲅鱼水饺"
+        },
+        {
+          "name": "肉三鲜水饺",
+          "price": 13.8,
+          "cat": "水饺系列",
+          "dishId": "cp1097",
+          "kbName": "肉三鲜水饺"
+        },
+        {
+          "name": "雪碧牛肉凉面",
+          "price": 12,
+          "cat": "新品凉面",
+          "dishId": "cp1098",
+          "kbName": "雪碧牛肉凉面"
+        },
+        {
+          "name": "雪碧凉面",
+          "price": 9,
+          "cat": "新品凉面",
+          "dishId": "cp1099",
+          "kbName": "雪碧凉面"
+        },
+        {
+          "name": "时蔬青菜",
+          "price": 1,
+          "cat": "加料系列",
+          "dishId": "cp1371",
+          "kbName": "时蔬青菜"
+        },
+        {
+          "name": "加煎鸡蛋",
+          "price": 1.5,
+          "cat": "加料系列",
+          "dishId": "cp1372",
+          "kbName": "加煎鸡蛋"
+        },
+        {
+          "name": "加牛丸",
+          "price": 1.5,
+          "cat": "加料系列",
+          "dishId": "cp1373",
+          "kbName": "加牛丸"
+        },
+        {
+          "name": "卤蛋",
+          "price": 1.5,
+          "cat": "加料系列",
+          "dishId": "cp0966",
+          "kbName": "卤蛋（档口）"
+        },
+        {
+          "name": "包心鱼丸",
+          "price": 2,
+          "cat": "加料系列",
+          "dishId": "cp1374",
+          "kbName": "包心鱼丸"
+        },
+        {
+          "name": "加米粉",
+          "price": 2,
+          "cat": "加料系列",
+          "dishId": "cp1375",
+          "kbName": "加米粉"
+        },
+        {
+          "name": "狮子头",
+          "price": 2,
+          "cat": "加料系列",
+          "dishId": "cp1376",
+          "kbName": "狮子头（档口）"
+        },
+        {
+          "name": "鱼饼(2个)",
+          "price": 3,
+          "cat": "加料系列",
+          "dishId": "cp1377",
+          "kbName": "鱼饼(2个)"
+        },
+        {
+          "name": "大肉肠",
+          "price": 3,
+          "cat": "加料系列",
+          "dishId": "cp1033",
+          "kbName": "大肉肠"
+        },
+        {
+          "name": "加牛杂",
+          "price": 3,
+          "cat": "加料系列",
+          "dishId": "cp1378",
+          "kbName": "加牛杂"
+        },
+        {
+          "name": "酱肘花",
+          "price": 5,
+          "cat": "加料系列",
+          "dishId": "cp1379",
+          "kbName": "酱肘花"
+        },
+        {
+          "name": "加酱牛肉",
+          "price": 5,
+          "cat": "加料系列",
+          "dishId": "cp1380",
+          "kbName": "加酱牛肉"
+        }
+      ],
+      "uncertain": []
+    },
+    {
+      "id": "local-东城鲜炒鸡铺",
+      "name": "东城鲜炒鸡铺",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "东城鲜炒鸡铺",
+      "cuisine": "家常",
+      "avg": 14,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "香辣无骨鱼",
+          "price": 13.8,
+          "cat": "觅香无骨鱼",
+          "dishId": "cp1100",
+          "kbName": "香辣无骨鱼"
+        },
+        {
+          "name": "麻辣无骨鱼",
+          "price": 13.8,
+          "cat": "觅香无骨鱼",
+          "dishId": "cp0897",
+          "kbName": "麻辣无骨鱼"
+        },
+        {
+          "name": "藤椒无骨鱼",
+          "price": 13.8,
+          "cat": "觅香无骨鱼",
+          "dishId": "cp0898",
+          "kbName": "藤椒无骨鱼"
+        },
+        {
+          "name": "蒜香无骨鱼",
+          "price": 13.8,
+          "cat": "觅香无骨鱼",
+          "dishId": "cp1101",
+          "kbName": "蒜香无骨鱼"
+        },
+        {
+          "name": "金汤无骨鱼",
+          "price": 13.8,
+          "cat": "觅香无骨鱼",
+          "dishId": "cp1102",
+          "kbName": "金汤无骨鱼"
+        },
+        {
+          "name": "番茄无骨鱼",
+          "price": 13.8,
+          "cat": "觅香无骨鱼",
+          "dishId": "cp0900",
+          "kbName": "番茄无骨鱼"
+        },
+        {
+          "name": "馋嘴鱼",
+          "price": 14.8,
+          "cat": "馋嘴系列",
+          "dishId": "cp1103",
+          "kbName": "馋嘴鱼"
+        },
+        {
+          "name": "馋嘴鸡",
+          "price": 14.8,
+          "cat": "馋嘴系列",
+          "dishId": "cp1104",
+          "kbName": "馋嘴鸡"
+        },
+        {
+          "name": "馋嘴肉卷",
+          "price": 14.8,
+          "cat": "馋嘴系列",
+          "dishId": "cp1105",
+          "kbName": "馋嘴肉卷"
+        },
+        {
+          "name": "馋嘴脆骨肠",
+          "price": 12.8,
+          "cat": "馋嘴系列",
+          "dishId": "cp1106",
+          "kbName": "馋嘴脆骨肠"
+        },
+        {
+          "name": "馋嘴年糕",
+          "price": 12.8,
+          "cat": "馋嘴系列",
+          "dishId": "cp1107",
+          "kbName": "馋嘴年糕"
+        },
+        {
+          "name": "馋嘴年糕脆骨肠双拼",
+          "price": 12.8,
+          "cat": "馋嘴系列",
+          "dishId": "cp1108",
+          "kbName": "馋嘴年糕脆骨肠双拼"
+        },
+        {
+          "name": "酸菜鱼",
+          "price": 13.8,
+          "cat": "馋嘴系列",
+          "dishId": "cp0135",
+          "kbName": "酸菜鱼（档口）"
+        },
+        {
+          "name": "瓦香鸡",
+          "price": 13.8,
+          "cat": "馋嘴系列",
+          "dishId": "cp1109",
+          "kbName": "瓦香鸡"
+        },
+        {
+          "name": "排骨套餐（一荤一素）",
+          "price": 15.8,
+          "cat": "套餐粉面",
+          "dishId": "cp1110",
+          "kbName": "排骨套餐（一荤一素）"
+        },
+        {
+          "name": "排骨套餐（两荤一素）",
+          "price": 16.8,
+          "cat": "套餐粉面",
+          "dishId": "cp1111",
+          "kbName": "排骨套餐（两荤一素）"
+        },
+        {
+          "name": "鲜炒鸡套餐（一荤一素）",
+          "price": 14.8,
+          "cat": "套餐粉面",
+          "dishId": "cp1112",
+          "kbName": "鲜炒鸡套餐（一荤一素）"
+        },
+        {
+          "name": "两荤一素任意搭配",
+          "price": 15.8,
+          "cat": "套餐粉面",
+          "dishId": "cp1113",
+          "kbName": "两荤一素任意搭配"
+        },
+        {
+          "name": "两荤任意搭配",
+          "price": 14.8,
+          "cat": "套餐粉面",
+          "dishId": "cp1114",
+          "kbName": "两荤任意搭配"
+        },
+        {
+          "name": "螺蛳粉",
+          "price": 13.8,
+          "cat": "套餐粉面",
+          "dishId": "cp1115",
+          "kbName": "螺蛳粉"
+        },
+        {
+          "name": "麻辣牛筋拌面",
+          "price": 12.8,
+          "cat": "套餐粉面",
+          "dishId": "cp1116",
+          "kbName": "麻辣牛筋拌面"
+        },
+        {
+          "name": "芝香唇牛筋拌面",
+          "price": 12.8,
+          "cat": "套餐粉面",
+          "dishId": "cp1117",
+          "kbName": "芝香唇牛筋拌面"
+        },
+        {
+          "name": "老干妈回锅肉",
+          "price": 12.8,
+          "cat": "家常炒菜",
+          "dishId": "cp1118",
+          "kbName": "老干妈回锅肉"
+        },
+        {
+          "name": "藤椒炒鸡",
+          "price": 12.8,
+          "cat": "家常炒菜",
+          "dishId": "cp1119",
+          "kbName": "藤椒炒鸡"
+        },
+        {
+          "name": "酱香排骨",
+          "price": 14.8,
+          "cat": "家常炒菜",
+          "dishId": "cp1120",
+          "kbName": "酱香排骨"
+        },
+        {
+          "name": "鲜香炒鸡",
+          "price": 12.8,
+          "cat": "家常炒菜",
+          "dishId": "cp1121",
+          "kbName": "鲜香炒鸡"
+        },
+        {
+          "name": "湘西菜花炒肉",
+          "price": 11.8,
+          "cat": "家常炒菜",
+          "dishId": "cp1122",
+          "kbName": "湘西菜花炒肉"
+        },
+        {
+          "name": "爽口土豆丝",
+          "price": 9,
+          "cat": "家常炒菜",
+          "dishId": "cp1123",
+          "kbName": "爽口土豆丝"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-临榆炸鸡腿",
       "name": "临榆炸鸡腿",
       "city": "保定",
@@ -2169,6 +2688,385 @@
       "uncertain": []
     },
     {
+      "id": "local-壹汤牛肉面",
+      "name": "壹汤牛肉面",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "壹汤牛肉面",
+      "cuisine": "家常",
+      "avg": 12,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "菠萝炒饭",
+          "price": 12,
+          "cat": "炒饭/河粉",
+          "dishId": "cp1124",
+          "kbName": "菠萝炒饭"
+        },
+        {
+          "name": "鸡蛋炒饭",
+          "price": 10,
+          "cat": "炒饭/河粉",
+          "dishId": "cp1125",
+          "kbName": "鸡蛋炒饭"
+        },
+        {
+          "name": "扬州炒饭",
+          "price": 12,
+          "cat": "炒饭/河粉",
+          "dishId": "cp1126",
+          "kbName": "扬州炒饭"
+        },
+        {
+          "name": "辣子鸡丁炒饭",
+          "price": 12,
+          "cat": "炒饭/河粉",
+          "dishId": "cp1127",
+          "kbName": "辣子鸡丁炒饭"
+        },
+        {
+          "name": "五彩老干妈炒饭",
+          "price": 10,
+          "cat": "炒饭/河粉",
+          "dishId": "cp1128",
+          "kbName": "五彩老干妈炒饭"
+        },
+        {
+          "name": "素炒河粉",
+          "price": 11,
+          "cat": "炒饭/河粉",
+          "dishId": "cp1129",
+          "kbName": "素炒河粉"
+        },
+        {
+          "name": "肉炒河粉",
+          "price": 13,
+          "cat": "炒饭/河粉",
+          "dishId": "cp1130",
+          "kbName": "肉炒河粉"
+        },
+        {
+          "name": "炒刀削面",
+          "price": 12,
+          "cat": "炒饭/河粉",
+          "dishId": "cp1131",
+          "kbName": "炒刀削面"
+        },
+        {
+          "name": "壹汤牛肉面",
+          "price": 10,
+          "cat": "面条系列",
+          "dishId": "cp1132",
+          "kbName": "壹汤牛肉面"
+        },
+        {
+          "name": "壹汤牛肉板面",
+          "price": 10,
+          "cat": "面条系列",
+          "dishId": "cp1133",
+          "kbName": "壹汤牛肉板面"
+        },
+        {
+          "name": "壹汤臊子面",
+          "price": 12,
+          "cat": "面条系列",
+          "dishId": "cp1134",
+          "kbName": "壹汤臊子面"
+        },
+        {
+          "name": "壹汤油泼面",
+          "price": 10,
+          "cat": "面条系列",
+          "dishId": "cp1135",
+          "kbName": "壹汤油泼面"
+        },
+        {
+          "name": "香辣肉丝酸菜面",
+          "price": 10,
+          "cat": "面条系列",
+          "dishId": "cp1136",
+          "kbName": "香辣肉丝酸菜面"
+        },
+        {
+          "name": "花椒油凉面",
+          "price": 9,
+          "cat": "面条系列",
+          "dishId": "cp1137",
+          "kbName": "花椒油凉面"
+        },
+        {
+          "name": "黄金盐焗鸡腿盖饭",
+          "price": 13,
+          "cat": "盖饭/面",
+          "dishId": "cp1138",
+          "kbName": "黄金盐焗鸡腿盖饭"
+        },
+        {
+          "name": "红烧口味鸭盖饭",
+          "price": 13,
+          "cat": "盖饭/面",
+          "dishId": "cp1139",
+          "kbName": "红烧口味鸭盖饭"
+        },
+        {
+          "name": "尖椒肉丝盖饭",
+          "price": 13,
+          "cat": "盖饭/面",
+          "dishId": "cp1140",
+          "kbName": "尖椒肉丝盖饭"
+        },
+        {
+          "name": "娃娃菜焖豆泡盖饭",
+          "price": 12,
+          "cat": "盖饭/面",
+          "dishId": "cp1141",
+          "kbName": "娃娃菜焖豆泡盖饭"
+        },
+        {
+          "name": "豆角烧茄子盖饭",
+          "price": 12,
+          "cat": "盖饭/面",
+          "dishId": "cp1142",
+          "kbName": "豆角烧茄子盖饭"
+        },
+        {
+          "name": "湘府爆炒鸡胗",
+          "price": 13,
+          "cat": "盖饭/面",
+          "dishId": "cp1143",
+          "kbName": "湘府爆炒鸡胗"
+        },
+        {
+          "name": "私家大盘鸡",
+          "price": 13,
+          "cat": "盖饭/面",
+          "dishId": "cp1144",
+          "kbName": "私家大盘鸡"
+        },
+        {
+          "name": "开味小炒腐竹",
+          "price": 12,
+          "cat": "盖饭/面",
+          "dishId": "cp1145",
+          "kbName": "开味小炒腐竹"
+        },
+        {
+          "name": "鱼香肉丝",
+          "price": 12,
+          "cat": "盖饭/面",
+          "dishId": "cp0112",
+          "kbName": "鱼香肉丝（档口）"
+        },
+        {
+          "name": "滑蛋肉片盖饭",
+          "price": 14,
+          "cat": "盖饭/面",
+          "dishId": "cp1146",
+          "kbName": "滑蛋肉片盖饭"
+        },
+        {
+          "name": "绝味状元鸡",
+          "price": 14,
+          "cat": "盖饭/面",
+          "dishId": "cp1147",
+          "kbName": "绝味状元鸡"
+        },
+        {
+          "name": "招牌小炒土豆丝",
+          "price": 12,
+          "cat": "盖饭/面",
+          "dishId": "cp1148",
+          "kbName": "招牌小炒土豆丝"
+        },
+        {
+          "name": "肉丝拉皮",
+          "price": 12,
+          "cat": "盖饭/面",
+          "dishId": "cp1149",
+          "kbName": "肉丝拉皮"
+        },
+        {
+          "name": "加卤蛋",
+          "price": 1,
+          "cat": "加料系列",
+          "dishId": "cp1381",
+          "kbName": "加卤蛋"
+        },
+        {
+          "name": "加香肠",
+          "price": 1,
+          "cat": "加料系列",
+          "dishId": "cp1382",
+          "kbName": "加香肠"
+        },
+        {
+          "name": "加荷包蛋",
+          "price": 1,
+          "cat": "加料系列",
+          "dishId": "cp1383",
+          "kbName": "加荷包蛋"
+        },
+        {
+          "name": "加把子肉",
+          "price": 5,
+          "cat": "加料系列",
+          "dishId": "cp1384",
+          "kbName": "加把子肉"
+        }
+      ],
+      "uncertain": []
+    },
+    {
+      "id": "local-够粤牌猪脚饭",
+      "name": "够粤牌猪脚饭",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "够粤牌猪脚饭",
+      "cuisine": "粤",
+      "avg": 17,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "深井烧鸭饭",
+          "price": 15.8,
+          "cat": "招牌饭",
+          "dishId": "cp1150",
+          "kbName": "深井烧鸭饭"
+        },
+        {
+          "name": "隆江猪脚饭",
+          "price": 15.8,
+          "cat": "招牌饭",
+          "dishId": "cp1151",
+          "kbName": "隆江猪脚饭（档口）"
+        },
+        {
+          "name": "招牌叉烧饭",
+          "price": 12.8,
+          "cat": "招牌饭",
+          "dishId": "cp1152",
+          "kbName": "招牌叉烧饭"
+        },
+        {
+          "name": "卤味鸡腿饭",
+          "price": 13.8,
+          "cat": "招牌饭",
+          "dishId": "cp1153",
+          "kbName": "卤味鸡腿饭"
+        },
+        {
+          "name": "秘制叉烧饭",
+          "price": 16.8,
+          "cat": "招牌饭",
+          "dishId": "cp1154",
+          "kbName": "秘制叉烧饭"
+        },
+        {
+          "name": "清远咸鸡饭",
+          "price": 16.8,
+          "cat": "招牌饭",
+          "dishId": "cp1155",
+          "kbName": "清远咸鸡饭"
+        },
+        {
+          "name": "猪脚肉卷双拼饭",
+          "price": 15.8,
+          "cat": "双拼饭",
+          "dishId": "cp1156",
+          "kbName": "猪脚肉卷双拼饭"
+        },
+        {
+          "name": "猪脚烧鸭双拼饭",
+          "price": 16.8,
+          "cat": "双拼饭",
+          "dishId": "cp1157",
+          "kbName": "猪脚烧鸭双拼饭"
+        },
+        {
+          "name": "卤蛋腊肠双拼饭",
+          "price": 12.8,
+          "cat": "双拼饭",
+          "dishId": "cp1158",
+          "kbName": "卤蛋腊肠双拼饭"
+        },
+        {
+          "name": "猪脚拼卤蛋腊肠双拼饭",
+          "price": 15.8,
+          "cat": "双拼饭",
+          "dishId": "cp1159",
+          "kbName": "猪脚拼卤蛋腊肠双拼饭"
+        },
+        {
+          "name": "烧鸭拼卤蛋腊肠双拼饭",
+          "price": 15.8,
+          "cat": "双拼饭",
+          "dishId": "cp1160",
+          "kbName": "烧鸭拼卤蛋腊肠双拼饭"
+        },
+        {
+          "name": "猪脚拼烧鸭叉烧鸡腿双拼饭",
+          "price": 16.8,
+          "cat": "双拼饭",
+          "dishId": "cp1161",
+          "kbName": "猪脚拼烧鸭叉烧鸡腿双拼饭"
+        },
+        {
+          "name": "猪脚肉卷腊肠三拼饭",
+          "price": 17.8,
+          "cat": "三拼饭",
+          "dishId": "cp1162",
+          "kbName": "猪脚肉卷腊肠三拼饭"
+        },
+        {
+          "name": "猪脚肉卷鸡腿三拼饭",
+          "price": 18.8,
+          "cat": "三拼饭",
+          "dishId": "cp1163",
+          "kbName": "猪脚肉卷鸡腿三拼饭"
+        },
+        {
+          "name": "猪脚肉卷烧鸭三拼饭",
+          "price": 18.8,
+          "cat": "三拼饭",
+          "dishId": "cp1164",
+          "kbName": "猪脚肉卷烧鸭三拼饭"
+        },
+        {
+          "name": "猪脚烧鸭叉烧三拼饭",
+          "price": 18.8,
+          "cat": "三拼饭",
+          "dishId": "cp1165",
+          "kbName": "猪脚烧鸭叉烧三拼饭"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-大厨小炒",
       "name": "大厨小炒",
       "city": "保定",
@@ -3427,6 +4325,374 @@
       "uncertain": []
     },
     {
+      "id": "local-小淮娘鸭血粉丝汤",
+      "name": "小淮娘鸭血粉丝汤",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "小淮娘鸭血粉丝汤",
+      "cuisine": "江浙",
+      "avg": 11,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "鸭血粉丝",
+          "price": 9,
+          "cat": "鸭血粉丝",
+          "dishId": "cp1166",
+          "kbName": "鸭血粉丝"
+        },
+        {
+          "name": "全家福鸭血粉丝",
+          "price": 19,
+          "cat": "鸭血粉丝",
+          "dishId": "cp1167",
+          "kbName": "全家福鸭血粉丝"
+        },
+        {
+          "name": "四件套",
+          "price": 16,
+          "cat": "鸭血粉丝",
+          "dishId": "cp1168",
+          "kbName": "四件套"
+        },
+        {
+          "name": "三件套",
+          "price": 14,
+          "cat": "鸭血粉丝",
+          "dishId": "cp1169",
+          "kbName": "三件套"
+        },
+        {
+          "name": "二件套",
+          "price": 12,
+          "cat": "鸭血粉丝",
+          "dishId": "cp1170",
+          "kbName": "二件套"
+        },
+        {
+          "name": "套餐一（粉丝+蒸饺10个）",
+          "price": 14.9,
+          "cat": "粉丝套餐",
+          "dishId": "cp1171",
+          "kbName": "套餐一（粉丝+蒸饺10个）"
+        },
+        {
+          "name": "套餐二（粉丝+烧麦+荷包蛋）",
+          "price": 12.9,
+          "cat": "粉丝套餐",
+          "dishId": "cp1172",
+          "kbName": "套餐二（粉丝+烧麦+荷包蛋）"
+        },
+        {
+          "name": "套餐三（粉丝+鱼豆腐+荷包蛋）",
+          "price": 11.9,
+          "cat": "粉丝套餐",
+          "dishId": "cp1173",
+          "kbName": "套餐三（粉丝+鱼豆腐+荷包蛋）"
+        },
+        {
+          "name": "秘制米线",
+          "price": 12,
+          "cat": "米线/粉",
+          "dishId": "cp1174",
+          "kbName": "秘制米线"
+        },
+        {
+          "name": "三鲜米线",
+          "price": 12,
+          "cat": "米线/粉",
+          "dishId": "cp1175",
+          "kbName": "三鲜米线"
+        },
+        {
+          "name": "鸡肉米线",
+          "price": 11,
+          "cat": "米线/粉",
+          "dishId": "cp1176",
+          "kbName": "鸡肉米线"
+        },
+        {
+          "name": "酸辣米线",
+          "price": 11,
+          "cat": "米线/粉",
+          "dishId": "cp1177",
+          "kbName": "酸辣米线（档口）"
+        },
+        {
+          "name": "酸辣粉",
+          "price": 11,
+          "cat": "米线/粉",
+          "dishId": "cp1177",
+          "kbName": "酸辣米线（档口）"
+        },
+        {
+          "name": "清汤米线",
+          "price": 8,
+          "cat": "米线/粉",
+          "dishId": "cp1178",
+          "kbName": "清汤米线"
+        },
+        {
+          "name": "猪肉大葱水饺",
+          "price": 12,
+          "cat": "特色水饺",
+          "dishId": "cp0244",
+          "kbName": "猪肉大葱水饺"
+        },
+        {
+          "name": "猪肉香菇水饺",
+          "price": 12,
+          "cat": "特色水饺",
+          "dishId": "cp1092",
+          "kbName": "猪肉香菇水饺"
+        },
+        {
+          "name": "猪肉韭菜水饺",
+          "price": 12,
+          "cat": "特色水饺",
+          "dishId": "cp1179",
+          "kbName": "猪肉韭菜水饺"
+        },
+        {
+          "name": "猪肉白菜水饺",
+          "price": 12,
+          "cat": "特色水饺",
+          "dishId": "cp0241",
+          "kbName": "猪肉白菜水饺"
+        },
+        {
+          "name": "猪肉酸菜水饺",
+          "price": 12,
+          "cat": "特色水饺",
+          "dishId": "cp0444",
+          "kbName": "猪肉酸菜水饺"
+        },
+        {
+          "name": "猪肉芹菜水饺",
+          "price": 12,
+          "cat": "特色水饺",
+          "dishId": "cp1091",
+          "kbName": "猪肉芹菜水饺"
+        },
+        {
+          "name": "猪肉玉米水饺",
+          "price": 12,
+          "cat": "特色水饺",
+          "dishId": "cp1095",
+          "kbName": "猪肉玉米水饺"
+        },
+        {
+          "name": "韭菜鸡蛋水饺",
+          "price": 12,
+          "cat": "特色水饺",
+          "dishId": "cp1089",
+          "kbName": "韭菜鸡蛋水饺（档口）"
+        },
+        {
+          "name": "牛肉大葱水饺",
+          "price": 13,
+          "cat": "特色水饺",
+          "dishId": "cp0243",
+          "kbName": "牛肉大葱水饺"
+        },
+        {
+          "name": "猪肉酸汤水饺",
+          "price": 13,
+          "cat": "特色水饺",
+          "dishId": "cp1180",
+          "kbName": "猪肉酸汤水饺"
+        },
+        {
+          "name": "羊肉大葱水饺",
+          "price": 13,
+          "cat": "特色水饺",
+          "dishId": "cp1094",
+          "kbName": "羊肉大葱水饺"
+        },
+        {
+          "name": "手工虾仁水饺",
+          "price": 22,
+          "cat": "特色水饺",
+          "dishId": "cp1181",
+          "kbName": "手工虾仁水饺"
+        },
+        {
+          "name": "馄饨",
+          "price": 8,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp0443",
+          "kbName": "馄饨"
+        },
+        {
+          "name": "凉皮",
+          "price": 10,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp1182",
+          "kbName": "凉皮（档口）"
+        },
+        {
+          "name": "灌汤包",
+          "price": 11,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp1183",
+          "kbName": "灌汤包（档口）"
+        },
+        {
+          "name": "薄皮素包子",
+          "price": 8,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp1184",
+          "kbName": "薄皮素包子"
+        },
+        {
+          "name": "豆沙包",
+          "price": 8,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp1185",
+          "kbName": "豆沙包"
+        },
+        {
+          "name": "蒸饺",
+          "price": 8,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp0497",
+          "kbName": "蒸饺"
+        },
+        {
+          "name": "小笼包",
+          "price": 8,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp1186",
+          "kbName": "小笼包"
+        },
+        {
+          "name": "醪糟汤圆",
+          "price": 8,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp1187",
+          "kbName": "醪糟汤圆"
+        },
+        {
+          "name": "照烧鸡腿饼",
+          "price": 4,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp1188",
+          "kbName": "照烧鸡腿饼"
+        },
+        {
+          "name": "烧饼",
+          "price": 2,
+          "cat": "馄饨包子小吃",
+          "dishId": "cp1189",
+          "kbName": "烧饼"
+        },
+        {
+          "name": "加鸭脯",
+          "price": 4,
+          "cat": "加料系列",
+          "dishId": "cp1385",
+          "kbName": "加鸭脯"
+        },
+        {
+          "name": "加鸭肝",
+          "price": 4,
+          "cat": "加料系列",
+          "dishId": "cp1386",
+          "kbName": "加鸭肝"
+        },
+        {
+          "name": "加鸭肠",
+          "price": 4,
+          "cat": "加料系列",
+          "dishId": "cp1387",
+          "kbName": "加鸭肠"
+        },
+        {
+          "name": "加鸭胗",
+          "price": 4,
+          "cat": "加料系列",
+          "dishId": "cp1388",
+          "kbName": "加鸭胗"
+        },
+        {
+          "name": "加鸭心",
+          "price": 5,
+          "cat": "加料系列",
+          "dishId": "cp1389",
+          "kbName": "加鸭心"
+        },
+        {
+          "name": "加鸭血",
+          "price": 1.5,
+          "cat": "加料系列",
+          "dishId": "cp1390",
+          "kbName": "加鸭血"
+        },
+        {
+          "name": "加鱼豆腐",
+          "price": 2,
+          "cat": "加料系列",
+          "dishId": "cp1391",
+          "kbName": "加鱼豆腐"
+        },
+        {
+          "name": "加鱼丸",
+          "price": 2,
+          "cat": "加料系列",
+          "dishId": "cp1392",
+          "kbName": "加鱼丸"
+        },
+        {
+          "name": "加金针菇",
+          "price": 2,
+          "cat": "加料系列",
+          "dishId": "cp1393",
+          "kbName": "加金针菇"
+        },
+        {
+          "name": "加青菜",
+          "price": 1,
+          "cat": "加料系列",
+          "dishId": "cp1394",
+          "kbName": "加青菜"
+        },
+        {
+          "name": "网红炸蛋",
+          "price": 3.5,
+          "cat": "加料系列",
+          "dishId": "cp1395",
+          "kbName": "网红炸蛋"
+        },
+        {
+          "name": "加鸡蛋",
+          "price": 1.5,
+          "cat": "加料系列",
+          "dishId": "cp1396",
+          "kbName": "加鸡蛋"
+        },
+        {
+          "name": "糯米烧麦",
+          "price": 2,
+          "cat": "加料系列",
+          "dishId": "cp1397",
+          "kbName": "糯米烧麦"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-小菜园",
       "name": "小菜园新徽菜",
       "city": "保定",
@@ -3650,6 +4916,220 @@
           "cat": "家常小炒",
           "dishId": "s06",
           "kbName": "西红柿炒蛋"
+        }
+      ],
+      "uncertain": []
+    },
+    {
+      "id": "local-川味坊",
+      "name": "川味坊",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "川味坊",
+      "cuisine": "川",
+      "avg": 8,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "辣子鸡",
+          "price": 8,
+          "cat": "烟火小炒",
+          "dishId": "cp0251",
+          "kbName": "辣子鸡（档口）"
+        },
+        {
+          "name": "清炒西兰花",
+          "price": 6,
+          "cat": "烟火小炒",
+          "dishId": "cp1190",
+          "kbName": "清炒西兰花"
+        },
+        {
+          "name": "辣炒有机菜花",
+          "price": 4,
+          "cat": "清炒时蔬",
+          "dishId": "cp1191",
+          "kbName": "辣炒有机菜花"
+        },
+        {
+          "name": "青菜木耳",
+          "price": 4,
+          "cat": "清炒时蔬",
+          "dishId": "cp1192",
+          "kbName": "青菜木耳"
+        },
+        {
+          "name": "炝炒土豆丝",
+          "price": 4,
+          "cat": "清炒时蔬",
+          "dishId": "cp1193",
+          "kbName": "炝炒土豆丝"
+        },
+        {
+          "name": "玉米粒",
+          "price": 4,
+          "cat": "清炒时蔬",
+          "dishId": "cp1062",
+          "kbName": "玉米粒"
+        },
+        {
+          "name": "干锅土豆片",
+          "price": 4,
+          "cat": "清炒时蔬",
+          "dishId": "cp1194",
+          "kbName": "干锅土豆片（档口）"
+        },
+        {
+          "name": "西红柿炒鸡蛋",
+          "price": 6,
+          "cat": "家常鲜炒",
+          "dishId": "cp1195",
+          "kbName": "西红柿炒鸡蛋"
+        },
+        {
+          "name": "油淋罗马生菜",
+          "price": 6,
+          "cat": "家常鲜炒",
+          "dishId": "cp1196",
+          "kbName": "油淋罗马生菜"
+        },
+        {
+          "name": "烧烤面筋",
+          "price": 6,
+          "cat": "家常鲜炒",
+          "dishId": "cp1197",
+          "kbName": "烧烤面筋"
+        },
+        {
+          "name": "青笋炒鸡蛋",
+          "price": 6,
+          "cat": "家常鲜炒",
+          "dishId": "cp1198",
+          "kbName": "青笋炒鸡蛋"
+        },
+        {
+          "name": "地三鲜",
+          "price": 6,
+          "cat": "家常鲜炒",
+          "dishId": "cp1199",
+          "kbName": "地三鲜（档口）"
+        },
+        {
+          "name": "辣椒炒肉",
+          "price": 8,
+          "cat": "煲炖鲜品",
+          "dishId": "cp0220",
+          "kbName": "辣椒炒肉（档口）"
+        },
+        {
+          "name": "冬瓜鲜肉丸",
+          "price": 8,
+          "cat": "煲炖鲜品",
+          "dishId": "cp1200",
+          "kbName": "冬瓜鲜肉丸"
+        },
+        {
+          "name": "重庆鸡公煲",
+          "price": 8,
+          "cat": "煲炖鲜品",
+          "dishId": "cp1201",
+          "kbName": "重庆鸡公煲"
+        },
+        {
+          "name": "醋溜木须肉",
+          "price": 6,
+          "cat": "煲炖鲜品",
+          "dishId": "cp1202",
+          "kbName": "醋溜木须肉"
+        },
+        {
+          "name": "麻婆豆腐",
+          "price": 6,
+          "cat": "煲炖鲜品",
+          "dishId": "cp0102",
+          "kbName": "麻婆豆腐（档口）"
+        },
+        {
+          "name": "水煮肉片",
+          "price": 8,
+          "cat": "招牌热菜",
+          "dishId": "cp0126",
+          "kbName": "水煮肉片（档口）"
+        },
+        {
+          "name": "辣炒香肠",
+          "price": 8,
+          "cat": "招牌热菜",
+          "dishId": "cp1203",
+          "kbName": "辣炒香肠"
+        },
+        {
+          "name": "回锅肉",
+          "price": 8,
+          "cat": "招牌热菜",
+          "dishId": "cp0250",
+          "kbName": "回锅肉（档口）"
+        },
+        {
+          "name": "香辣肉片",
+          "price": 8,
+          "cat": "招牌热菜",
+          "dishId": "cp1204",
+          "kbName": "香辣肉片"
+        },
+        {
+          "name": "红烧肉炖土豆",
+          "price": 8,
+          "cat": "招牌热菜",
+          "dishId": "cp1205",
+          "kbName": "红烧肉炖土豆"
+        },
+        {
+          "name": "土豆炖鸡块",
+          "price": 8,
+          "cat": "食鲜佳味",
+          "dishId": "cp1206",
+          "kbName": "土豆炖鸡块"
+        },
+        {
+          "name": "青花椒酱炒鸡丁",
+          "price": 8,
+          "cat": "食鲜佳味",
+          "dishId": "cp1207",
+          "kbName": "青花椒酱炒鸡丁"
+        },
+        {
+          "name": "小炒鸡胗",
+          "price": 8,
+          "cat": "食鲜佳味",
+          "dishId": "cp1208",
+          "kbName": "小炒鸡胗"
+        },
+        {
+          "name": "宫保鸡丁",
+          "price": 8,
+          "cat": "食鲜佳味",
+          "dishId": "cp0116",
+          "kbName": "宫保鸡丁（档口）"
+        },
+        {
+          "name": "糖醋锅包肉",
+          "price": 8,
+          "cat": "食鲜佳味",
+          "dishId": "cp1209",
+          "kbName": "糖醋锅包肉"
         }
       ],
       "uncertain": []
@@ -5542,6 +7022,269 @@
       "uncertain": []
     },
     {
+      "id": "local-最高鸡密",
+      "name": "最高鸡密",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "最高鸡密",
+      "cuisine": "家常",
+      "avg": 13,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "桂花乌龙鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1210",
+          "kbName": "桂花乌龙鸡排饭"
+        },
+        {
+          "name": "可比克番茄味鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1211",
+          "kbName": "可比克番茄味鸡排饭"
+        },
+        {
+          "name": "酱香牛肉鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1212",
+          "kbName": "酱香牛肉鸡排饭"
+        },
+        {
+          "name": "烧烤味鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1213",
+          "kbName": "烧烤味鸡排饭"
+        },
+        {
+          "name": "甘梅鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1214",
+          "kbName": "甘梅鸡排饭"
+        },
+        {
+          "name": "孜然鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1215",
+          "kbName": "孜然鸡排饭"
+        },
+        {
+          "name": "香辣鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1216",
+          "kbName": "香辣鸡排饭"
+        },
+        {
+          "name": "巴蜀鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1217",
+          "kbName": "巴蜀鸡排饭"
+        },
+        {
+          "name": "黄瓜鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1218",
+          "kbName": "黄瓜鸡排饭"
+        },
+        {
+          "name": "奥尔良鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp0807",
+          "kbName": "奥尔良鸡排饭"
+        },
+        {
+          "name": "海苔鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1219",
+          "kbName": "海苔鸡排饭"
+        },
+        {
+          "name": "黑椒鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1220",
+          "kbName": "黑椒鸡排饭"
+        },
+        {
+          "name": "香酥鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1221",
+          "kbName": "香酥鸡排饭"
+        },
+        {
+          "name": "咖喱鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1222",
+          "kbName": "咖喱鸡排饭"
+        },
+        {
+          "name": "麻辣鸡排饭",
+          "price": 12.8,
+          "cat": "鸡排饭",
+          "dishId": "cp1223",
+          "kbName": "麻辣鸡排饭"
+        },
+        {
+          "name": "奇香鸡情（鱼/鸡锅）",
+          "price": 15.5,
+          "cat": "鱼/鸡锅",
+          "dishId": "cp1224",
+          "kbName": "奇香鸡情（鱼/鸡锅）"
+        },
+        {
+          "name": "麻辣诱惑（鱼/鸡锅）",
+          "price": 15.5,
+          "cat": "鱼/鸡锅",
+          "dishId": "cp1225",
+          "kbName": "麻辣诱惑（鱼/鸡锅）"
+        },
+        {
+          "name": "荔枝鸡了（鱼/鸡锅）",
+          "price": 15.5,
+          "cat": "鱼/鸡锅",
+          "dishId": "cp1226",
+          "kbName": "荔枝鸡了（鱼/鸡锅）"
+        },
+        {
+          "name": "独具酱心（鱼/鸡锅）",
+          "price": 15.5,
+          "cat": "鱼/鸡锅",
+          "dishId": "cp1227",
+          "kbName": "独具酱心（鱼/鸡锅）"
+        },
+        {
+          "name": "小酥肉饭",
+          "price": 13.8,
+          "cat": "其他饭/套餐",
+          "dishId": "cp1228",
+          "kbName": "小酥肉饭"
+        },
+        {
+          "name": "脆香劲骨饭",
+          "price": 13.8,
+          "cat": "其他饭/套餐",
+          "dishId": "cp1229",
+          "kbName": "脆香劲骨饭"
+        },
+        {
+          "name": "素食主义（鲜蔬）",
+          "price": 10,
+          "cat": "其他饭/套餐",
+          "dishId": "cp1230",
+          "kbName": "素食主义（鲜蔬）"
+        },
+        {
+          "name": "套餐A",
+          "price": 12.8,
+          "cat": "其他饭/套餐",
+          "dishId": "cp1231",
+          "kbName": "套餐A"
+        },
+        {
+          "name": "套餐B",
+          "price": 12.8,
+          "cat": "其他饭/套餐",
+          "dishId": "cp1232",
+          "kbName": "套餐B"
+        },
+        {
+          "name": "套餐C",
+          "price": 12.8,
+          "cat": "其他饭/套餐",
+          "dishId": "cp1233",
+          "kbName": "套餐C"
+        },
+        {
+          "name": "薯条",
+          "price": 6,
+          "cat": "小吃",
+          "dishId": "cp1234",
+          "kbName": "薯条"
+        },
+        {
+          "name": "鸡块",
+          "price": 6,
+          "cat": "小吃",
+          "dishId": "cp1235",
+          "kbName": "鸡块"
+        },
+        {
+          "name": "炸牛奶",
+          "price": 6,
+          "cat": "小吃",
+          "dishId": "cp1236",
+          "kbName": "炸牛奶"
+        },
+        {
+          "name": "香芋地瓜丸",
+          "price": 6,
+          "cat": "小吃",
+          "dishId": "cp1237",
+          "kbName": "香芋地瓜丸"
+        },
+        {
+          "name": "鸡排单点",
+          "price": 12,
+          "cat": "鸡排单点",
+          "dishId": "cp1398",
+          "kbName": "鸡排单点"
+        },
+        {
+          "name": "加鱼类/肥牛/羊肉",
+          "price": 8,
+          "cat": "加料系列",
+          "dishId": "cp1399",
+          "kbName": "加鱼类/肥牛/羊肉"
+        },
+        {
+          "name": "加鸡肉/芝士年糕",
+          "price": 6,
+          "cat": "加料系列",
+          "dishId": "cp1400",
+          "kbName": "加鸡肉/芝士年糕"
+        },
+        {
+          "name": "加鱼丸/虾丸/鱼豆腐/亲亲肠/小油条",
+          "price": 5,
+          "cat": "加料系列",
+          "dishId": "cp1401",
+          "kbName": "加鱼丸/虾丸/鱼豆腐/亲亲肠/小油条"
+        },
+        {
+          "name": "加金针菇/黑木耳/豆腐皮",
+          "price": 3,
+          "cat": "加料系列",
+          "dishId": "cp1402",
+          "kbName": "加金针菇/黑木耳/豆腐皮"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-朴堡堡石锅鸡",
       "name": "朴堡堡石锅鸡",
       "city": "保定",
@@ -7274,6 +9017,276 @@
       "uncertain": []
     },
     {
+      "id": "local-白象天下好面",
+      "name": "白象天下好面",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "白象天下好面",
+      "cuisine": "家常",
+      "avg": 12,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "中华私房骨汤面",
+          "price": 11,
+          "cat": "招牌灯箱面",
+          "dishId": "cp1238",
+          "kbName": "中华私房骨汤面"
+        },
+        {
+          "name": "热辣牛油肉块面",
+          "price": 12,
+          "cat": "招牌灯箱面",
+          "dishId": "cp1239",
+          "kbName": "热辣牛油肉块面"
+        },
+        {
+          "name": "热辣牛油酥肉面",
+          "price": 12,
+          "cat": "招牌灯箱面",
+          "dishId": "cp1240",
+          "kbName": "热辣牛油酥肉面"
+        },
+        {
+          "name": "羊杂面",
+          "price": 12,
+          "cat": "招牌灯箱面",
+          "dishId": "cp1241",
+          "kbName": "羊杂面"
+        },
+        {
+          "name": "骨汤酥肉面",
+          "price": 12,
+          "cat": "招牌灯箱面",
+          "dishId": "cp1242",
+          "kbName": "骨汤酥肉面"
+        },
+        {
+          "name": "养颜番茄鲜蔬面",
+          "price": 10,
+          "cat": "招牌灯箱面",
+          "dishId": "cp1243",
+          "kbName": "养颜番茄鲜蔬面"
+        },
+        {
+          "name": "番茄酥肉面",
+          "price": 12,
+          "cat": "招牌灯箱面",
+          "dishId": "cp1244",
+          "kbName": "番茄酥肉面"
+        },
+        {
+          "name": "臊子汤面",
+          "price": 9,
+          "cat": "重庆小面汤面",
+          "dishId": "cp1245",
+          "kbName": "臊子汤面"
+        },
+        {
+          "name": "重庆小面",
+          "price": 9.5,
+          "cat": "重庆小面汤面",
+          "dishId": "cp1246",
+          "kbName": "重庆小面（档口）"
+        },
+        {
+          "name": "酸菜肉丝面",
+          "price": 10.5,
+          "cat": "重庆小面汤面",
+          "dishId": "cp0788",
+          "kbName": "酸菜肉丝面"
+        },
+        {
+          "name": "香辣肉丝面",
+          "price": 10.5,
+          "cat": "重庆小面汤面",
+          "dishId": "cp1247",
+          "kbName": "香辣肉丝面"
+        },
+        {
+          "name": "清汤牛肉面",
+          "price": 11,
+          "cat": "重庆小面汤面",
+          "dishId": "cp0653",
+          "kbName": "清汤牛肉面"
+        },
+        {
+          "name": "清汤排骨面",
+          "price": 11.5,
+          "cat": "重庆小面汤面",
+          "dishId": "cp1248",
+          "kbName": "清汤排骨面"
+        },
+        {
+          "name": "红烧排骨面",
+          "price": 12,
+          "cat": "重庆小面汤面",
+          "dishId": "cp0657",
+          "kbName": "红烧排骨面"
+        },
+        {
+          "name": "番茄牛肉面",
+          "price": 13.5,
+          "cat": "重庆小面汤面",
+          "dishId": "cp0648",
+          "kbName": "番茄牛肉面"
+        },
+        {
+          "name": "红烧牛肉面",
+          "price": 15,
+          "cat": "重庆小面汤面",
+          "dishId": "cp0393",
+          "kbName": "红烧牛肉面"
+        },
+        {
+          "name": "酸菜牛肉面",
+          "price": 15,
+          "cat": "重庆小面汤面",
+          "dishId": "cp1249",
+          "kbName": "酸菜牛肉面"
+        },
+        {
+          "name": "四川凉面",
+          "price": 8,
+          "cat": "拌面系列",
+          "dishId": "cp1250",
+          "kbName": "四川凉面"
+        },
+        {
+          "name": "西红柿鸡蛋拌面",
+          "price": 9,
+          "cat": "拌面系列",
+          "dishId": "cp0163",
+          "kbName": "西红柿鸡蛋拌面"
+        },
+        {
+          "name": "油泼辣子刀削面",
+          "price": 9,
+          "cat": "拌面系列",
+          "dishId": "cp1251",
+          "kbName": "油泼辣子刀削面"
+        },
+        {
+          "name": "臊子干拌面",
+          "price": 10,
+          "cat": "拌面系列",
+          "dishId": "cp1252",
+          "kbName": "臊子干拌面"
+        },
+        {
+          "name": "孜然牛肉拌面",
+          "price": 13.5,
+          "cat": "拌面系列",
+          "dishId": "cp0662",
+          "kbName": "孜然牛肉拌面"
+        },
+        {
+          "name": "招牌牛肉拌面",
+          "price": 13.5,
+          "cat": "拌面系列",
+          "dishId": "cp1253",
+          "kbName": "招牌牛肉拌面"
+        },
+        {
+          "name": "套餐1 西红柿鸡蛋面+鸡腿",
+          "price": 13.4,
+          "cat": "特价套餐",
+          "dishId": "cp1254",
+          "kbName": "套餐1 西红柿鸡蛋面+鸡腿"
+        },
+        {
+          "name": "套餐2 鸡蛋面+煎蛋+烤肠",
+          "price": 11.5,
+          "cat": "特价套餐",
+          "dishId": "cp1255",
+          "kbName": "套餐2 鸡蛋面+煎蛋+烤肠"
+        },
+        {
+          "name": "套餐3 油泼刀削面+煎蛋烤肠",
+          "price": 11.5,
+          "cat": "特价套餐",
+          "dishId": "cp1256",
+          "kbName": "套餐3 油泼刀削面+煎蛋烤肠"
+        },
+        {
+          "name": "套餐4 油泼刀削面+鸡腿煎蛋",
+          "price": 14.9,
+          "cat": "特价套餐",
+          "dishId": "cp1257",
+          "kbName": "套餐4 油泼刀削面+鸡腿煎蛋"
+        },
+        {
+          "name": "套餐5 重庆小面+鸡腿",
+          "price": 13.9,
+          "cat": "特价套餐",
+          "dishId": "cp1258",
+          "kbName": "套餐5 重庆小面+鸡腿"
+        },
+        {
+          "name": "套餐6 红烧牛肉面+鸡蛋",
+          "price": 15.3,
+          "cat": "特价套餐",
+          "dishId": "cp1259",
+          "kbName": "套餐6 红烧牛肉面+鸡蛋"
+        },
+        {
+          "name": "套餐7 清汤牛肉面+鸡蛋狮子头",
+          "price": 13.4,
+          "cat": "特价套餐",
+          "dishId": "cp1260",
+          "kbName": "套餐7 清汤牛肉面+鸡蛋狮子头"
+        },
+        {
+          "name": "套餐8 清汤牛肉+鸡腿",
+          "price": 14.9,
+          "cat": "特价套餐",
+          "dishId": "cp1261",
+          "kbName": "套餐8 清汤牛肉+鸡腿"
+        },
+        {
+          "name": "套餐9 重庆小面+烤肠煎蛋",
+          "price": 13.9,
+          "cat": "特价套餐",
+          "dishId": "cp1262",
+          "kbName": "套餐9 重庆小面+烤肠煎蛋"
+        },
+        {
+          "name": "套餐10 重庆小面+狮子头",
+          "price": 12,
+          "cat": "特价套餐",
+          "dishId": "cp1263",
+          "kbName": "套餐10 重庆小面+狮子头"
+        },
+        {
+          "name": "套餐11 重庆小面+猪肉馅饼",
+          "price": 13.9,
+          "cat": "特价套餐",
+          "dishId": "cp1264",
+          "kbName": "套餐11 重庆小面+猪肉馅饼"
+        },
+        {
+          "name": "套餐12 肉沫拌面+煎蛋烤肠",
+          "price": 12.9,
+          "cat": "特价套餐",
+          "dishId": "cp1265",
+          "kbName": "套餐12 肉沫拌面+煎蛋烤肠"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-盛柏禾滑蛋饭",
       "name": "盛柏禾滑蛋饭",
       "city": "保定",
@@ -7799,6 +9812,269 @@
           "cat": "冰饮",
           "dishId": "cp0539",
           "kbName": "冰镇红豆沙"
+        }
+      ],
+      "uncertain": []
+    },
+    {
+      "id": "local-精灵之城披萨·减脂餐",
+      "name": "精灵之城披萨·减脂餐",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "精灵之城披萨·减脂餐",
+      "cuisine": "西",
+      "avg": 15,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "蔬菜沙拉",
+          "price": 9.9,
+          "cat": "轻食沙拉",
+          "dishId": "cp1266",
+          "kbName": "蔬菜沙拉"
+        },
+        {
+          "name": "减脂鸡胸肉沙拉",
+          "price": 9.9,
+          "cat": "轻食沙拉",
+          "dishId": "cp1267",
+          "kbName": "减脂鸡胸肉沙拉"
+        },
+        {
+          "name": "墨西哥鸡胸沙拉",
+          "price": 15,
+          "cat": "轻食沙拉",
+          "dishId": "cp1268",
+          "kbName": "墨西哥鸡胸沙拉"
+        },
+        {
+          "name": "金枪鱼沙拉",
+          "price": 16,
+          "cat": "轻食沙拉",
+          "dishId": "cp1269",
+          "kbName": "金枪鱼沙拉"
+        },
+        {
+          "name": "能量牛排沙拉",
+          "price": 25,
+          "cat": "轻食沙拉",
+          "dishId": "cp1270",
+          "kbName": "能量牛排沙拉"
+        },
+        {
+          "name": "轻食烤鸡碗",
+          "price": 15,
+          "cat": "招牌炙烤",
+          "dishId": "cp1271",
+          "kbName": "轻食烤鸡碗"
+        },
+        {
+          "name": "炙烤鸡胸时蔬意面",
+          "price": 16,
+          "cat": "招牌炙烤",
+          "dishId": "cp1272",
+          "kbName": "炙烤鸡胸时蔬意面"
+        },
+        {
+          "name": "奥尔良鸡胸时蔬杂粮饭",
+          "price": 16,
+          "cat": "招牌炙烤",
+          "dishId": "cp1273",
+          "kbName": "奥尔良鸡胸时蔬杂粮饭"
+        },
+        {
+          "name": "肥牛双拼杂粮大碗面",
+          "price": 22,
+          "cat": "招牌炙烤",
+          "dishId": "cp1274",
+          "kbName": "肥牛双拼杂粮大碗面"
+        },
+        {
+          "name": "黑椒鸡胸炙烤时蔬意面",
+          "price": 19.9,
+          "cat": "招牌炙烤",
+          "dishId": "cp1275",
+          "kbName": "黑椒鸡胸炙烤时蔬意面"
+        },
+        {
+          "name": "班尼蛋牛肉时蔬杂粮饭",
+          "price": 25,
+          "cat": "招牌炙烤",
+          "dishId": "cp1276",
+          "kbName": "班尼蛋牛肉时蔬杂粮饭"
+        },
+        {
+          "name": "经典意大利肉酱面",
+          "price": 13.9,
+          "cat": "意大利面",
+          "dishId": "cp1277",
+          "kbName": "经典意大利肉酱面"
+        },
+        {
+          "name": "炙烤鸡胸肉意大利面",
+          "price": 14.9,
+          "cat": "意大利面",
+          "dishId": "cp1278",
+          "kbName": "炙烤鸡胸肉意大利面"
+        },
+        {
+          "name": "奶油蘑菇意大利面",
+          "price": 15.9,
+          "cat": "意大利面",
+          "dishId": "cp1279",
+          "kbName": "奶油蘑菇意大利面"
+        },
+        {
+          "name": "黑椒牛肉意大利面",
+          "price": 16.9,
+          "cat": "意大利面",
+          "dishId": "cp1280",
+          "kbName": "黑椒牛肉意大利面"
+        },
+        {
+          "name": "黑椒牛肉焗饭",
+          "price": 13.9,
+          "cat": "芝士焗饭",
+          "dishId": "cp1281",
+          "kbName": "黑椒牛肉焗饭"
+        },
+        {
+          "name": "黑椒烤鸭焗饭",
+          "price": 14.9,
+          "cat": "芝士焗饭",
+          "dishId": "cp1282",
+          "kbName": "黑椒烤鸭焗饭"
+        },
+        {
+          "name": "咖喱芝士焗饭",
+          "price": 15.9,
+          "cat": "芝士焗饭",
+          "dishId": "cp1283",
+          "kbName": "咖喱芝士焗饭"
+        },
+        {
+          "name": "咖喱牛肉焗饭",
+          "price": 15.9,
+          "cat": "芝士焗饭",
+          "dishId": "cp1284",
+          "kbName": "咖喱牛肉焗饭"
+        },
+        {
+          "name": "咖喱海鲜焗饭",
+          "price": 15.9,
+          "cat": "芝士焗饭",
+          "dishId": "cp1285",
+          "kbName": "咖喱海鲜焗饭"
+        },
+        {
+          "name": "夏威夷水果焗饭",
+          "price": 14.9,
+          "cat": "芝士焗饭",
+          "dishId": "cp1286",
+          "kbName": "夏威夷水果焗饭"
+        },
+        {
+          "name": "菌菇焗饭",
+          "price": 15.9,
+          "cat": "芝士焗饭",
+          "dishId": "cp1287",
+          "kbName": "菌菇焗饭"
+        },
+        {
+          "name": "烤肠派对披萨",
+          "price": 12.9,
+          "cat": "手作披萨",
+          "dishId": "cp1288",
+          "kbName": "烤肠派对披萨"
+        },
+        {
+          "name": "美式培根披萨",
+          "price": 12.9,
+          "cat": "手作披萨",
+          "dishId": "cp1289",
+          "kbName": "美式培根披萨"
+        },
+        {
+          "name": "乳酪黄桃水果披萨",
+          "price": 12.9,
+          "cat": "手作披萨",
+          "dishId": "cp1290",
+          "kbName": "乳酪黄桃水果披萨"
+        },
+        {
+          "name": "黑椒牛肉披萨",
+          "price": 16.9,
+          "cat": "手作披萨",
+          "dishId": "cp1291",
+          "kbName": "黑椒牛肉披萨"
+        },
+        {
+          "name": "土耳其鸡肉披萨",
+          "price": 15.9,
+          "cat": "手作披萨",
+          "dishId": "cp1292",
+          "kbName": "土耳其鸡肉披萨"
+        },
+        {
+          "name": "金枕榴莲披萨",
+          "price": 19.9,
+          "cat": "手作披萨",
+          "dishId": "cp1293",
+          "kbName": "金枕榴莲披萨"
+        },
+        {
+          "name": "A套餐（披萨汉堡）",
+          "price": 12.9,
+          "cat": "披萨汉堡套餐",
+          "dishId": "cp1294",
+          "kbName": "A套餐（披萨汉堡）"
+        },
+        {
+          "name": "B套餐（披萨汉堡）",
+          "price": 12.9,
+          "cat": "披萨汉堡套餐",
+          "dishId": "cp1295",
+          "kbName": "B套餐（披萨汉堡）"
+        },
+        {
+          "name": "C套餐（披萨汉堡）",
+          "price": 13.9,
+          "cat": "披萨汉堡套餐",
+          "dishId": "cp1296",
+          "kbName": "C套餐（披萨汉堡）"
+        },
+        {
+          "name": "D套餐（披萨汉堡）",
+          "price": 12.9,
+          "cat": "披萨汉堡套餐",
+          "dishId": "cp1297",
+          "kbName": "D套餐（披萨汉堡）"
+        },
+        {
+          "name": "E套餐（披萨汉堡）",
+          "price": 12.9,
+          "cat": "披萨汉堡套餐",
+          "dishId": "cp1298",
+          "kbName": "E套餐（披萨汉堡）"
+        },
+        {
+          "name": "F套餐（披萨汉堡）",
+          "price": 13.9,
+          "cat": "披萨汉堡套餐",
+          "dishId": "cp1299",
+          "kbName": "F套餐（披萨汉堡）"
         }
       ],
       "uncertain": []
@@ -9580,6 +11856,206 @@
       "uncertain": []
     },
     {
+      "id": "local-蒋小辣",
+      "name": "蒋小辣",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "蒋小辣",
+      "cuisine": "湘",
+      "avg": 14,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "爆火辣椒炒肉饭",
+          "price": 13.9,
+          "cat": "招牌单品",
+          "dishId": "cp1300",
+          "kbName": "爆火辣椒炒肉饭"
+        },
+        {
+          "name": "过瘾辣子鸡饭",
+          "price": 13.9,
+          "cat": "招牌单品",
+          "dishId": "cp1301",
+          "kbName": "过瘾辣子鸡饭"
+        },
+        {
+          "name": "湘西烟笋干炒肉饭",
+          "price": 13.9,
+          "cat": "招牌单品",
+          "dishId": "cp1302",
+          "kbName": "湘西烟笋干炒肉饭"
+        },
+        {
+          "name": "湘西外婆菜炒鸡蛋饭",
+          "price": 11.9,
+          "cat": "招牌单品",
+          "dishId": "cp1303",
+          "kbName": "湘西外婆菜炒鸡蛋饭"
+        },
+        {
+          "name": "热辣丸子一锅香饭",
+          "price": 11.9,
+          "cat": "招牌单品",
+          "dishId": "cp1304",
+          "kbName": "热辣丸子一锅香饭"
+        },
+        {
+          "name": "辣炝花椰菜饭",
+          "price": 9.9,
+          "cat": "招牌单品",
+          "dishId": "cp1305",
+          "kbName": "辣炝花椰菜饭"
+        },
+        {
+          "name": "脆皮鸡蛋豆腐饭",
+          "price": 9.9,
+          "cat": "招牌单品",
+          "dishId": "cp1306",
+          "kbName": "脆皮鸡蛋豆腐饭"
+        },
+        {
+          "name": "辣椒炒肉拼湘式小炒香干",
+          "price": 13.9,
+          "cat": "花样双拼",
+          "dishId": "cp1307",
+          "kbName": "辣椒炒肉拼湘式小炒香干"
+        },
+        {
+          "name": "辣椒炒肉拼风味茄子",
+          "price": 13.9,
+          "cat": "花样双拼",
+          "dishId": "cp1308",
+          "kbName": "辣椒炒肉拼风味茄子"
+        },
+        {
+          "name": "辣椒炒肉拼泰式咖喱",
+          "price": 13.9,
+          "cat": "花样双拼",
+          "dishId": "cp1309",
+          "kbName": "辣椒炒肉拼泰式咖喱"
+        },
+        {
+          "name": "辣椒炒肉拼辣子鸡",
+          "price": 14.9,
+          "cat": "花样双拼",
+          "dishId": "cp1310",
+          "kbName": "辣椒炒肉拼辣子鸡"
+        },
+        {
+          "name": "辣椒炒肉拼外婆菜",
+          "price": 13.9,
+          "cat": "花样双拼",
+          "dishId": "cp1311",
+          "kbName": "辣椒炒肉拼外婆菜"
+        },
+        {
+          "name": "金牌烧肉（配外婆菜炒蛋）",
+          "price": 14.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1312",
+          "kbName": "金牌烧肉（配外婆菜炒蛋）"
+        },
+        {
+          "name": "金牌烧肉拼辣炝花椰菜",
+          "price": 14.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1313",
+          "kbName": "金牌烧肉拼辣炝花椰菜"
+        },
+        {
+          "name": "金牌烧肉拼酸辣土豆丝",
+          "price": 14.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1314",
+          "kbName": "金牌烧肉拼酸辣土豆丝"
+        },
+        {
+          "name": "烟笋干炒肉拼酱焖茄子",
+          "price": 13.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1315",
+          "kbName": "烟笋干炒肉拼酱焖茄子"
+        },
+        {
+          "name": "烟笋干炒肉拼番茄肉酱",
+          "price": 13.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1316",
+          "kbName": "烟笋干炒肉拼番茄肉酱"
+        },
+        {
+          "name": "热辣丸子拼脆皮鸡蛋豆腐",
+          "price": 12.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1317",
+          "kbName": "热辣丸子拼脆皮鸡蛋豆腐"
+        },
+        {
+          "name": "热辣丸子拼酱焖茄子",
+          "price": 12.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1318",
+          "kbName": "热辣丸子拼酱焖茄子"
+        },
+        {
+          "name": "热辣丸子拼过瘾辣子鸡",
+          "price": 13.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1319",
+          "kbName": "热辣丸子拼过瘾辣子鸡"
+        },
+        {
+          "name": "外婆菜炒蛋拼泰式咖喱",
+          "price": 12.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1320",
+          "kbName": "外婆菜炒蛋拼泰式咖喱"
+        },
+        {
+          "name": "外婆菜炒蛋拼酱焖茄子",
+          "price": 12.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1321",
+          "kbName": "外婆菜炒蛋拼酱焖茄子"
+        },
+        {
+          "name": "外婆菜炒蛋拼番茄肉酱",
+          "price": 12.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1322",
+          "kbName": "外婆菜炒蛋拼番茄肉酱"
+        },
+        {
+          "name": "外婆菜炒蛋拼湘式小炒香干",
+          "price": 12.9,
+          "cat": "烧肉配小炒",
+          "dishId": "cp1323",
+          "kbName": "外婆菜炒蛋拼湘式小炒香干"
+        },
+        {
+          "name": "蜜汁手枪腿",
+          "price": 8,
+          "cat": "招牌小食",
+          "dishId": "cp1324",
+          "kbName": "蜜汁手枪腿"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-觅香嫂",
       "name": "觅香嫂",
       "city": "保定",
@@ -10724,6 +13200,318 @@
       "uncertain": []
     },
     {
+      "id": "local-金日升",
+      "name": "金日升",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "金日升",
+      "cuisine": "川",
+      "avg": 14,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "土豆片烤盘饭",
+          "price": 10.8,
+          "cat": "烤盘饭",
+          "dishId": "cp1325",
+          "kbName": "土豆片烤盘饭"
+        },
+        {
+          "name": "金针菇烤盘饭",
+          "price": 10,
+          "cat": "烤盘饭",
+          "dishId": "cp1326",
+          "kbName": "金针菇烤盘饭"
+        },
+        {
+          "name": "鱼豆腐烤盘饭",
+          "price": 12.8,
+          "cat": "烤盘饭",
+          "dishId": "cp1327",
+          "kbName": "鱼豆腐烤盘饭"
+        },
+        {
+          "name": "奥尔良鸡肉烤盘饭",
+          "price": 14,
+          "cat": "烤盘饭",
+          "dishId": "cp1328",
+          "kbName": "奥尔良鸡肉烤盘饭"
+        },
+        {
+          "name": "五花肉烤盘饭",
+          "price": 14.8,
+          "cat": "烤盘饭",
+          "dishId": "cp1329",
+          "kbName": "五花肉烤盘饭"
+        },
+        {
+          "name": "方便面鸡肉烤盘饭",
+          "price": 12.8,
+          "cat": "烤盘饭",
+          "dishId": "cp1330",
+          "kbName": "方便面鸡肉烤盘饭"
+        },
+        {
+          "name": "藤椒腿排烤盘饭",
+          "price": 13.8,
+          "cat": "烤盘饭",
+          "dishId": "cp1331",
+          "kbName": "藤椒腿排烤盘饭"
+        },
+        {
+          "name": "香辣鸡丁烤盘饭",
+          "price": 12.8,
+          "cat": "烤盘饭",
+          "dishId": "cp1332",
+          "kbName": "香辣鸡丁烤盘饭"
+        },
+        {
+          "name": "午餐肉烤盘饭",
+          "price": 12.8,
+          "cat": "烤盘饭",
+          "dishId": "cp1333",
+          "kbName": "午餐肉烤盘饭"
+        },
+        {
+          "name": "蚝油肉片烤盘饭",
+          "price": 14.8,
+          "cat": "烤盘饭",
+          "dishId": "cp1334",
+          "kbName": "蚝油肉片烤盘饭"
+        },
+        {
+          "name": "土豆片焖锅",
+          "price": 11.8,
+          "cat": "小焖锅",
+          "dishId": "cp1335",
+          "kbName": "土豆片焖锅"
+        },
+        {
+          "name": "面筋焖锅",
+          "price": 11.8,
+          "cat": "小焖锅",
+          "dishId": "cp1336",
+          "kbName": "面筋焖锅"
+        },
+        {
+          "name": "鱼豆腐焖锅",
+          "price": 12.8,
+          "cat": "小焖锅",
+          "dishId": "cp1337",
+          "kbName": "鱼豆腐焖锅"
+        },
+        {
+          "name": "小酥肉焖锅",
+          "price": 13.8,
+          "cat": "小焖锅",
+          "dishId": "cp1338",
+          "kbName": "小酥肉焖锅"
+        },
+        {
+          "name": "五花肉焖锅",
+          "price": 13.8,
+          "cat": "小焖锅",
+          "dishId": "cp1339",
+          "kbName": "五花肉焖锅"
+        },
+        {
+          "name": "奥尔良鸡肉焖锅",
+          "price": 13.8,
+          "cat": "小焖锅",
+          "dishId": "cp1340",
+          "kbName": "奥尔良鸡肉焖锅"
+        },
+        {
+          "name": "川味腊肠焖锅",
+          "price": 13.8,
+          "cat": "小焖锅",
+          "dishId": "cp1341",
+          "kbName": "川味腊肠焖锅"
+        },
+        {
+          "name": "脆骨肠焖锅",
+          "price": 13.6,
+          "cat": "小焖锅",
+          "dishId": "cp1342",
+          "kbName": "脆骨肠焖锅"
+        },
+        {
+          "name": "香酥鸡柳焖锅",
+          "price": 13.8,
+          "cat": "小焖锅",
+          "dishId": "cp1343",
+          "kbName": "香酥鸡柳焖锅"
+        },
+        {
+          "name": "方便面火腿焖锅",
+          "price": 13.8,
+          "cat": "小焖锅",
+          "dishId": "cp1344",
+          "kbName": "方便面火腿焖锅"
+        },
+        {
+          "name": "小肥牛焖锅",
+          "price": 14.8,
+          "cat": "小焖锅",
+          "dishId": "cp1345",
+          "kbName": "小肥牛焖锅"
+        },
+        {
+          "name": "招牌原味钵钵鸡",
+          "price": 13,
+          "cat": "钵钵鸡",
+          "dishId": "cp1346",
+          "kbName": "招牌原味钵钵鸡"
+        },
+        {
+          "name": "川渝香辣钵钵鸡",
+          "price": 13,
+          "cat": "钵钵鸡",
+          "dishId": "cp1347",
+          "kbName": "川渝香辣钵钵鸡"
+        },
+        {
+          "name": "番茄钵钵鸡",
+          "price": 13,
+          "cat": "钵钵鸡",
+          "dishId": "cp1348",
+          "kbName": "番茄钵钵鸡"
+        },
+        {
+          "name": "爽口藤椒钵钵鸡",
+          "price": 13,
+          "cat": "钵钵鸡",
+          "dishId": "cp1349",
+          "kbName": "爽口藤椒钵钵鸡"
+        },
+        {
+          "name": "金汤酸辣钵钵鸡",
+          "price": 13,
+          "cat": "钵钵鸡",
+          "dishId": "cp1350",
+          "kbName": "金汤酸辣钵钵鸡"
+        },
+        {
+          "name": "招牌原味猪肚鸡",
+          "price": 14.5,
+          "cat": "猪肚鸡",
+          "dishId": "cp1351",
+          "kbName": "招牌原味猪肚鸡"
+        },
+        {
+          "name": "川湘香辣猪肚鸡",
+          "price": 14.5,
+          "cat": "猪肚鸡",
+          "dishId": "cp1352",
+          "kbName": "川湘香辣猪肚鸡"
+        },
+        {
+          "name": "番茄猪肚鸡",
+          "price": 14.5,
+          "cat": "猪肚鸡",
+          "dishId": "cp1353",
+          "kbName": "番茄猪肚鸡"
+        },
+        {
+          "name": "藤椒猪肚鸡",
+          "price": 14.5,
+          "cat": "猪肚鸡",
+          "dishId": "cp1354",
+          "kbName": "藤椒猪肚鸡"
+        },
+        {
+          "name": "金汤酸辣猪肚鸡",
+          "price": 14.5,
+          "cat": "猪肚鸡",
+          "dishId": "cp1355",
+          "kbName": "金汤酸辣猪肚鸡"
+        },
+        {
+          "name": "鸭血小锅",
+          "price": 11,
+          "cat": "酥肉小锅",
+          "dishId": "cp1356",
+          "kbName": "鸭血小锅"
+        },
+        {
+          "name": "甜不辣小锅",
+          "price": 11.8,
+          "cat": "酥肉小锅",
+          "dishId": "cp1357",
+          "kbName": "甜不辣小锅"
+        },
+        {
+          "name": "培根肉小锅",
+          "price": 12.8,
+          "cat": "酥肉小锅",
+          "dishId": "cp1358",
+          "kbName": "培根肉小锅"
+        },
+        {
+          "name": "招牌酥肉小锅",
+          "price": 12.8,
+          "cat": "酥肉小锅",
+          "dishId": "cp1359",
+          "kbName": "招牌酥肉小锅"
+        },
+        {
+          "name": "香酥鸡柳小锅",
+          "price": 12.8,
+          "cat": "酥肉小锅",
+          "dishId": "cp1360",
+          "kbName": "香酥鸡柳小锅"
+        },
+        {
+          "name": "鲜肉小锅",
+          "price": 13,
+          "cat": "酥肉小锅",
+          "dishId": "cp1361",
+          "kbName": "鲜肉小锅"
+        },
+        {
+          "name": "肥牛小锅",
+          "price": 13.8,
+          "cat": "酥肉小锅",
+          "dishId": "cp1362",
+          "kbName": "肥牛小锅"
+        },
+        {
+          "name": "全家福小锅",
+          "price": 13.8,
+          "cat": "酥肉小锅",
+          "dishId": "cp1363",
+          "kbName": "全家福小锅"
+        },
+        {
+          "name": "荤菜(称重)",
+          "price": 4.4,
+          "cat": "烤盘饭（8.8元/3两）",
+          "dishId": "cp0927",
+          "kbName": "荤菜(称重)"
+        },
+        {
+          "name": "素菜(称重)",
+          "price": 5.5,
+          "cat": "烤盘饭（1.6元/1两）",
+          "dishId": "cp0928",
+          "kbName": "素菜(称重)"
+        }
+      ],
+      "uncertain": []
+    },
+    {
       "id": "local-铁板饭",
       "name": "铁板饭",
       "city": "保定",
@@ -11298,6 +14086,101 @@
           "cat": "风味小炒系列",
           "dishId": "cp0118",
           "kbName": "锅包肉（档口）"
+        }
+      ],
+      "uncertain": []
+    },
+    {
+      "id": "local-饶城湘",
+      "name": "饶城湘",
+      "city": "保定",
+      "place": "campus",
+      "campus": "华北电力大学（保定）",
+      "canteen": "第三食堂",
+      "stall": "饶城湘",
+      "cuisine": "湘",
+      "avg": 13,
+      "scope": "branch",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "菜单整理录入（用户提供）",
+      "collectedAt": "2026-10-01",
+      "image": "",
+      "menu": [
+        {
+          "name": "招牌辣椒炒肉",
+          "price": 13.9,
+          "cat": "本店必吃",
+          "dishId": "cp0629",
+          "kbName": "招牌辣椒炒肉"
+        },
+        {
+          "name": "小炒黄牛肉",
+          "price": 16.9,
+          "cat": "本店必吃",
+          "dishId": "cp0136",
+          "kbName": "小炒黄牛肉（档口）"
+        },
+        {
+          "name": "杏鲍菇炒肉片",
+          "price": 12.9,
+          "cat": "硬核下饭",
+          "dishId": "cp1364",
+          "kbName": "杏鲍菇炒肉片"
+        },
+        {
+          "name": "湘西酸辣鸡",
+          "price": 12.9,
+          "cat": "硬核下饭",
+          "dishId": "cp1365",
+          "kbName": "湘西酸辣鸡"
+        },
+        {
+          "name": "泡椒鸡杂",
+          "price": 12.9,
+          "cat": "硬核下饭",
+          "dishId": "cp0254",
+          "kbName": "泡椒鸡杂（档口）"
+        },
+        {
+          "name": "农家一碗香",
+          "price": 12.9,
+          "cat": "店铺热卖",
+          "dishId": "cp1366",
+          "kbName": "农家一碗香（档口）"
+        },
+        {
+          "name": "干锅土豆烧肉",
+          "price": 11.9,
+          "cat": "店铺热卖",
+          "dishId": "cp1367",
+          "kbName": "干锅土豆烧肉"
+        },
+        {
+          "name": "衡山烟笋炒腊肉",
+          "price": 13.9,
+          "cat": "小锅现炒",
+          "dishId": "cp1368",
+          "kbName": "衡山烟笋炒腊肉"
+        },
+        {
+          "name": "攸县湘酥肥肠",
+          "price": 12.9,
+          "cat": "小锅现炒",
+          "dishId": "cp1369",
+          "kbName": "攸县湘酥肥肠"
+        },
+        {
+          "name": "杏鲍菇青椒炒鸡蛋",
+          "price": 11.9,
+          "cat": "小锅现炒",
+          "dishId": "cp1370",
+          "kbName": "杏鲍菇青椒炒鸡蛋"
         }
       ],
       "uncertain": []
