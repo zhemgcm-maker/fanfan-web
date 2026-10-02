@@ -755,8 +755,8 @@
     <label class="field" for="mode">在哪儿吃？</label>
     <select id="mode">
       <option value="campus">🏫 校内食堂（华电二校区）</option>
-      <option value="delivery">🛵 出校吃 · 外卖送到</option>
-      <option value="dinein">🚶 出校吃 · 到店堂食</option>
+      <option value="delivery">🛵 外卖送到</option>
+      <option value="dinein">🚶 到店堂食</option>
     </select>
     <p class="note" id="placeNote">—</p>
 
@@ -3397,7 +3397,7 @@ function renderPlaceUI(){
     ? (school
         ? '校内食堂（' + school + '）：不联网、不申请定位，直接按采到的档口菜单配。'
         : '校内食堂：不联网、不申请定位，直接按采到的档口菜单配。还没认证学校 —— 现在先按已录入的档口给你配。')
-    : '出校吃：按你填的地址实时搜周边真实饭店（需要联网 / 高德 Key）。';
+    : '按你填的地址实时搜周边真实饭店（需要联网 / 高德 Key）。';
   const hint = $('#campusHint');
   if(hint){
     const list = campusStalls();
