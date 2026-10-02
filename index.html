@@ -1515,7 +1515,10 @@ const state = {
             /* 记忆条目（Agent 模式用）：大模型可以主动往里写一条，下次开局会读给它。
              * { id, kind:'preference'|'allergy'|'habit'|'event', text, evidence, ts, hits, pinned } */
             memory:[],
-            spiceMax:3, defaultTier:null, savedAddresses:[] },
+  /* school = 认证的学校（认证学校是"新增"一条信息，不替代地点）。
+   * 空字符串 = 还没认证 → 界面显示「校内食堂（请认证学校）」。 */
+  school:'',
+  spiceMax:3, defaultTier:null, savedAddresses:[] },
   settings:{ v:SETTINGS_VERSION, enabled:'on', provider:'deepseek', model:'deepseek-chat', base:PROVIDERS.deepseek.base, key:DEFAULT_KEY,
              online:'on', amapKey: DEFAULT_AMAP_KEY,
              /* 决策模式：
@@ -3380,9 +3383,20 @@ function renderPlaceUI(){
   if(out) out.classList.toggle('hidden', isCampus());
   if(cam) cam.classList.toggle('hidden', !isCampus());
   if(typeof renderCats === 'function') renderCats();   // 类型那三个按钮要跟着校内/校外重算（见 renderCats 里的 catEmpty）
+  /* 「认证学校」是新增的一条信息，不替代地点：认证了就显示学校名，没认证就提示去认证。
+   * 学校存在 profile 里（跟口味、忌口一样会跟着账号同步），现在还没有认证入口，
+   * 所以默认是空的 → 界面显示「校内食堂（请认证学校）」。 */
+  const school = String((state.profile && state.profile.school) || '').trim();
+  const modeSel = $('#mode');
+  if(modeSel){
+    const opt = modeSel.querySelector('option[value="campus"]');
+    if(opt) opt.textContent = '🏫 校内食堂（' + (school || '请认证学校') + '）';
+  }
   const note = $('#placeNote');
   if(note) note.textContent = isCampus()
-    ? '校内食堂：不联网、不申请定位，直接按采到的档口菜单配。'
+    ? (school
+        ? '校内食堂（' + school + '）：不联网、不申请定位，直接按采到的档口菜单配。'
+        : '校内食堂：不联网、不申请定位，直接按采到的档口菜单配。还没认证学校 —— 现在先按已录入的档口给你配。')
     : '出校吃：按你填的地址实时搜周边真实饭店（需要联网 / 高德 Key）。';
   const hint = $('#campusHint');
   if(hint){
@@ -3395,7 +3409,8 @@ function renderPlaceUI(){
       g.names.push(s.stall || s.name);
     });
     hint.innerHTML = list.length
-      ? '已收录 <b>' + list.length + '</b> 个档口：' +
+      ? (school ? '' : '⚠️ 还没认证学校：下面这份是按已录入的档口给的，认证后会自动切到你学校的食堂。<br>') +
+        '已收录 <b>' + list.length + '</b> 个档口：' +
         groups.map(g => esc(g.key) + '「' + g.names.map(esc).join('、') + '」').join('；') +
         '。<br>菜品和价格来自实地采集，不用定位、不用联网就能配。'
       : '还没有收录校内档口。把菜单放进「商家数据库/解析结果」跑一次 <b>build-data.mjs</b> 就能用了。';
