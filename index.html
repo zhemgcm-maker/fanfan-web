@@ -1177,6 +1177,20 @@
   </div>
   <div id="memPageBody"></div>
 </div><!-- /pageMem -->
+
+<!-- =================== 发现美食：商家数据 =================== -->
+<div id="pageFind" class="hidden">
+  <div class="me-head" id="findHead" style="margin-bottom:10px;position:sticky;top:0;z-index:6">
+    <div class="me-avatar">🧾</div>
+    <div style="flex:1;min-width:0">
+      <div class="mh-name">发现美食</div>
+      <div class="mh-sub" id="findSub">—</div>
+    </div>
+  </div>
+  <div id="findBody"></div>
+  <div id="findStall" class="hidden"></div>
+</div><!-- /pageFind -->
+
 </div><!-- /wrap -->
 
 <!-- 底部操作栏 -->
@@ -1191,19 +1205,6 @@
 </div>
 
 <!-- 底部 Tab -->
-<!-- =================== 发现：商家数据 =================== -->
-<div id="pageFind" class="hidden">
-  <div class="me-head" id="findHead" style="margin-bottom:10px;position:sticky;top:0;z-index:6;background:#fffdfb">
-    <div class="me-avatar">🧾</div>
-    <div style="flex:1;min-width:0">
-      <div class="mh-name">发现美食</div>
-      <div class="mh-sub" id="findSub">—</div>
-    </div>
-  </div>
-  <div id="findBody"></div>
-  <div id="findStall" class="hidden"></div>
-</div><!-- /pageFind -->
-
 <nav class="tabbar" role="tablist">
   <button type="button" id="tabHome" class="active" role="tab" aria-selected="true">
     <span class="t-icon">🍜</span><span>推荐</span>
@@ -4923,7 +4924,7 @@ function renderFind(){
     let g = groups.find(x => x.key === key);
     if(!g){
       g = { key, items:[],
-            title: inCampus ? ('🏫 ' + (s.canteen || '食堂') + (s.campus ? '（' + s.campus + '）' : '')) : '🛵 出校吃 · 采集过菜单的店' };
+            title: inCampus ? ('🏫 ' + (s.canteen || '食堂') + (s.campus ? '（' + s.campus + '）' : '')) : '🛵 校外的店 · 采集过菜单的店' };
       groups.push(g);
     }
     g.items.push(s);
