@@ -1193,8 +1193,8 @@
 <!-- 底部 Tab -->
 <!-- =================== 发现：商家数据 =================== -->
 <div id="pageFind" class="hidden">
-  <div class="me-head" style="margin-bottom:10px">
-    <div class="me-avatar">📋</div>
+  <div class="me-head" id="findHead" style="margin-bottom:10px;position:sticky;top:0;z-index:6;background:#fffdfb">
+    <div class="me-avatar">🧾</div>
     <div style="flex:1;min-width:0">
       <div class="mh-name">发现美食</div>
       <div class="mh-sub" id="findSub">—</div>
@@ -1212,7 +1212,7 @@
       <span class="t-icon ff-tab" id="aiFaceTab"></span><span>饭饭AI</span>
     </button>
     <button type="button" id="tabFind" role="tab" aria-selected="false">
-      <span class="t-icon">📋</span><span>发现美食</span>
+      <span class="t-icon">🧾</span><span>发现美食</span>
     </button>
     <button type="button" id="tabMe" role="tab" aria-selected="false">
     <span class="t-icon">👤</span><span>我的</span><span class="t-dot" id="meDot"></span>
@@ -3468,7 +3468,7 @@ function renderPlaceUI(){
       ? '已收录 <b>' + list.length + '</b> 个档口（' +
         groups.map(g => esc(g.key) + ' ' + g.names.length + ' 个').join('、') +
         '）。<br>菜品和价格来自实地采集，不用定位、不用联网就能配。' +
-        '<br><button class="btn ghost small" id="goFind" type="button" style="margin-top:8px">📋 去「发现美食」看每个档口的完整菜单</button>'
+        '<br><button class="btn ghost small" id="goFind" type="button" style="margin-top:8px">🧾 去「发现美食」看每个档口的完整菜单</button>'
       : (!s0
           ? '⚠️ 还没选学校。去「我的 › 我的习惯 › 学校」选一所，才会给这所学校的食堂档口。'
           : '⚠️ <b>' + esc(s0.name) + '</b> 还没有录入食堂档口（库里现在有 ' + campusStallsAll().length +
@@ -4928,7 +4928,7 @@ function renderFind(){
     }
     g.items.push(s);
   });
-  body.innerHTML = groups.map(g => {
+  body.innerHTML = groups.map((g, gi) => {
     const rows = g.items.slice().sort((a, b) => (a.name > b.name ? 1 : -1)).map(s => {
       const n = (s.menu || []).length;
       const cui = s.cuisine || ((s.cuisineRef || [])[0] || '');
@@ -4939,7 +4939,11 @@ function renderFind(){
           (cui ? ' · ' + esc(cui) : '') + (s.avg ? ' · 人均 ¥' + s.avg : '') + '</span>' +
         '</span><span class="r-arrow">›</span></div>';
     }).join('');
-    return '<div class="me-title">' + esc(g.title) + '（' + g.items.length + '）</div><div class="me-card">' + rows + '</div>';
+      /* 每个食堂/分组给一个折叠按钮：档口一多，页面太长 */
+      return '<div class="me-title find-g" data-g="' + gi + '" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between">' +
+        '<span>' + esc(g.title) + '（' + g.items.length + '）</span>' +
+        '<span class="find-caret" style="transition:transform .18s">▾</span></div>' +
+        '<div class="me-card" data-gbody="' + gi + '">' + rows + '</div>';
   }).join('');
 }
 function openStallMenu(id){
@@ -8404,7 +8408,20 @@ function init(){
   /* 「发现」里点一个档口 → 看它全部菜单（事件委托，列表是每次重渲染的） */
   const findBody = $('#findBody');
   if(findBody) findBody.addEventListener('click', e => {
-    const row = e.target && e.target.closest ? e.target.closest('[data-stall]') : null;
+    const el = e.target;
+    const grp = el && el.closest ? el.closest('.find-g') : null;
+    if(grp){
+      const i = grp.getAttribute('data-g');
+      const card = findBody.querySelector('[data-gbody="' + i + '"]');
+      if(card){
+        const hid = !card.classList.contains('hidden');
+        card.classList.toggle('hidden', hid);
+        const caret = grp.querySelector('.find-caret');
+        if(caret) caret.style.transform = hid ? 'rotate(-90deg)' : '';
+      }
+      return;
+    }
+    const row = el && el.closest ? el.closest('[data-stall]') : null;
     if(row) openStallMenu(row.getAttribute('data-stall'));
   });
   $('#goMeCard').addEventListener('click', () => switchTab('me'));
