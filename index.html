@@ -3209,7 +3209,25 @@ function isCampus(){ return state.place === 'campus'; }
 /* 菜的地盘：带 place:'campus' 的菜只在食堂模式出现，反之食堂时不端出校外的菜。
  * 两边隔离，免得"校内推荐端出烤鱼 / 校外推荐端出食堂的 ¥6 单加料"。 */
 function dishPlace(d){ return (d && d.place) || 'outside'; }
-function dishInPlace(d){ return isCampus() ? dishPlace(d) === 'campus' : dishPlace(d) !== 'campus'; }
+/* 这所学校此刻能用的菜 = 它自己档口菜单里出现过的菜。
+ * 关键：菜的归属不看 place:'campus' 这个总标记，而是看**属于哪所学校的档口菜单**——
+ * 否则选了河北大学（还没录库）会顺着 campus 标记把华电的菜捞出来，等于"调用别的学校的库"。
+ * 结果按学校 id 缓存，切学校/菜单库重载会自动重算。 */
+let _campusDishIds = null, _campusDishKey = '';
+function campusDishIds(){
+  const s = schoolItem();
+  const key = (s ? s.id : '') + '|' + ((SHOP_DB.shops || []).length);
+  if(_campusDishKey === key && _campusDishIds) return _campusDishIds;
+  const set = new Set();
+  campusStalls().forEach(st => (st.menu || []).forEach(m => { if(m.dishId) set.add(m.dishId); }));
+  _campusDishIds = set; _campusDishKey = key;
+  return set;
+}
+function dishInPlace(d){
+  if(!d) return false;
+  if(isCampus()) return dishPlace(d) === 'campus' && campusDishIds().has(d.id);
+  return dishPlace(d) !== 'campus';
+}
 
 // 食堂档口 → "餐厅"对象（字段形状和 amapPoiToShop 一致，下游配桌/打分一行都不用改）
 function canteenShopToRestaurant(db){
@@ -7155,14 +7173,18 @@ async function run(){
      *   ② 有菜但被忌口/预算筛光了 → 让用户放宽条件
      * 以前一律说"所有候选都被过滤了"，明明是类别是空的，用户会以为是自己忌口设太多。 */
     const noDishInCat = !(rec.pool || []).length;
+    const noCampusStall = isCampus() && !campusStalls().length;
     traceUpdate(li, '④ 硬性规则过滤',
       noDishInCat ? '这个类型里一道菜都没有（换一个类型试试）' : '所有候选都被过滤了，建议放宽忌口或提高预算', 'done');
     state.running = false; updateSummary();
-    renderEmpty(noDishInCat
+    renderEmpty(noCampusStall
+      ? ('🏫 <b>' + esc(schoolName() || '这所学校') + '</b> 还没有录入食堂档口，所以搜不到能配的菜 😢<br>' +
+         '我们不会拿别的学校的档口顶上。换一所学校（我的 › 我的习惯 › 学校），或者等这所学校录入。')
+      : (noDishInCat
       ? (isCampus()
           ? '校内食堂这个类型里暂时没有可推的菜 😢<br>现在收录的档口都是「吃饭 / 吃面」类（凉菜和单加料只当配菜）。换成「吃饭」或「吃面」试试。'
           : '这个类型里暂时没有可推荐的菜 😢<br>换一个类型试试。')
-      : '这个条件下没有可推荐的了 😢<br>试试放宽忌口、提高预算，或者换一个类型。');
+      : '这个条件下没有可推荐的了 😢<br>试试放宽忌口、提高预算，或者换一个类型。'));
     return;
   }
 
@@ -7209,7 +7231,10 @@ async function run(){
   if(!meal.best){
     state.running = false; updateSummary();
     const noShop = !meal.list.length && (!online.source || online.source === 'none');
-    renderEmpty(noShop
+    renderEmpty(isCampus() && !campusStalls().length
+      ? ('🏫 <b>' + esc(schoolName() || '这所学校') + '</b> 还没有录入食堂档口，搜不到 ☹️<br>' +
+         '换一所学校（我的 › 我的习惯 › 学校），或者等这所学校录入。')
+      : noShop
       ? (isCampus()
           ? '🏫 校内食堂这次没配出来 😢<br>可能是这个档口菜单里没有符合你需求的菜——换个类型、放宽预算或取消部分忌口再试试。'
           : '📍 这次没搜到饭店 😢<br>店铺只能实时联网检索：请先在「我的 › 联网与模型设置」里填好高德 Key（或检查网络）。应用不再内置示例饭店，所以没网时不会给你假店名。')
