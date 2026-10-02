@@ -3439,8 +3439,20 @@ function comboPlan(tierId, mode, anchor){
   /* 人多要加菜位：slots 里同一个 role 出现几次就要几道（buildCombo 按次数填）。
    * filler = 主食那一档：主角是整份硬菜就再来一道硬菜，主角本身就是一份饭就再来一份。
    * 份额（米饭 ×2）不在这里处理——那是给 items 加 qty 的那一版。 */
-  const filler = isMain ? 'main' : 'single';
   const plan = { slots: base.slots.slice(), extras: base.extras.slice() };
+  /* 「一人一份」的主角（盖饭/面/粉/套餐，以及主食）：**几个人就要几份**。
+   * 以前这里跟"整份菜分着吃"共用同一套加位规则（2 人只加一个配菜），
+   * 于是两个人一起吃饭只给一份盖饭、5 个人给 3 份——实测量出来的就是这么错的。
+   * 整份硬菜照旧按"分着吃"算：2 人 1 道、3~4 人 2 道、5 人 3 道。 */
+  const perPerson = (role === 'single' || role === 'staple');
+  const filler = isMain ? 'main' : (role === 'staple' ? 'staple' : 'single');
+  if(perPerson){
+    const have = base.slots.filter(s => s === filler).length;
+    for(let i = have; i < n; i++) plan.slots.push(filler);
+    if(n >= 2) plan.slots.push('side');      // 多人加个配菜分着吃
+    if(n >= 4) plan.slots.push('side');
+    return plan;
+  }
   if(n >= 2) plan.slots.push('side');
   if(n >= 3) plan.slots.push(filler);
   if(n >= 5){ plan.slots.push(filler); plan.slots.push('side'); }
