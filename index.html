@@ -6243,9 +6243,10 @@ function toolSearchDishes(a){
   const pmax = Number(args.price_max) || 0;
   const terms = (q ? [q] : []).concat(tags);
   const hits = [];
-  for(const d of DISHES){
-    if(ex.has(d.id)) continue;
-    if(cat && !inCat(d, cat)) continue;
+      for(const d of DISHES){
+      if(ex.has(d.id)) continue;
+      if(!dishInPlace(d)) continue;      // 菜要分地盘：食堂模式只认这所学校档口菜单里的菜，校外模式不碰食堂菜
+      if(cat && !inCat(d, cat)) continue;
     if(pmin && d.price < pmin) continue;
     if(pmax && d.price > pmax) continue;
     let sc = 0; const why = [];
@@ -7519,7 +7520,9 @@ function aiDateText(ts){
 
 /* 挑今天这道菜：忌口／辣度／刚屏蔽的先排除，再按个人口味打分 + 确定性抖动 */
 function aiPickDailyDish(){
-  const pool = DISHES.filter(d => (!d.role || d.role === 'single' || d.role === 'main') && hardFilter(d).ok);
+  /* 必须分地盘：这里是「AI 今日推荐」，跟推荐页共用同一份菜库。
+   * 以前直接从全库挑，于是选了河北大学（没库）照样能推出一道华电档口的菜。 */
+  const pool = DISHES.filter(d => dishInPlace(d) && (!d.role || d.role === 'single' || d.role === 'main') && hardFilter(d).ok);
   if(!pool.length) return null;
   const seed = aiUserKey() + '|' + aiDayKey();
   const likes = state.profile.likes || {}, dislikes = state.profile.dislikes || {};
@@ -7581,7 +7584,8 @@ function renderAiDaily(){
   const day = aiDayKey(), key = aiUserKey();
   const cached = aiState.dishId ? dishById(aiState.dishId) : null;
   // 换天、换人（登录/退出）、菜被删了、或者新的忌口让这道菜不能吃了 → 重挑
-  let dish = (cached && aiState.day === day && aiState.key === key && hardFilter(cached).ok) ? cached : null;
+  // 缓存那道菜也要跟着"地盘"失效：切到别的学校（或没选学校）时，昨天缓存的那道菜不能接着显示
+  let dish = (cached && aiState.day === day && aiState.key === key && dishInPlace(cached) && hardFilter(cached).ok) ? cached : null;
   if(!dish){
     dish = aiPickDailyDish();
     aiState.day = day; aiState.key = key;
@@ -7590,8 +7594,15 @@ function renderAiDaily(){
     aiSave();
   }
   if(!dish){
+    const why = isCampus()
+      ? (!schoolItem()
+          ? '还没选学校：先去「我的 › 我的习惯 › 学校」选一所，才能推荐你学校食堂的菜。'
+          : (!campusStalls().length
+              ? esc(schoolName()) + ' 还没有录入食堂档口，所以今天推不出菜来 —— 我们不会拿别的学校的菜顶上。'
+              : '按你现在的忌口／辣度，这所学校食堂里挑不出能推荐的菜了。去「我的 › 我的口味」放宽一下再看。'))
+      : '按你现在的忌口，库里挑不出能推荐的菜了。去「我的 › 我的口味」放宽一下再看。';
     box.innerHTML = '<div class="ai-daily-head"><span class="ai-daily-title">✨ AI 今日推荐</span></div>' +
-      '<div class="ai-daily-why">按你现在的忌口，库里挑不出能推荐的菜了。去「我的 › 我的口味」放宽一下再看。</div>';
+      '<div class="ai-daily-why">' + why + '</div>';
     return;
   }
   box.innerHTML =
