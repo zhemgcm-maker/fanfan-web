@@ -1191,14 +1191,30 @@
 </div>
 
 <!-- 底部 Tab -->
+<!-- =================== 发现：商家数据 =================== -->
+<div id="pageFind" class="hidden">
+  <div class="me-head" style="margin-bottom:10px">
+    <div class="me-avatar">🧭</div>
+    <div style="flex:1;min-width:0">
+      <div class="mh-name">发现商家</div>
+      <div class="mh-sub" id="findSub">—</div>
+    </div>
+  </div>
+  <div id="findBody"></div>
+  <div id="findStall" class="hidden"></div>
+</div><!-- /pageFind -->
+
 <nav class="tabbar" role="tablist">
   <button type="button" id="tabHome" class="active" role="tab" aria-selected="true">
     <span class="t-icon">🍜</span><span>推荐</span>
   </button>
-  <button type="button" id="tabAi" role="tab" aria-selected="false">
-    <span class="t-icon ff-tab" id="aiFaceTab"></span><span>饭饭AI</span>
-  </button>
-  <button type="button" id="tabMe" role="tab" aria-selected="false">
+    <button type="button" id="tabAi" role="tab" aria-selected="false">
+      <span class="t-icon ff-tab" id="aiFaceTab"></span><span>饭饭AI</span>
+    </button>
+    <button type="button" id="tabFind" role="tab" aria-selected="false">
+      <span class="t-icon">🧭</span><span>发现</span>
+    </button>
+    <button type="button" id="tabMe" role="tab" aria-selected="false">
     <span class="t-icon">👤</span><span>我的</span><span class="t-dot" id="meDot"></span>
   </button>
 </nav>
@@ -3449,14 +3465,17 @@ function renderPlaceUI(){
       g.names.push(s.stall || s.name);
     });
     hint.innerHTML = list.length
-      ? '已收录 <b>' + list.length + '</b> 个档口：' +
-        groups.map(g => esc(g.key) + '「' + g.names.map(esc).join('、') + '」').join('；') +
-        '。<br>菜品和价格来自实地采集，不用定位、不用联网就能配。'
+      ? '已收录 <b>' + list.length + '</b> 个档口（' +
+        groups.map(g => esc(g.key) + ' ' + g.names.length + ' 个').join('、') +
+        '）。<br>菜品和价格来自实地采集，不用定位、不用联网就能配。' +
+        '<br><button class="btn ghost small" id="goFind" type="button" style="margin-top:8px">🧭 去「发现」看每个档口的完整菜单</button>'
       : (!s0
           ? '⚠️ 还没选学校。去「我的 › 我的习惯 › 学校」选一所，才会给这所学校的食堂档口。'
           : '⚠️ <b>' + esc(s0.name) + '</b> 还没有录入食堂档口（库里现在有 ' + campusStallsAll().length +
             ' 个档口，属于 ' + [...new Set(campusStallsAll().map(x => x.campus))].map(esc).join('、') +
             '）。把菜单放进「商家数据库/解析结果」跑一次 build-data 就能用。');
+    const gof = $('#goFind');
+    if(gof) gof.onclick = () => switchTab('find');
   }
 }
 
@@ -4856,8 +4875,9 @@ function switchTab(name){
   if(name !== 'ai') closeAiSheet();       // 离开「饭饭AI」时把菜品详情收起来，别糊在别的页面上
   $('#pageHome').classList.toggle('hidden', name !== 'home');
   $('#pageAi').classList.toggle('hidden', name !== 'ai');
+  $('#pageFind').classList.toggle('hidden', name !== 'find');
   $('#pageMe').classList.toggle('hidden', name !== 'me');
-  ['home', 'ai', 'me'].forEach(k => {
+  ['home', 'ai', 'find', 'me'].forEach(k => {
     const t = $('#tab' + k.charAt(0).toUpperCase() + k.slice(1));
     if(!t) return;
     t.classList.toggle('active', name === k);
@@ -4867,6 +4887,92 @@ function switchTab(name){
   try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
   if(name === 'me'){ renderProfile(); renderSettingsUI(); renderServerUI(); renderSpiceSeg(); renderTierSeg(); renderAddrList(); }
   if(name === 'ai'){ renderAiPage(); }
+  if(name === 'find'){ renderFind(); }
+}
+
+/* ------------------------------ 发现（商家数据） ------------------------------
+ * 一屏看商家：校内按「食堂 › 档口」分组（只列当前选的这所学校），
+ * 校外列采集过菜单的店；点一个档口进去看它的全部菜单。
+ * 档口一多就不该把名字全堆在推荐页那行提示里，改成"点进来看"。 */
+function findShops(){
+  /* 「发现」是商家数据专区，不跟着「在哪儿吃」走：选过学校就把这所学校的档口也列出来，
+   * 校外的店永远都列（两栏并排，点哪个看哪个）。 */
+  return campusStalls().concat((SHOP_DB.shops || []).filter(s => s.place !== 'campus'));
+}
+function renderFind(){
+  const body = $('#findBody'), card = $('#findStall'), sub = $('#findSub');
+  if(!body) return;
+  if(card){ card.classList.add('hidden'); card.innerHTML = ''; }
+  body.classList.remove('hidden');
+  const list = findShops();
+  if(sub){
+    const cn = campusStalls().length, out = list.length - cn;
+    sub.textContent = (schoolItem() ? schoolName() + ' ' + cn + ' 个档口' : '还没选学校（去「我的 › 我的习惯」选）') +
+      ' · 校外的店 ' + out + ' 家';
+  }
+  if(!list.length){
+    body.innerHTML = '<div class="me-card"><div class="me-block"><div class="me-hint">' +
+      (schoolItem() ? esc(schoolName()) + ' 还没有录入食堂档口。' : '先去「我的 › 我的习惯 › 学校」选一所学校。') +
+      '</div></div></div>';
+    return;
+  }
+  const groups = [];
+  list.forEach(s => {
+    const inCampus = s.place === 'campus';
+    const key = inCampus ? ((s.campus || '') + '|' + (s.canteen || '食堂')) : 'outside';
+    let g = groups.find(x => x.key === key);
+    if(!g){
+      g = { key, items:[],
+            title: inCampus ? ('🏫 ' + (s.canteen || '食堂') + (s.campus ? '（' + s.campus + '）' : '')) : '🛵 出校吃 · 采集过菜单的店' };
+      groups.push(g);
+    }
+    g.items.push(s);
+  });
+  body.innerHTML = groups.map(g => {
+    const rows = g.items.slice().sort((a, b) => (a.name > b.name ? 1 : -1)).map(s => {
+      const n = (s.menu || []).length;
+      const cui = s.cuisine || ((s.cuisineRef || [])[0] || '');
+      return '<div class="me-row" data-stall="' + esc(s.id) + '" style="border-bottom:1px dashed var(--line)">' +
+        '<span class="r-icon">🍽</span>' +
+        '<span class="r-label">' + esc(s.name) +
+          '<span class="me-hint" style="display:block;margin:2px 0 0">' + n + ' 道菜' +
+          (cui ? ' · ' + esc(cui) : '') + (s.avg ? ' · 人均 ¥' + s.avg : '') + '</span>' +
+        '</span><span class="r-arrow">›</span></div>';
+    }).join('');
+    return '<div class="me-title">' + esc(g.title) + '（' + g.items.length + '）</div><div class="me-card">' + rows + '</div>';
+  }).join('');
+}
+function openStallMenu(id){
+  const s = (SHOP_DB.shops || []).find(x => x.id === id);
+  const body = $('#findBody'), card = $('#findStall');
+  if(!s || !card) return;
+  const menu = s.menu || [];
+  const byCat = [];
+  menu.forEach(m => {
+    const k = m.cat || '其他';
+    let g = byCat.find(x => x.k === k);
+    if(!g){ g = { k, items:[] }; byCat.push(g); }
+    g.items.push(m);
+  });
+  card.innerHTML =
+    '<div class="mem-top"><button class="btn ghost small" id="findBack">‹ 返回</button>' +
+    '<span class="mem-top-title">' + esc(s.name) + '</span></div>' +
+    '<div class="me-card"><div class="me-block" style="border:none">' +
+      '<div class="me-hint">' + (s.canteen ? esc(s.canteen) + ' · ' : '') +
+        '共 <b>' + menu.length + '</b> 道菜' + (s.collectedAt ? ' · ' + esc(s.collectedAt) + ' 采集' : '') +
+        ' · 数据来自实地采集，价格以现场为准</div>' +
+    '</div></div>' +
+    byCat.map(g =>
+      '<div class="me-title">' + esc(g.k) + '（' + g.items.length + '）</div><div class="me-card">' +
+      g.items.map(m => '<div class="me-row" style="border-bottom:1px dashed var(--line)">' +
+        '<span class="r-label" style="flex:1">' + esc(m.name) + '</span>' +
+        '<span style="flex:0 0 auto;font-weight:700;color:var(--brand)">¥' + m.price + '</span></div>').join('') +
+      '</div>').join('');
+  body.classList.add('hidden');
+  card.classList.remove('hidden');
+  const back = $('#findBack');
+  if(back) back.onclick = () => renderFind();
+  try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
 }
 
 function renderSpiceSeg(){
@@ -8293,7 +8399,14 @@ function init(){
   // 底部 Tab
   $('#tabHome').addEventListener('click', () => switchTab('home'));
   $('#tabAi').addEventListener('click', () => switchTab('ai'));
+  $('#tabFind').addEventListener('click', () => switchTab('find'));
   $('#tabMe').addEventListener('click', () => switchTab('me'));
+  /* 「发现」里点一个档口 → 看它全部菜单（事件委托，列表是每次重渲染的） */
+  const findBody = $('#findBody');
+  if(findBody) findBody.addEventListener('click', e => {
+    const row = e.target && e.target.closest ? e.target.closest('[data-stall]') : null;
+    if(row) openStallMenu(row.getAttribute('data-stall'));
+  });
   $('#goMeCard').addEventListener('click', () => switchTab('me'));
 
   /* 饭饭AI：聊饮食文化 + 「根据聊天推荐菜」（按下才走决策链） */
