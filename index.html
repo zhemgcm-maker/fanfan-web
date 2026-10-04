@@ -6,13 +6,18 @@
 <meta name="theme-color" content="#fff8f2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>饭饭AI 智能体</title>
-<!-- 分享和「装到桌面」用的那几张脸面：微信/浏览器抓的就是下面这些标签 -->
+<!-- 分享和「装到桌面」用的那几张脸面：微信/浏览器抓的就是下面这些标签。
+     绝对地址以 GitHub Pages 为主线（CloudBase 那份是镜像，两边同一份文件）。
+     注：微信的链接卡片目前两边都出不来——github.io 它抓不到，国内云厂商的默认域名
+     又带 Content-Disposition: attachment（微信当成下载文件）。要卡片得绑自己的备案域名。 -->
 <meta name="description" content="今天吃什么？问饭饭：大模型＋智能体帮你把这一顿定下来，校内食堂 63 个档口已收录。">
 <meta name="apple-mobile-web-app-title" content="饭饭AI">
 <meta name="application-name" content="饭饭AI">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
+<!-- 分享用的绝对地址指向"国内能访问的那个域名"（函数计算）：微信是在国内抓页面的，
+     github.io 抓不到——og:image 要是还写 github.io，卡片照样没图。 -->
 <link rel="canonical" href="https://zhemgcm-maker.github.io/fanfan-web/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="饭饭AI 智能体">
@@ -699,10 +704,10 @@
 </head>
 <body>
 <!-- 分享缩略图兜底：微信抓不到 og:image 时会去找"页面里第一张图"，
-     所以把分享卡也放一张在这儿，挪出可视区（不是 display:none，隐藏了就不算数）。
-     视觉上完全看不见，也不吃点击。 -->
-<img src="assets/share-card.jpg" alt="" aria-hidden="true" width="1200" height="630"
-     style="position:absolute;left:-9999px;top:0;width:1200px;height:630px;pointer-events:none">
+     所以把分享图也放一张在这儿，挪出可视区（不是 display:none，隐藏了就不算数）。
+     微信的卡片缩略图是方的，所以这里专门用方版 share-square.jpg（横版留给微博/QQ）。 -->
+<img src="assets/share-square.jpg" alt="" aria-hidden="true" width="500" height="500"
+     style="position:absolute;left:-9999px;top:0;width:500px;height:500px;pointer-events:none">
 <div class="wrap">
 <div id="pageHome">
 
