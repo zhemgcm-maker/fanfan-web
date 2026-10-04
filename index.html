@@ -620,6 +620,37 @@
     font-family:inherit;padding:0;cursor:pointer;text-decoration:underline
   }
 
+  /* ---------- 打分：五颗星，0.5 步进 ----------
+   * 方案 A（星位拆半）：每颗星盖两个透明热区——左半边 = 半星，右半边 = 整星。
+   * 手机上"一半一半"直接点很难戳准，拆成两个热区就不用瞄准了，和应用商店一个手感。
+   * 填充靠 .si-fg 的宽度：整颗 100%、半颗 50%，overflow 会把星形裁一半。 */
+  .stars{display:inline-flex;gap:1px;line-height:1;flex:0 0 auto}
+  .star-i{position:relative;display:inline-block;width:28px;height:28px;font-size:26px;line-height:28px}
+  .star-i .si-bg{color:#e9dfd5}
+  .star-i .si-fg{
+    position:absolute;left:0;top:0;height:100%;overflow:hidden;color:#ffb400;
+    white-space:nowrap;pointer-events:none
+  }
+  /* 热区往上往下各探出 8px：星形只有 28px 高，手指按不准，撑到 44px 才够点 */
+  .star-i .si-hit{position:absolute;top:-8px;height:44px;width:50%;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .star-i .si-hit-l{left:0}
+  .star-i .si-hit-r{left:50%}
+  .rate-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .rate-row:last-child{border-bottom:none}
+  .rate-row .rmain{flex:1;min-width:0}
+  .rate-row .rname{font-size:14.5px;font-weight:600;color:#3f3128;word-break:break-word}
+  .rate-row .rsub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .rate-val{flex:0 0 46px;text-align:right;font-size:12px;color:var(--muted)}
+  .rate-val.on{color:#e07b1f;font-weight:700}
+  .rate-foot{display:flex;gap:10px;margin-top:16px}
+  .rate-foot .btn{flex:1}
+  .meal-rate{
+    display:block;width:100%;margin-top:10px;padding:9px 10px;border-radius:12px;font-family:inherit;
+    border:1px dashed #ffcda8;background:#fff8f2;color:#c2571f;font-size:12.5px;cursor:pointer;text-align:center
+  }
+  .meal-rate.done{border-style:solid;border-color:var(--line);background:#fff;color:var(--muted)}
+  .meal-rate:active{transform:scale(.99)}
+
   /* ---------- 「我的」页面 ---------- */
   .me-head{
     display:flex;align-items:center;gap:14px;margin-top:4px;padding:18px 16px;border-radius:18px;
@@ -1013,8 +1044,17 @@
         <div class="mem-box-sub">点进去看每一顿具体是哪天吃的；7 天内会相应降权，避免重复</div>
         <div class="p-val" id="pHistory"><span class="mini grey">还没有记录</span></div>
       </div>
+      <div class="mem-box tap" id="memGoRated" data-gomem="rated" role="button" tabindex="0">
+        <div class="mem-box-head">
+          <span>我的评价</span>
+          <span class="mem-more" id="memRatedMore">查看全部 ›</span>
+        </div>
+        <div class="mem-box-sub">吃完给菜和店打星（半星也能打）；4 星以上多推，1 星的 14 天内先不推</div>
+        <div class="p-val" id="pRated"><span class="mini grey">还没打过分</span></div>
+      </div>
       <button class="btn ghost small" style="margin-top:12px" id="clearMemory">清空记忆</button>
-      <p class="note">每次你在结果页点「就吃这个」或「不喜欢」，这里都会自动学习；数据只存在这台设备的浏览器里。点上面任意一块看全记录，记错了可以在里面删掉。</p>
+      <p class="note">每次你在结果页点「就吃这个」或「不喜欢」，这里都会自动学习；打的分是等你真吃完才去「最近吃过」里给的。
+        没登录时这些数据只存在这台设备的浏览器里，登录后会跟着账号同步到服务端。点上面任意一块看全记录，记错了可以在里面删掉。</p>
     </div>
   </div>
 
@@ -1220,6 +1260,29 @@
 <div class="sheet" id="loginSheet" role="dialog" aria-modal="true">
   <div class="sheet-mask" id="loginSheetMask"></div>
   <div class="sheet-card" id="loginSheetCard"></div>
+</div>
+
+<!-- 打分：吃完给这一顿的每道菜和这家店打星（0.5 步进）。从「我的 › 最近吃过」打开 -->
+<div class="sheet" id="rateSheet" role="dialog" aria-modal="true" aria-label="给这一顿打分">
+  <div class="sheet-mask" id="rateMask"></div>
+  <div class="sheet-card" id="rateCard">
+    <div class="sheet-grab"></div>
+    <div class="sheet-head">
+      <div class="sheet-face">⭐</div>
+      <div style="flex:1;min-width:0">
+        <div class="sheet-name" id="rateTitle">这顿怎么样？</div>
+        <div class="sheet-meta" id="rateMeta">点星星给整星，点星星的左半边就是半星</div>
+      </div>
+      <button class="sheet-close" id="rateClose" aria-label="关闭">✕</button>
+    </div>
+    <div id="rateBody"></div>
+    <div class="rate-foot">
+      <button class="btn ghost" id="rateCancel">先不打</button>
+      <button class="btn" id="rateSave">保存评价</button>
+    </div>
+    <p class="note">不想打的那道菜留着不点就行，不会当成差评。评分只影响你自己的推荐：4 星以上更常出现，
+      1 星的菜和店 14 天先不推——会自动到期恢复，也能去「我的评价」里删掉。</p>
+  </div>
 </div>
 
 <!-- AI 记忆全记录（从「我的 → AI 记忆」三块点进来） -->
@@ -1591,6 +1654,9 @@ const state = {
             /* 记忆条目（Agent 模式用）：大模型可以主动往里写一条，下次开局会读给它。
              * { id, kind:'preference'|'allergy'|'habit'|'event', text, evidence, ts, hits, pinned } */
             memory:[],
+            /* 食客评价（吃完打分）：菜分 / 店分 / 1 星的软屏蔽。见「8b. 食客评价」。
+             * 在 profile 里 → 跟着账号同步，后端不用改一行。 */
+            ratings:{ dish:{}, shop:{}, blockDish:{}, blockShop:{} },
   /* school = 认证的学校（认证学校是"新增"一条信息，不替代地点）。
    * 空字符串 = 还没认证 → 界面显示「校内食堂（请认证学校）」。 */
   school:'',
@@ -1650,6 +1716,15 @@ function loadStore(){
       state.profile.banned = { dishes: keepFresh(ban.dishes), shops: freshShops, shopNames: keepNames };
       state.profile.spiceMax = (typeof p.spiceMax === 'number') ? p.spiceMax : state.spiceMax;
       state.profile.defaultTier = p.defaultTier || null;
+      /* 食客评价：老数据里没有这一块，补成空结构；有的话只做形状兜底
+       * （打分的写入路径自己保证数值合法，这里不逐个校验）。 */
+      const rt = (p.ratings && typeof p.ratings === 'object') ? p.ratings : {};
+      state.profile.ratings = {
+        dish:  (rt.dish  && typeof rt.dish  === 'object') ? rt.dish  : {},
+        shop:  (rt.shop  && typeof rt.shop  === 'object') ? rt.shop  : {},
+        blockDish: (rt.blockDish && typeof rt.blockDish === 'object') ? rt.blockDish : {},
+        blockShop: (rt.blockShop && typeof rt.blockShop === 'object') ? rt.blockShop : {}
+      };
     }
     const s = JSON.parse(localStorage.getItem(LS_SETTINGS) || 'null');
     // 版本不一致时丢弃旧配置，保证新的默认服务商能生效
@@ -2954,6 +3029,17 @@ function scoreDish(dish, ctx){
   const explore = (rand(state.seed, 'x' + dish.id) - 0.5) * 6;
   parts['随机探索'] = { raw:+explore.toFixed(1), max:3 };
 
+  /* ⑨ 食客评价：用户自己吃完打的分（没打过 = 0 分，所以老用户完全不受影响）。
+   * 4.5 星 +9 分、1 星 −18 分——量级和「预算匹配」同档，压得住"最近吃过"那点降权。 */
+  let rateFit = 0;
+  const rr = rateRec('dish', dish.id);
+  if(rr){
+    rateFit = clamp((rr.s - RATE_NEUTRAL_DISH) * 6, -18, 12);
+    if(rr.s >= 4) reasons.push('你给这道菜打过 ' + fmtStars(rr.s));
+    else if(rr.s <= 2) reasons.push('你给这道菜打过 ' + fmtStars(rr.s) + '，排在后面');
+  }
+  parts['食客评价'] = { raw:+rateFit.toFixed(1), max:12 };
+
   const total = Object.values(parts).reduce((s,p)=>s+p.raw, 0);
   return { dish, total:+total.toFixed(1), parts, reasons, hitTags, textHits, eatenRecent };
 }
@@ -3032,6 +3118,17 @@ function scoreRestaurant(restaurant, dish, ctx){
   parts['方式匹配'] = { raw: modeOk ? 6 : 0, max:6 };
   if(state.mode === 'delivery' && restaurant.delivery) reasons.push('支持外卖配送');
   if(state.mode === 'dinein') reasons.push('适合到店吃，热菜口感更好');
+
+  /* 食客评价：用户自己给这家店打的分（和上面高德那个「评分」是两码事：
+   * 那个是别人给的平均分，这个是本机用户自己打的）。没打过 = 0 分，不影响现有排序。 */
+  let rateScore = 0;
+  const sr = rateRec('shop', restaurant.id);
+  if(sr){
+    rateScore = clamp((sr.s - RATE_NEUTRAL_SHOP) * 5, -15, 10);
+    if(sr.s >= 4.5) reasons.push('你给这家店打过 ' + fmtStars(sr.s));
+    else if(sr.s <= 2) reasons.push('你给这家店打过 ' + fmtStars(sr.s) + '，排在后面');
+  }
+  parts['食客评价'] = { raw:+rateScore.toFixed(1), max:10 };
 
   const total = Object.values(parts).reduce((s,p)=>s+p.raw, 0);
   const eta = state.mode === 'delivery' ? Math.round(12 + d.km * 9) : Math.round(d.km * 13);
@@ -3176,11 +3273,140 @@ function bannedIds(kind){
   const now = Date.now();
   return Object.keys(b).filter(k => now - Number(b[k] || 0) < BAN_TTL);
 }
-function bannedDishIds(){ return bannedIds('dishes'); }
-function bannedShopIds(){ return bannedIds('shops'); }
+/* 挡在推荐之外的菜有两路，合起来看：
+ *   ① 点了「不喜欢」——24 小时（上面那套）
+ *   ② 打了 1 星——14 天（见「8b. 食客评价」）
+ * 合成一个列表是为了让 hardFilter、结果页计数、全记录页三处都不用各写一遍。 */
+function blockIds(kind){
+  const r = ratings();
+  const b = (kind === 'dishes' ? r.blockDish : r.blockShop) || {};
+  const now = Date.now();
+  return Object.keys(b).filter(k => Number(b[k] || 0) > now);
+}
+// 这条屏蔽还剩几天（0 = 已经过期）——「被屏蔽的推荐」里要写清楚，别让用户以为要永久背着
+function blockLeftDays(kind, id){
+  const b = (kind === 'dishes' ? ratings().blockDish : ratings().blockShop) || {};
+  const left = Number(b[id] || 0) - Date.now();
+  return left > 0 ? Math.max(1, Math.ceil(left / 86400000)) : 0;
+}
+function bannedDishIds(){
+  const out = bannedIds('dishes');
+  blockIds('dishes').forEach(k => { if(out.indexOf(k) === -1) out.push(k); });
+  return out;
+}
+function bannedShopIds(){
+  const out = bannedIds('shops');
+  blockIds('shops').forEach(k => { if(out.indexOf(k) === -1) out.push(k); });
+  return out;
+}
+
+/* ------------------------------ 6b. 食客评价（吃完打分） ------------------------------
+ * 用户吃完能给这顿的每道菜和这家店打 0.5~5 星。评分有两处用处：
+ *   ① 进推荐打分：scoreDish / scoreRestaurant 各多一维「食客评价」
+ *      —— 打过 4.5 星的多推，打过 1~2 星的往后排
+ *   ② 软屏蔽：最近一次打 ≤1 星的菜/店，14 天不再进推荐
+ *      —— 比「不喜欢」的 24 小时长、比忌口轻：会自动到期，也能在「我的」里手删
+ *
+ * 为什么分数按"菜"记、不按"菜×店"记：这个应用的主流程是"先挑菜、再挑店"，
+ * 打分那一维如果挂在店上，主流程（scoreDish 拿不到店）就永远用不到，
+ * "不喜欢番茄炒蛋就别推"这件事就落不了地。采集来的菜单里同一道菜各档口
+ * 本来也多是各自的条目（id 不同），真正跨店共用的只有米饭这类全库主食。
+ *
+ * 存储：
+ *   ratings.dish[id]  = { s 均分, n 次数, last 最近一次, meal 这一顿的时间戳, ts }
+ *   ratings.shop[id]  = { s, n, last, meal, ts, name 店名（全记录页要显示） }
+ *   ratings.blockDish[id] / blockShop[id] = 到期时间戳
+ * 放在 profile 里 → saveProfile() 会跟着账号同步，后端不用改。 */
+
+const RATE_MIN = 0.5, RATE_MAX = 5;      // 打分范围（0.5 步进）
+const RATE_LOW = 1;                      // 最近一次 ≤ 这个分 → 软屏蔽
+const RATE_NEUTRAL_DISH = 3;             // 菜的 3 星 = 不增不减
+const RATE_NEUTRAL_SHOP = 3.5;           // 店的 3.5 星 = 不增不减（店的基准本来就高一点）
+const RATE_BLOCK_TTL = 14 * 24 * 3600 * 1000;   // 1 星屏蔽 14 天
+
+/* 四个桶的名字提到外面：hardFilter 会对全库两千多道菜各调一次，别在循环里现造数组 */
+const RATE_BUCKETS = ['dish','shop','blockDish','blockShop'];
+function ratings(){
+  const p = state.profile;
+  if(!p.ratings || typeof p.ratings !== 'object') p.ratings = {};
+  const r = p.ratings;
+  for(let i = 0; i < RATE_BUCKETS.length; i++){
+    const k = RATE_BUCKETS[i];
+    if(!r[k] || typeof r[k] !== 'object') r[k] = {};
+  }
+  return r;
+}
+// 这一份（菜或店）的评分记录；没有打过就是 null
+function rateRec(kind, id){
+  if(!id) return null;
+  const rec = ratings()[kind][id];
+  return (rec && typeof rec === 'object') ? rec : null;
+}
+// "4.5 星" / "5 星"：整数不带小数点，读起来自然
+function fmtStars(v){
+  const n = Math.round(Number(v) * 2) / 2;
+  return (Math.abs(n - Math.round(n)) < 0.01 ? String(Math.round(n)) : n.toFixed(1)) + ' 星';
+}
+
+/* 写一次评分。同一顿（同一个 meal 时间戳）再打一次算"改分"，不叠加成两条样本——
+ * 用户点错了会回来改，改完不该变成"1 星 + 5 星 = 3 星"。 */
+function putRate(kind, id, stars, meal, extra){
+  if(!id) return null;
+  const s = clamp(Math.round(Number(stars) * 2) / 2, RATE_MIN, RATE_MAX);
+  const map = ratings()[kind];
+  let rec = map[id];
+  if(!rec || typeof rec !== 'object'){
+    rec = map[id] = { s:s, n:1, last:s, meal:meal || 0, ts:Date.now() };
+  }else if(meal && rec.meal === meal){
+    rec.s = +(((rec.s * rec.n) - (rec.last || rec.s) + s) / rec.n).toFixed(2);
+    rec.last = s; rec.ts = Date.now();
+  }else{
+    rec.s = +(((rec.s * rec.n) + s) / (rec.n + 1)).toFixed(2);
+    rec.n = rec.n + 1; rec.meal = meal || 0; rec.last = s; rec.ts = Date.now();
+  }
+  if(extra) Object.assign(rec, extra);
+  return rec;
+}
+
+/* 1 星软屏蔽：看**最近一次**打的分，不看均分
+ * —— 均分 1.5 到底该不该挡说不清，但"刚吃完打了 1 星"意图很明确；
+ * 而且用户回头改成 4 星，这一刻就该立刻放出来。 */
+function syncRateBlock(kind, id){
+  const rec = rateRec(kind, id);
+  const bucket = ratings()[kind === 'dish' ? 'blockDish' : 'blockShop'];
+  if(rec && Number(rec.last) <= RATE_LOW) bucket[id] = Date.now() + RATE_BLOCK_TTL;
+  else delete bucket[id];
+}
+
+/* 给一顿饭打分：dishes = [{ id, name, stars }]，shop = { id, name, stars }（都可选）。
+ * meal 是这一顿的时间戳（recordCombo 写的那个），用来区分"改分"和"又吃了一顿"。 */
+function rateMeal(dishes, shop, meal){
+  let n = 0;
+  (dishes || []).forEach(it => {
+    if(!it || !it.id || !it.stars) return;
+    putRate('dish', it.id, it.stars, meal);
+    syncRateBlock('dish', it.id);
+    n++;
+  });
+  if(shop && shop.id && shop.stars){
+    putRate('shop', shop.id, shop.stars, meal, { name: shop.name || '' });
+    syncRateBlock('shop', shop.id);
+    n++;
+  }
+  if(n){
+    saveProfile();
+    state.shownDishIds = []; state.shownShopIds = [];   // 刚打的分要立刻影响下一轮推荐
+    renderProfile();
+  }
+  return n;
+}
 
 function hardFilter(dish){
-  if(bannedDishIds().indexOf(dish.id) !== -1) return { ok:false, why:'你刚说了不喜欢这道菜' };
+  if(bannedDishIds().indexOf(dish.id) !== -1){
+    const rec = rateRec('dish', dish.id);
+    const lowRate = !!(rec && Number(rec.last) <= RATE_LOW);
+    return { ok:false, why: lowRate ? '你给这道菜打过 ' + fmtStars(rec.last) + '，暂时不推' : '你刚说了不喜欢这道菜' };
+  }
   const bad = allergyTags();
   const allergyHit = dish.alg.filter(a => bad.has(a));
   if(allergyHit.length) return { ok:false, why:'忌口：' + allergyHit.map(a=>ingredientName(a)).join('、') };
@@ -4660,12 +4886,14 @@ function relDay(ts){
   return days <= 0 ? '今天' : (days === 1 ? '昨天' : days + '天前');
 }
 
-// 全记录里的一行：左边是内容，右边是删除按钮；extra 是额外一行（调用方自己转义）
-function memRow(kind, key, name, sub, extra){
+/* 全记录里的一行：左边是内容，右边是删除按钮。
+ * extra 是额外一行（调用方自己转义）；btnText 不传就是「✕ 删掉」，打分的行传「✕ 忘掉」。 */
+function memRow(kind, key, name, sub, extra, btnText){
   return '<div class="row">' +
     '<div class="r-main"><div class="r-name">' + esc(name) + '</div>' +
       (sub ? '<div class="r-sub">' + esc(sub) + '</div>' : '') + (extra || '') + '</div>' +
-    '<button type="button" class="r-del" data-memdel="' + kind + '" data-memkey="' + esc(key) + '">✕ 删掉</button>' +
+    '<button type="button" class="r-del" data-memdel="' + kind + '" data-memkey="' + esc(key) + '">' +
+      (btnText || '✕ 删掉') + '</button>' +
   '</div>';
 }
 
@@ -4699,6 +4927,19 @@ function renderProfile(){
   if(moreB) moreB.textContent = (bd.length + bs.length) ? '查看全部（' + (bd.length + bs.length) + '）›' : '查看全部 ›';
   if(moreH) moreH.textContent = state.profile.history.length ? '查看全部（' + state.profile.history.length + '）›' : '查看全部 ›';
 
+  /* 我的评价：条数 + 平均分。平均分只算"菜"那一份（店和菜混着算没意义）。 */
+  const rd = ratings().dish, rs = ratings().shop;
+  const rList = Object.values(rd);
+  const rn = rList.length + Object.keys(rs).length;
+  const rAvg = rList.length ? (rList.reduce((s,x) => s + Number(x.s || 0), 0) / rList.length) : 0;
+  const pRated = $('#pRated');
+  if(pRated) pRated.innerHTML = rn
+    ? '<span class="mini">' + rList.length + ' 道菜 · ' + Object.keys(rs).length + ' 家店</span>' +
+      (rList.length ? '<span class="mini grey">平均 ' + fmtStars(rAvg) + '</span>' : '')
+    : '<span class="mini grey">还没打过分</span>';
+  const moreR = $('#memRatedMore');
+  if(moreR) moreR.textContent = rn ? '查看全部（' + rn + '）›' : '查看全部 ›';
+
   $('#devMemory').textContent = JSON.stringify(state.profile, null, 2);
   renderMeHeader();
   renderHomePref();
@@ -4715,7 +4956,8 @@ function sortedHistory(){
 const MEM_PAGES = {
   taste:   { title:'AI 记住的喜欢 / 不喜欢' },
   banned:  { title:'被屏蔽的推荐' },
-  history: { title:'最近吃过' }
+  history: { title:'最近吃过' },
+  rated:   { title:'我的评价' }
 };
 
 // 喜欢 / 不喜欢：全部条目，按记住的次数排
@@ -4732,25 +4974,42 @@ function memTasteHTML(){
     '<p class="note">删掉一条，它就不再按这条口味推荐；删错了 6 秒内点下面的提示条能撤销。</p>';
 }
 
-// 被屏蔽的菜和店：24 小时后会自己恢复，也可以现在删
+/* 被屏蔽的推荐：两路来源分开列，因为"删掉"的意思不一样。
+ *   ① 点过「不喜欢」→ 24 小时；删掉 = 撤销这次屏蔽
+ *   ② 打了 1 星     → 14 天；删掉 = 只解除屏蔽，评价本身还留在「我的评价」里
+ * 两路都算进 bannedDishIds()/bannedShopIds()，所以推荐那边不用管是谁挡的。 */
 function memBannedHTML(){
   const b = state.profile.banned || { dishes:{}, shops:{} };
-  const dishes = bannedDishIds();
-  const shops = bannedShopIds();
+  const ratedD = blockIds('dishes'), ratedS = blockIds('shops');
+  const dishes = bannedIds('dishes');       // 只算「不喜欢」那一路，别和下面重复
+  const shops = bannedIds('shops');
   const names = (b.shopNames || {});
+  const leftText = (kind, id) => {
+    const n = blockLeftDays(kind, id);
+    return n > 0 ? ('还有 ' + n + ' 天自动恢复') : '马上恢复';
+  };
   let html = '';
-  html += '<div class="mem-sec">被屏蔽的菜（' + dishes.length + ' 道）</div>' +
-    (dishes.length
-      ? '<div class="mem-list memrows">' + dishes.map(id => memRow('banDish', id, (dishById(id) || {}).name || id, '点了「不喜欢」后屏蔽，24 小时内不再推荐')).join('') + '</div>'
+  html += '<div class="mem-sec">被屏蔽的菜（' + (dishes.length + ratedD.length) + ' 道）</div>' +
+    ((dishes.length || ratedD.length)
+      ? '<div class="mem-list memrows">' +
+          dishes.map(id => memRow('banDish', id, dishName(id), '点了「不喜欢」后屏蔽，24 小时内不再推荐')).join('') +
+          ratedD.map(id => memRow('rateBlockDish', id, dishName(id),
+            '你打了 1 星 · ' + leftText('dishes', id), '', '✕ 解除')).join('') +
+        '</div>'
       : '<div class="mem-list"><div class="mem-empty">还没有</div></div>');
-  html += '<div class="mem-sec">被屏蔽的店（' + shops.length + ' 家）</div>' +
-    (shops.length
-      ? '<div class="mem-list memrows">' + shops.map(id => memRow('banShop', id, names[id] || id, '24 小时内不再推荐这家的菜')).join('') + '</div>'
+  html += '<div class="mem-sec">被屏蔽的店（' + (shops.length + ratedS.length) + ' 家）</div>' +
+    ((shops.length || ratedS.length)
+      ? '<div class="mem-list memrows">' +
+          shops.map(id => memRow('banShop', id, names[id] || id, '24 小时内不再推荐这家的菜')).join('') +
+          ratedS.map(id => memRow('rateBlockShop', id, (rateRec('shop', id) || {}).name || names[id] || id,
+            '你打了 1 星 · ' + leftText('shops', id), '', '✕ 解除')).join('') +
+        '</div>'
       : '<div class="mem-list"><div class="mem-empty">还没有</div></div>');
-  if(dishes.length || shops.length){
+  if(dishes.length || shops.length || ratedD.length || ratedS.length){
     html += '<button class="btn ghost small mem-footbtn" data-memclear="banned">清空屏蔽记录</button>';
   }
-  html += '<p class="note">这些是最近点过「不喜欢」的菜和店，24 小时后会自动恢复正常推荐。</p>';
+  html += '<p class="note">点过「不喜欢」的菜和店 24 小时后自动恢复；打了 1 星的 14 天后自动恢复。' +
+    '两种都会自己到期，不用手动清；解除 1 星那条不会把评价一起删掉。</p>';
   return html;
 }
 
@@ -4776,12 +5035,24 @@ function mealGroups(){
 
 /* 最近吃过：一顿一张卡 —— 日期大字 / 饭店名 + 时刻 / 菜品折叠
  * 折叠是默认收起的：一屏能看好多顿，点开才展开这一顿吃了什么。 */
+/* 这一顿打过多少分：取"这一顿里有评价的那条"的最近一次分数（0 = 还没打分）。
+ * 认 g.ts 是因为 recordCombo 把同一桌菜的 ts / meal 写成了同一个值——
+ * 同一天两顿不会互相盖掉。 */
+function mealRated(g){
+  let v = 0;
+  (g.items || []).forEach(h => {
+    const rec = rateRec('dish', h.id);
+    if(rec && rec.meal === g.ts) v = rec.last || v;
+  });
+  return v;
+}
 function mealHTML(g){
   const open = !!(state.memOpenMeals || {})[g.key];
   const d = new Date(g.ts);
   const total = g.items.reduce((n,x) => n + (Number(x.price) || 0), 0);
   const names = g.items.map(x => dishName(x.id));
   const preview = names.slice(0,2).join('、') + (names.length > 2 ? ' 等' : '');
+  const rated = mealRated(g);
   return '<div class="meal">' +
     '<div class="meal-top"><span class="meal-date">' + fmtBigDate(g.ts) + '</span>' +
       '<span class="meal-rel">' + relDay(g.ts) + '</span></div>' +
@@ -4790,6 +5061,9 @@ function mealHTML(g){
     '<button type="button" class="meal-toggle" data-meal="' + esc(g.key) + '">' +
       (open ? '▴ 收起这一顿（' + fmtMoment(g.ts) + '）'
             : '▾ ' + g.items.length + ' 道菜 · 共 ¥' + total + '（' + esc(preview) + '）') +
+    '</button>' +
+    '<button type="button" class="meal-rate' + (rated ? ' done' : '') + '" data-rate="' + esc(g.key) + '">' +
+      (rated ? '⭐ 你给这顿打了 ' + fmtStars(rated) + ' · 点这里改' : '⭐ 还没打分 · 给这顿打个分') +
     '</button>' +
     (open
       ? '<div class="meal-dishes memrows">' +
@@ -4803,7 +5077,30 @@ function memHistoryHTML(){
   const groups = mealGroups();
   if(!groups.length) return '<div class="mem-list"><div class="mem-empty">还没有记录</div></div>';
   return groups.map(mealHTML).join('') +
-    '<p class="note">按时间从新到旧排，一顿一张卡。点「N 道菜」展开看这一顿吃了什么、可以逐道删；7 天内吃过的菜会在推荐里降权，避免连着吃同一道。</p>';
+    '<p class="note">按时间从新到旧排，一顿一张卡。点「N 道菜」展开看这一顿吃了什么、可以逐道删；7 天内吃过的菜会在推荐里降权，避免连着吃同一道。' +
+    '吃完点卡上的「给这顿打个分」，给这一顿的菜和店打星——分了以后 AI 下次会照着你的评价挑。</p>';
+}
+
+/* 我的评价：打过分的菜 / 店。删掉一条 = 忘掉这次评价（连带解除它带来的 1 星屏蔽）。 */
+function memRatedHTML(){
+  const r = ratings();
+  const byNew = (a,b) => (b[1].ts || 0) - (a[1].ts || 0);
+  const dishes = Object.entries(r.dish).sort(byNew);
+  const shops = Object.entries(r.shop).sort(byNew);
+  const seg = (title, list, kind, nameOf) =>
+    '<div class="mem-sec">' + title + '（' + list.length + ' 条）</div>' +
+    (list.length
+      ? '<div class="mem-list memrows">' + list.map(([id, rec]) => {
+          const avg = '你打的 ' + fmtStars(rec.s) + (rec.n > 1 ? '（' + rec.n + ' 次平均）' : '');
+          const low = Number(rec.last) <= RATE_LOW;
+          return memRow(kind, id, nameOf(id, rec), avg + ' · ' + relDay(rec.ts) +
+            (low ? ' · 1 星，14 天内不推' : ''), '', '✕ 忘掉');
+        }).join('') + '</div>'
+      : '<div class="mem-list"><div class="mem-empty">还没有</div></div>');
+  return seg('打过分的菜', dishes, 'rateDish', id => dishName(id)) +
+    seg('打过分的店', shops, 'rateShop', (id, rec) => rec.name || id) +
+    '<p class="note">分数越高越容易再被推荐；打 1 星的菜和店 14 天内不推（会自动到期恢复）。' +
+    '想撤销就打高一点或者在这里删掉这条评价。</p>';
 }
 
 // 展开 / 收起某一顿
@@ -4822,6 +5119,7 @@ function renderMemPage(){
   if(!body) return;
   body.innerHTML = kind === 'banned' ? memBannedHTML()
     : kind === 'history' ? memHistoryHTML()
+    : kind === 'rated' ? memRatedHTML()
     : memTasteHTML();
 }
 
@@ -4852,6 +5150,10 @@ function memEntryValue(kind, key){
   if(kind === 'dislike') return state.profile.dislikes[key];
   if(kind === 'banDish') return ((state.profile.banned || {}).dishes || {})[key];
   if(kind === 'banShop') return ((state.profile.banned || {}).shops || {})[key];
+  if(kind === 'rateBlockDish') return ratings().blockDish[key];
+  if(kind === 'rateBlockShop') return ratings().blockShop[key];
+  if(kind === 'rateDish') return ratings().dish[key];
+  if(kind === 'rateShop') return ratings().shop[key];
   if(kind === 'hist'){
     const i = state.profile.history.findIndex(h => histKey(h) === key);
     return i >= 0 ? { at:i, entry:state.profile.history[i] } : undefined;
@@ -4869,37 +5171,53 @@ function restoreMemEntry(kind, key, value){
     if(!state.profile.banned) state.profile.banned = { dishes:{}, shops:{} };
     state.profile.banned.shops[key] = value;
   }
+  else if(kind === 'rateBlockDish'){ ratings().blockDish[key] = value; state.shownDishIds = []; }
+  else if(kind === 'rateBlockShop'){ ratings().blockShop[key] = value; state.shownShopIds = []; }
+  else if(kind === 'rateDish'){ ratings().dish[key] = value; syncRateBlock('dish', key); state.shownDishIds = []; }
+  else if(kind === 'rateShop'){ ratings().shop[key] = value; syncRateBlock('shop', key); state.shownShopIds = []; }
   else if(kind === 'hist'){
     // 放回原来的位置，历史顺序不乱
     state.profile.history.splice(Math.min(value.at, state.profile.history.length), 0, value.entry);
   }
 }
 
-/* 删掉一条 AI 记忆：喜欢 / 不喜欢 / 被屏蔽的菜 / 被屏蔽的店 / 一条用餐记录。
+/* 删掉一条 AI 记忆：喜欢 / 不喜欢 / 被屏蔽的菜 / 被屏蔽的店 / 一条用餐记录 /
+ * 一条评分 / 一条 1 星屏蔽（解除屏蔽但留着评价）。
  * 只删这一条，别的不动；删完给 6 秒撤销窗口。 */
 function deleteMemEntry(kind, key){
-  if(['like','dislike','banDish','banShop','hist'].indexOf(kind) === -1) return;
+  if(['like','dislike','banDish','banShop','hist','rateDish','rateShop','rateBlockDish','rateBlockShop'].indexOf(kind) === -1) return;
   const value = memEntryValue(kind, key);
   if(value === undefined) return;                       // 本来就没有这条，别弹提示
   if(kind === 'like') delete state.profile.likes[key];
   else if(kind === 'dislike') delete state.profile.dislikes[key];
   else if(kind === 'banDish'){ delete state.profile.banned.dishes[key]; state.shownDishIds = []; }
   else if(kind === 'banShop'){ delete state.profile.banned.shops[key]; state.shownShopIds = []; }
+  else if(kind === 'rateBlockDish'){ delete ratings().blockDish[key]; state.shownDishIds = []; }
+  else if(kind === 'rateBlockShop'){ delete ratings().blockShop[key]; state.shownShopIds = []; }
+  else if(kind === 'rateDish'){ delete ratings().dish[key]; syncRateBlock('dish', key); state.shownDishIds = []; }
+  else if(kind === 'rateShop'){ delete ratings().shop[key]; syncRateBlock('shop', key); state.shownShopIds = []; }
   else state.profile.history.splice(value.at, 1);
   saveProfile(); renderProfile();
   const label = kind === 'hist' ? ((dishById(value.entry.id) || {}).name || value.entry.id)
     : kind === 'banShop' ? (((state.profile.banned || {}).shopNames || {})[key] || '这家店')
+    : kind === 'rateShop' ? (value.name || '这家店')
+    : kind === 'rateBlockShop' ? ((rateRec('shop', key) || {}).name || '这家店')
     : (dishById(key) || {}).name || key;
-  toastUndo('已删掉「' + label + '」', () => {
+  const verb = (kind === 'rateBlockDish' || kind === 'rateBlockShop') ? '已解除对「' + label + '」的屏蔽'
+             : kind === 'rateDish' || kind === 'rateShop' ? '已忘掉对「' + label + '」的评价'
+             : '已删掉「' + label + '」';
+  toastUndo(verb, () => {
     restoreMemEntry(kind, key, value);
     saveProfile(); renderProfile();
     toast('已撤销，这条记忆回来了');
   });
 }
 
-// 清空屏蔽记录（全记录页里的按钮）
+// 清空屏蔽记录（全记录页里的按钮）：不喜欢那套和 1 星那套一起清，评分本身留着
 function clearBannedList(){
   state.profile.banned = { dishes:{}, shops:{}, shopNames:{} };
+  const r = ratings();
+  r.blockDish = {}; r.blockShop = {};
   state.shownShopIds = []; state.shownDishIds = []; state.reroll = 0;
   saveProfile(); renderProfile();
   toast('已清空屏蔽记录，之前屏蔽的菜和店都会重新参与推荐');
@@ -4915,6 +5233,8 @@ function onMemoryClick(e){
   if(t.closest('[data-memclear]')){ clearBannedList(); return; }
   const mealBtn = t.closest('[data-meal]');
   if(mealBtn){ toggleMeal(mealBtn.getAttribute('data-meal')); return; }
+  const rateBtn = t.closest('[data-rate]');
+  if(rateBtn){ openRateForMeal(rateBtn.getAttribute('data-rate')); return; }
   const go = t.closest('[data-gomem]');
   if(go) openMemPage(go.getAttribute('data-gomem'));
 }
@@ -5565,6 +5885,111 @@ function acceptCombo(combo){
   blessHome(combo);
 }
 
+/* ------------------------------ 8c. 打分面板 ------------------------------
+ * 打分只从「我的 › 最近吃过」进（每顿一张卡上都有按钮）——
+ * 是故意不在点完「就吃这一桌」那一刻弹的：那会儿还没吃，问不出真实评价。
+ *
+ * 半星用方案 A：每颗星盖两个透明热区，左半边 = 半星、右半边 = 整星（见 .star-i 的 CSS）。
+ * 手机上直接戳"星星的一半"很难戳准，拆成两个热区就不用瞄准了。 */
+let rateDraft = null;   // { meal, shopId, shopName, items:[{id,name,stars}], shopStars }
+
+// 打星的格子：data-rk = 'd:菜id' 或 's:店id'；两个热区各带自己的分值
+function starHTML(key, val){
+  let h = '<span class="stars">';
+  for(let i = 1; i <= 5; i++){
+    const fill = Math.round(clamp(Number(val) - (i - 1), 0, 1) * 100);
+    h += '<span class="star-i">' +
+      '<span class="si-bg">★</span>' +
+      '<span class="si-fg" style="width:' + fill + '%">★</span>' +
+      '<span class="si-hit si-hit-l" data-rk="' + esc(key) + '" data-val="' + (i - 0.5) + '"></span>' +
+      '<span class="si-hit si-hit-r" data-rk="' + esc(key) + '" data-val="' + i + '"></span>' +
+    '</span>';
+  }
+  return h + '</span>';
+}
+function rateRowHTML(key, name, sub, val){
+  return '<div class="rate-row">' +
+    '<div class="rmain"><div class="rname">' + esc(name) + '</div>' +
+      (sub ? '<div class="rsub">' + esc(sub) + '</div>' : '') + '</div>' +
+    starHTML(key, val) +
+    '<div class="rate-val' + (val ? ' on' : '') + '">' + (val ? fmtStars(val) : '—') + '</div>' +
+  '</div>';
+}
+
+/* 打开打分面板。opt = { meal, shopId, shopName, dishes:[{id,name}] }
+ * 这一顿已经打过的，直接把当时的分填回去（再点就是改分，见 putRate）。 */
+function openRateSheet(opt){
+  const o = opt || {};
+  const meal = o.meal || 0;
+  const items = (o.dishes || []).map(d => {
+    const rec = rateRec('dish', d.id);
+    const mine = (rec && meal && rec.meal === meal) ? (rec.last || 0) : 0;
+    return { id:d.id, name:d.name || dishName(d.id), stars:mine };
+  });
+  const sp = o.shopId ? rateRec('shop', o.shopId) : null;
+  rateDraft = {
+    meal: meal, shopId: o.shopId || '', shopName: o.shopName || '',
+    items: items, shopStars: (sp && meal && sp.meal === meal) ? (sp.last || 0) : 0
+  };
+  const title = $('#rateTitle'), meta = $('#rateMeta');
+  if(title) title.textContent = o.shopName ? ('「' + o.shopName + '」这顿怎么样？') : '这顿怎么样？';
+  if(meta) meta.textContent = o.intro || '点星星给整星，点星星的左半边就是半星；不想打的那道留着不点';
+  renderRateSheet();
+  const sheet = $('#rateSheet');
+  if(sheet) sheet.classList.add('show');
+}
+function renderRateSheet(){
+  const body = $('#rateBody');
+  if(!body || !rateDraft) return;
+  let html = '';
+  if(rateDraft.shopId) html += rateRowHTML('s:' + rateDraft.shopId, '📍 ' + rateDraft.shopName, '这家店', rateDraft.shopStars);
+  html += '<div class="mem-sec" style="margin-top:14px">这一顿的菜</div>';
+  html += rateDraft.items.map(it => rateRowHTML('d:' + it.id, it.name, '', it.stars)).join('');
+  body.innerHTML = html;
+}
+function closeRateSheet(){
+  const sheet = $('#rateSheet');
+  if(sheet) sheet.classList.remove('show');
+  rateDraft = null;
+}
+// 整个面板的点击走这一个入口（星星是 innerHTML 渲染的，绑不到单颗上）
+function onRateSheetClick(e){
+  const t = e && e.target;
+  if(!t || !t.closest) return;
+  const hit = t.closest('[data-rk][data-val]');
+  if(hit){
+    if(!rateDraft) return;
+    const key = hit.getAttribute('data-rk'), val = Number(hit.getAttribute('data-val'));
+    if(key.indexOf('s:') === 0) rateDraft.shopStars = val;
+    else {
+      const it = rateDraft.items.find(x => x.id === key.slice(2));
+      if(it) it.stars = val;
+    }
+    renderRateSheet();
+    return;
+  }
+  if(t.closest('#rateSave')) saveRateSheet();
+  else if(t.closest('#rateCancel') || t.closest('#rateClose') || t.closest('#rateMask')) closeRateSheet();
+}
+function saveRateSheet(){
+  if(!rateDraft) return;
+  const d = rateDraft;
+  const shop = d.shopId ? { id:d.shopId, name:d.shopName, stars:d.shopStars } : null;
+  const n = rateMeal(d.items, shop, d.meal);
+  closeRateSheet();
+  toast(n ? '评价已记下' : '这顿先不评价，随时能回来补');
+}
+// 「最近吃过」卡上点「给这顿打分」：把那一顿的菜和店摊成面板
+function openRateForMeal(key){
+  const g = mealGroups().find(x => x.key === key);
+  if(!g) return;
+  const withShop = g.items.find(h => h.shopId) || {};
+  openRateSheet({
+    meal: g.ts, shopId: withShop.shopId || '', shopName: g.shop || '',
+    dishes: g.items.map(h => ({ id:h.id, name:dishName(h.id) }))
+  });
+}
+
 /* ---------- 点完「就吃这一桌」：放个「祝你用餐愉快」，然后回到「今天吃什么」 ----------
  * 以前记完这一顿就停在结果页上，用户还得自己找「重新选菜」。
  * 现在：记进历史 → 小特效 → 自动回到选档位那一屏（点一下特效可以立刻跳过）。 */
@@ -5738,7 +6163,7 @@ const AGENT_TOOLS = [
     type:'function',
     function:{
       name:'rank_dishes',
-      description:'用本地多维打分给一批菜排序（预算匹配/今日想吃/口味画像/辣度/时段/新鲜感/口碑/探索）。想参考算法意见时调用，也可以不调、自己判断。',
+      description:'用本地多维打分给一批菜排序（预算匹配/今日想吃/口味画像/辣度/时段/新鲜感/口碑/探索/食客评价）。想参考算法意见时调用，也可以不调、自己判断。',
       parameters:{
         type:'object',
         properties:{ dish_ids:{ type:'array', items:{type:'string'} } },
@@ -5750,7 +6175,8 @@ const AGENT_TOOLS = [
     type:'function',
     function:{
       name:'get_profile',
-      description:'读取这位用户的长期记忆：忌口、口味偏好、辣度上限、点赞点踩过的菜/店、最近 7 天吃过什么、记忆条目。开局就该调一次。',
+      description:'读取这位用户的长期记忆：忌口、口味偏好、辣度上限、点赞点踩过的菜/店、最近 7 天吃过什么、' +
+                  '用户自己吃完打的分（my_ratings：4 星以上优先推、2 星以下避开）、记忆条目。开局就该调一次。',
       parameters:{ type:'object', properties:{}, required:[] }
     }
   },
@@ -6360,8 +6786,12 @@ function agentResetCtx(){ AGENT_CTX = null; return agentCtx(); }
 
 // 压成给大模型看的精简结构（只给事实，不给函数）
 function dishBrief(d){
-  return { dish_id:d.id, name:d.name, cui:d.cui, price:d.price, cat:d.cat || '',
-           role:d.role || 'single', spicy:d.spicy, tags:(d.tags || []).slice(0,8) };
+  const o = { dish_id:d.id, name:d.name, cui:d.cui, price:d.price, cat:d.cat || '',
+              role:d.role || 'single', spicy:d.spicy, tags:(d.tags || []).slice(0,8) };
+  // 用户自己给这道菜打过的分（没打过就不带这个字段，免得模型把 null 当成 0 星）
+  const rec = rateRec('dish', d.id);
+  if(rec) o.your_rating = { stars: rec.s, last: rec.last, times: rec.n, note: '这是用户自己吃完打的分' };
+  return o;
 }
 function shopBrief(sp){
   const db = dbShopForCached(sp);
@@ -6370,6 +6800,8 @@ function shopBrief(sp){
               rating: (sp.rating || null), avg: (sp.avg != null ? sp.avg : null),
               cui: (sp.cui || []).slice(0,4), tel: sp.tel || '' };
   if(sp.address) o.address = sp.address;
+  const rec = rateRec('shop', sp.id);
+  if(rec) o.your_rating = { stars: rec.s, last: rec.last, times: rec.n, note: '这是用户自己给这家店打的分' };
   if(db) o.menu = { collected:true, size: dbMenuSize(db), scope: (dbScopeOf(db) === 'branch' ? '本店确认' : '品牌参照') };
   return o;
 }
@@ -6486,8 +6918,23 @@ function toolGetProfile(){
   const p = state.profile;
   const now = Date.now();
   const recent = (p.history || []).filter(h => now - h.ts < 7*24*3600*1000)
-    .slice(-10).map(h => ({ dish_id:h.id, name:(dishById(h.id) || {}).name || h.id, days_ago: Math.floor((now - h.ts)/(24*3600*1000)), liked: h.liked }));
+    .slice(-10).map(h => {
+      const rec = rateRec('dish', h.id);
+      // 这一顿用户打了多少分：和这一顿的 meal 时间戳对得上才算，别拿另一顿的分冒充
+      const mine = (rec && rec.meal && rec.meal === h.ts) ? rec.last : null;
+      return { dish_id:h.id, name:(dishById(h.id) || {}).name || h.id,
+               days_ago: Math.floor((now - h.ts)/(24*3600*1000)),
+               liked: (typeof h.liked === 'boolean' ? h.liked : (mine != null ? mine >= 4 : null)),
+               my_stars: mine };
+    });
   const top = (obj, n) => Object.entries(obj || {}).sort((a,b) => b[1] - a[1]).slice(0, n).map(([k,v]) => k + '×' + v);
+  /* 用户吃完打的分——推荐时先看这一块，它比"点过就点赞"的 likes 更可信。
+   * 只带最近的前几名，别把整张评分表灌给模型。 */
+  const rateTop = (map, n, nameOf) => Object.entries(map || {})
+    .sort((a,b) => (b[1].ts || 0) - (a[1].ts || 0)).slice(0, n)
+    .map(([id, r]) => ({ id, name: nameOf(id, r), stars: r.s, last: r.last, times: r.n }));
+  const ratedDishes = rateTop(ratings().dish, 20, id => dishName(id));
+  const ratedShops = rateTop(ratings().shop, 12, (id, r) => r.name || id);
   return {
     allergies: p.allergies || [],
     tastes: p.tastes || [],
@@ -6499,6 +6946,17 @@ function toolGetProfile(){
     liked: top(p.likes, 8),
     disliked: top(p.dislikes, 8),
     ate_last_7_days: recent,
+    /* 食客评价：用户自己吃完打的分。loved_* = 4 星及以上（优先推），
+     * hated_* = 2 星及以下（尽量避开）。1 星的已经在 banned 里，压根不会进候选。 */
+    my_ratings: {
+      dishes: ratedDishes,
+      shops: ratedShops,
+      loved_dish_ids: ratedDishes.filter(x => x.stars >= 4).map(x => x.id),
+      hated_dish_ids: ratedDishes.filter(x => x.stars <= 2).map(x => x.id),
+      loved_shop_ids: ratedShops.filter(x => x.stars >= 4).map(x => x.id),
+      hated_shop_ids: ratedShops.filter(x => x.stars <= 2).map(x => x.id),
+      note: 'stars 是均分、last 是最近一次。4 星以上优先推；2 星以下尽量避开，别主动写进方案里。'
+    },
     banned_today: bannedDishIds().map(id => (dishById(id) || {}).name || id),
     memory: (p.memory || []).slice(-20).map(m => ({ kind:m.kind, text:m.text, ts:m.ts }))
   };
@@ -6797,6 +7255,9 @@ const AGENT_SYSTEM_PROMPT =
   '你是一名帮用户决定"今天吃什么、去哪家店"的美食决策智能体。你要自己动手查，而不是凭空回答。\n' +
   '工作方式：\n' +
   '1) 开局先调 get_profile，把忌口、口味偏好、最近吃过的读进来；\n' +
+  '1b) get_profile 里的 my_ratings 是用户自己吃完打的分，比"点过就点赞"可信得多：' +
+  'loved_dish_ids / loved_shop_ids（4 星以上）优先写进方案，hated_dish_ids / hated_shop_ids（2 星以下）别主动推；' +
+  'search_dishes 和 search_shops 返回里带 your_rating 的，也照这个规矩用；\n' +
   '2) 用 search_dishes 找菜。用户说得口语化（比如"奶奶做的味道"）就先自己翻译成菜系/食材/做法再查；' +
   '查不到不要放弃，换个关键词再查一次；\n' +
   '3) 用 search_shops 搜真实店铺，一个关键词一次。搜出来的店菜系不搭或者太远，就换词、或放半径再搜；' +
@@ -8572,6 +9033,9 @@ function init(){
   if(memPage) memPage.addEventListener('click', onMemoryClick);
   const memBack = $('#memBack');
   if(memBack) memBack.addEventListener('click', closeMemPage);
+  /* 打分面板：星星 / 保存 / 关闭 / 点遮罩全走这一个入口（星星是 innerHTML 重渲染的） */
+  const rateSheet = $('#rateSheet');
+  if(rateSheet) rateSheet.addEventListener('click', onRateSheetClick);
   // 小特效：点一下就不等了，直接回「今天吃什么」
   const blessBox = $('#bless');
   if(blessBox) blessBox.addEventListener('click', backToPick);
@@ -8670,7 +9134,10 @@ function init(){
   $('#goBtn').addEventListener('click', run);
   $('#clearMemory').addEventListener('click', () => {
     state.profile.likes = {}; state.profile.dislikes = {}; state.profile.history = [];
-    saveProfile(); renderProfile(); toast('记忆已清空');
+    // 打分也算记忆的一部分：1 星带来的屏蔽跟着一起清掉，不留下"看不见的墙"
+    state.profile.ratings = { dish:{}, shop:{}, blockDish:{}, blockShop:{} };
+    state.shownDishIds = []; state.shownShopIds = [];
+    saveProfile(); renderProfile(); toast('记忆已清空（含喜欢、不喜欢、最近吃过和打分）');
   });
 
   /* 「展开完整推理过程」：默认只显示关键几行（智能体的自述 + 定案），
