@@ -46,15 +46,23 @@ const newDishes = [];
 for(const f of files){
   const p = JSON.parse(fs.readFileSync(path.join(parsedDir, f), 'utf8'));
   const menu = [];
+  /* 归一化之后撞名的菜，大库和食堂档口库里各有一条时，按这家店的地盘挑：
+   * 食堂档口挑食堂那条，校外的店挑大库那条。不这么挑就是"谁在数组里排前面用谁"，
+   * 食堂档口会挂到大库那条上，校内模式反而选不中。
+   * 注意：带后缀的名字（"米饭（档口）"）norm 之后是"米饭档口"，跟大库的"米饭"不会撞，
+   * 那种要在解析结果里写 sameAs 显式指过去（见下面那段注释）。 */
+  const wantCampus = (p.place === 'campus');
+  const pickByPlace = arr => (arr && arr.length) ? (arr.find(d => (d.place === 'campus') === wantCampus) || arr[0]) : null;
   for(const it of p.items || []){
     const k = norm(it.name);
     /* 采集来的菜单经常跟知识库叫法不一样（菜单写"麻辣水煮鱼"，库里那道菜叫"水煮鱼"）。
      * 这种就在解析结果里写 sameAs:'水煮鱼' 显式指过去——比放宽模糊匹配安全，
      * 因为模糊匹配会出"回锅肉盖浇饭 ↦ 回锅肉"这种错配。 */
-    let hit = it.sameAs ? ((kbIndex.get(norm(it.sameAs)) || [])[0] || null) : null;
-    if(!hit && !it.sameAs) hit = (kbIndex.get(k) || [])[0] || null;
+    let hit = it.sameAs ? pickByPlace(kbIndex.get(norm(it.sameAs))) : null;
+    if(!hit && !it.sameAs) hit = pickByPlace(kbIndex.get(k));
     if(!hit && it.sameAs){
-      const byName = DISHES.find(d => d.name === it.sameAs);
+      const byName = DISHES.find(d => d.name === it.sameAs && (d.place === 'campus') === wantCampus) ||
+                     DISHES.find(d => d.name === it.sameAs);
       if(byName){ hit = byName; }
       else console.log('  ⚠️ sameAs 指向的菜不存在：' + it.name + ' → ' + it.sameAs);
     }
@@ -88,6 +96,7 @@ for(const f of files){
     campus: p.campus || '',
     canteen: p.canteen || '',
     stall: p.stall || (p.place === 'campus' ? (p.shop || '') : ''),
+    floor: p.floor || '',
     cuisine: p.cuisine || '',
     avg: p.avg || 0,
     /* scope 决定这份菜单的作用范围：

@@ -2309,6 +2309,86 @@ var FANFAN_DB = {
     {"id":"cp1076","name":"单加肥牛","cat":"other","role":"side","cui":"家常","price":5,"spicy":0,"place":"campus","tags":["肉","小吃","加料"],"alg":[],"desc":"加料区（菜单自动生成）","hot":55},
     {"id":"cp1077","name":"单加烤鱼","cat":"other","role":"side","cui":"家常","price":5,"spicy":0,"place":"campus","tags":["小吃","加料"],"alg":["鱼"],"desc":"加料区（菜单自动生成）","hot":55},
     /* ===== CAMPUS_BATCH_IMPORT:END ===== */
+      // —— 由「商家数据库」采集写入：拌鸡腿饭/面
+    {"id":"jbt01","place":"campus","name":"拌鸡腿饭/面","cat":"rice","cui":"家常","price":12,"spicy":1,"tags":["鸡","拌","下饭","热"],"alg":["鸡"],"desc":"鸡腿肉拌饭拌面","hot":78},
+    // —— 由「商家数据库」采集写入：拌菜饭/面
+    {"id":"jbt02","place":"campus","name":"拌菜饭/面","cat":"rice","cui":"家常","price":8.8,"spicy":0,"tags":["蔬菜","素","清淡","拌"],"alg":[],"desc":"时蔬拌饭清爽实惠","hot":65},
+    // —— 由「商家数据库」采集写入：拌鸡架饭/面
+    {"id":"jbt03","place":"campus","name":"拌鸡架饭/面","cat":"rice","cui":"家常","price":11,"spicy":1,"tags":["鸡","拌","下饭"],"alg":["鸡"],"desc":"鸡架肉拌饭拌面","hot":72},
+    // —— 由「商家数据库」采集写入：拌鸡肝饭/面
+    {"id":"jbt04","place":"campus","name":"拌鸡肝饭/面","cat":"rice","cui":"家常","price":11,"spicy":1,"tags":["鸡","拌","下饭","重口"],"alg":["鸡","内脏"],"desc":"鸡肝拌饭口感绵密","hot":60},
+    // —— 由「商家数据库」采集写入：拌鸡皮饭/面
+    {"id":"jbt05","place":"campus","name":"拌鸡皮饭/面","cat":"rice","cui":"家常","price":11,"spicy":1,"tags":["鸡","拌","下饭","重口"],"alg":["鸡"],"desc":"爽脆鸡皮拌饭","hot":58},
+    // —— 由「商家数据库」采集写入：拌鸡心饭/面
+    {"id":"jbt06","place":"campus","name":"拌鸡心饭/面","cat":"rice","cui":"家常","price":12,"spicy":1,"tags":["鸡","拌","下饭","重口"],"alg":["鸡","内脏"],"desc":"鸡心拌饭嚼劲十足","hot":62},
+    // —— 由「商家数据库」采集写入：鸡腿混拌饭/面
+    {"id":"jbt07","place":"campus","name":"鸡腿混拌饭/面","cat":"rice","cui":"家常","price":14,"spicy":1,"tags":["鸡","拌","下饭","热"],"alg":["鸡"],"desc":"鸡腿混搭拌饭拌面","hot":75},
+    // —— 由「商家数据库」采集写入：黄焖鸡(土豆)
+    {"id":"jbt08","place":"campus","name":"黄焖鸡(土豆)","cat":"rice","cui":"家常","price":10,"spicy":1,"tags":["鸡","炒","下饭","热"],"alg":["鸡"],"desc":"黄焖鸡配土豆焖饭","hot":85},
+    // —— 由「商家数据库」采集写入：黄焖鸡(菜椒)
+    {"id":"jbt09","place":"campus","name":"黄焖鸡(菜椒)","cat":"rice","cui":"家常","price":11,"spicy":1,"tags":["鸡","炒","下饭"],"alg":["鸡"],"desc":"黄焖鸡配菜椒","hot":80},
+    // —— 由「商家数据库」采集写入：黄焖鸡(鱼豆腐)
+    {"id":"jbt10","place":"campus","name":"黄焖鸡(鱼豆腐)","cat":"rice","cui":"家常","price":11,"spicy":1,"tags":["鸡","炒","下饭"],"alg":["鸡","鱼"],"desc":"黄焖鸡配鱼豆腐","hot":78},
+    // —— 由「商家数据库」采集写入：原味煎饼套餐(鸡蛋+生菜+薄脆)
+    {"id":"cjd01","place":"campus","name":"原味煎饼套餐(鸡蛋+生菜+薄脆)","cat":"other","cui":"家常","price":6,"spicy":0,"tags":["蛋","煎饼","卷饼","快"],"alg":["蛋","麦"],"desc":"杂粮煎饼原味套餐","hot":70},
+    // —— 由「商家数据库」采集写入：蔬菜豆制品(称重)
+    {"id":"cjd02","place":"campus","name":"蔬菜豆制品(称重)","cat":"other","role":"side","cui":"家常","price":1.1,"spicy":1,"tags":["蔬菜","豆","素","辣"],"alg":["豆"],"desc":"麻辣烫自选蔬菜豆制品","hot":60},
+    // —— 由「商家数据库」采集写入：炸鸡鲜肉鱼肉丸(称重)
+    {"id":"cjd03","place":"campus","name":"炸鸡鲜肉鱼肉丸(称重)","cat":"other","role":"side","cui":"家常","price":6.6,"spicy":1,"tags":["鸡","鱼","炸","辣"],"alg":["鸡","鱼"],"desc":"麻辣烫自选炸鸡鱼肉丸","hot":65},
+    // —— 由「商家数据库」采集写入：冰糖银耳羹
+    {"id":"cjd04","place":"campus","name":"冰糖银耳羹","cat":"other","role":"drink","cui":"甜品","price":3.5,"spicy":0,"tags":["甜品","甜","饮品"],"alg":[],"desc":"冰糖银耳羹清润","hot":60},
+    // —— 由「商家数据库」采集写入：果味气泡水
+    {"id":"cjd05","place":"campus","name":"果味气泡水","cat":"other","role":"drink","cui":"甜品","price":3,"spicy":0,"tags":["甜品","饮品","甜"],"alg":[],"desc":"果味气泡水","hot":55},
+    // —— 由「商家数据库」采集写入：炙烤五花肉+酸菜饭+鸡蛋
+    {"id":"zkw01","place":"campus","name":"炙烤五花肉+酸菜饭+鸡蛋","cat":"rice","cui":"烤肉","price":13.9,"spicy":1,"tags":["猪","烤","下饭","热"],"alg":["猪","蛋"],"desc":"炙烤五花配酸菜饭","hot":82},
+    // —— 由「商家数据库」采集写入：炙烤五花肉+蘑菇什锦+鸡蛋
+    {"id":"zkw02","place":"campus","name":"炙烤五花肉+蘑菇什锦+鸡蛋","cat":"rice","cui":"烤肉","price":13.9,"spicy":1,"tags":["猪","烤","下饭"],"alg":["猪","蛋","菌菇"],"desc":"炙烤五花配蘑菇饭","hot":78},
+    // —— 由「商家数据库」采集写入：炙烤五花肉+娃娃菜+鸡蛋
+    {"id":"zkw03","place":"campus","name":"炙烤五花肉+娃娃菜+鸡蛋","cat":"rice","cui":"烤肉","price":13.9,"spicy":1,"tags":["猪","烤","下饭"],"alg":["猪","蛋"],"desc":"炙烤五花配娃娃菜饭","hot":75},
+    // —— 由「商家数据库」采集写入：炙烤鸡腿饭
+    {"id":"zkw04","place":"campus","name":"炙烤鸡腿饭","cat":"rice","cui":"烤肉","price":12.9,"spicy":1,"tags":["鸡","烤","下饭"],"alg":["鸡"],"desc":"炙烤鸡腿盖饭","hot":80},
+    // —— 由「商家数据库」采集写入：炙烤孜然里脊肉
+    {"id":"zkw05","place":"campus","name":"炙烤孜然里脊肉","cat":"other","role":"main","cui":"烤肉","price":11.9,"spicy":2,"tags":["猪","烤","辣","下饭"],"alg":["猪"],"desc":"孜然炙烤里脊","hot":70},
+    // —— 由「商家数据库」采集写入：炙烤猪里脊瘦肉+鸡蛋+素菜
+    {"id":"zkw06","place":"campus","name":"炙烤猪里脊瘦肉+鸡蛋+素菜","cat":"rice","cui":"烤肉","price":14.5,"spicy":1,"tags":["猪","烤","蛋","下饭"],"alg":["猪","蛋"],"desc":"炙烤里脊配蛋菜饭","hot":72},
+    // —— 由「商家数据库」采集写入：火锅五花肉+米饭
+    {"id":"zkw07","place":"campus","name":"火锅五花肉+米饭","cat":"other","cui":"火锅","price":15,"spicy":2,"tags":["猪","火锅","涮","辣","聚餐"],"alg":["猪"],"desc":"五花肉小火锅配米饭","hot":78},
+    // —— 由「商家数据库」采集写入：火锅鱼肉片+米饭
+    {"id":"zkw08","place":"campus","name":"火锅鱼肉片+米饭","cat":"other","cui":"火锅","price":15,"spicy":2,"tags":["鱼","火锅","涮","辣"],"alg":["鱼"],"desc":"鱼肉片小火锅配米饭","hot":72},
+    // —— 由「商家数据库」采集写入：火锅牛排+米饭
+    {"id":"zkw09","place":"campus","name":"火锅牛排+米饭","cat":"other","cui":"火锅","price":13.9,"spicy":2,"tags":["牛","火锅","涮","辣"],"alg":["牛"],"desc":"牛排小火锅配米饭","hot":70},
+    // —— 由「商家数据库」采集写入：火锅无骨鸡腿+米饭
+    {"id":"zkw10","place":"campus","name":"火锅无骨鸡腿+米饭","cat":"other","cui":"火锅","price":13,"spicy":2,"tags":["鸡","火锅","涮","辣"],"alg":["鸡"],"desc":"无骨鸡腿小火锅配饭","hot":74},
+    // —— 由「商家数据库」采集写入：火锅孜然里脊+米饭
+    {"id":"zkw11","place":"campus","name":"火锅孜然里脊+米饭","cat":"other","cui":"火锅","price":11,"spicy":2,"tags":["猪","火锅","涮","辣"],"alg":["猪"],"desc":"孜然里脊小火锅配饭","hot":68},
+    // —— 由「商家数据库」采集写入：火锅培根肉+米饭
+    {"id":"zkw12","place":"campus","name":"火锅培根肉+米饭","cat":"other","cui":"火锅","price":11,"spicy":2,"tags":["猪","火锅","涮","辣"],"alg":["猪"],"desc":"培根肉小火锅配饭","hot":66},
+    // —— 由「商家数据库」采集写入：火锅奥尔良鸡肉+米饭
+    {"id":"zkw13","place":"campus","name":"火锅奥尔良鸡肉+米饭","cat":"other","cui":"火锅","price":11,"spicy":1,"tags":["鸡","火锅","涮"],"alg":["鸡"],"desc":"奥尔良鸡小火锅配饭","hot":68},
+    // —— 由「商家数据库」采集写入：五花肉拌饭+素菜
+    {"id":"zkw14","place":"campus","name":"五花肉拌饭+素菜","cat":"rice","cui":"家常","price":13.9,"spicy":1,"tags":["猪","拌","下饭","热"],"alg":["猪"],"desc":"五花肉拌饭配素菜","hot":75},
+    // —— 由「商家数据库」采集写入：牛排拌饭+素菜
+    {"id":"zkw15","place":"campus","name":"牛排拌饭+素菜","cat":"rice","cui":"家常","price":13.9,"spicy":1,"tags":["牛","拌","下饭"],"alg":["牛"],"desc":"牛排拌饭配素菜","hot":70},
+    // —— 由「商家数据库」采集写入：无骨鸡腿拌饭+素菜
+    {"id":"zkw16","place":"campus","name":"无骨鸡腿拌饭+素菜","cat":"rice","cui":"家常","price":12.9,"spicy":1,"tags":["鸡","拌","下饭"],"alg":["鸡"],"desc":"无骨鸡腿拌饭配菜","hot":73},
+    // —— 由「商家数据库」采集写入：卡兹鸡排拌饭+素菜
+    {"id":"zkw17","place":"campus","name":"卡兹鸡排拌饭+素菜","cat":"rice","cui":"家常","price":18,"spicy":1,"tags":["鸡","炸","下饭"],"alg":["鸡"],"desc":"脆鸡排拌饭配素菜","hot":72},
+    // —— 由「商家数据库」采集写入：孜然里脊拌饭+素菜
+    {"id":"zkw18","place":"campus","name":"孜然里脊拌饭+素菜","cat":"rice","cui":"家常","price":11,"spicy":1,"tags":["猪","拌","下饭"],"alg":["猪"],"desc":"孜然里脊拌饭配菜","hot":68},
+    // —— 由「商家数据库」采集写入：奥尔良鸡肉拌饭+素菜
+    {"id":"zkw19","place":"campus","name":"奥尔良鸡肉拌饭+素菜","cat":"rice","cui":"家常","price":11,"spicy":1,"tags":["鸡","拌","下饭"],"alg":["鸡"],"desc":"奥尔良鸡肉拌饭配菜","hot":68},
+    // —— 由「商家数据库」采集写入：卤鸡腿拌饭+素菜
+    {"id":"zkw20","place":"campus","name":"卤鸡腿拌饭+素菜","cat":"rice","cui":"家常","price":9.9,"spicy":0,"tags":["鸡","拌","下饭","卤味"],"alg":["鸡"],"desc":"卤鸡腿拌饭配素菜","hot":70},    /* ===== 2026-10-04 手工补录：两家档口的单加/加料小菜（原菜单里有、菜品库没有 → 选不中） ===== */
+    {"id":"jd01","place":"campus","name":"辣丝","cat":"other","role":"side","cui":"家常","price":1,"spicy":1,"tags":["小吃","加料","辣","素"],"alg":["麦"],"desc":"煎饼加料，辣味小菜","hot":55},
+    {"id":"jd02","place":"campus","name":"鸡腿","cat":"other","role":"side","cui":"家常","price":6,"spicy":0,"tags":["鸡","小吃","加料","卤味"],"alg":["鸡"],"desc":"单加鸡腿，拌饭拌面都能加","hot":60},
+    {"id":"jd03","place":"campus","name":"鸡架","cat":"other","role":"side","cui":"家常","price":6,"spicy":1,"tags":["鸡","小吃","加料","卤味"],"alg":["鸡"],"desc":"单加鸡架，啃着香","hot":58},
+    {"id":"jd04","place":"campus","name":"鸡心","cat":"other","role":"side","cui":"家常","price":3,"spicy":1,"tags":["鸡","内脏","小吃","加料"],"alg":["鸡","内脏"],"desc":"单加鸡心，弹牙","hot":52},
+    {"id":"jd05","place":"campus","name":"鸡皮","cat":"other","role":"side","cui":"家常","price":3,"spicy":0,"tags":["鸡","小吃","加料"],"alg":["鸡"],"desc":"单加鸡皮，爽脆","hot":50},
+    {"id":"jd06","place":"campus","name":"鸡肝","cat":"other","role":"side","cui":"家常","price":1,"spicy":0,"tags":["鸡","内脏","小吃","加料"],"alg":["鸡","内脏"],"desc":"单加鸡肝，绵密","hot":48},
+
+    /* ===== 2026-10-04 手工补录：食堂档口的包点（大库那两条是馆子价 ¥18/¥20，档口价不一样） ===== */
+    {"id":"jd07","place":"campus","name":"烧麦（档口）","cat":"other","role":"side","cui":"家常","price":1.5,"spicy":0,"tags":["小吃","猪","蒸","麦"],"alg":["猪","麦","糯米"],"desc":"食堂烧麦，¥1.5 一个","hot":55},
+    {"id":"jd08","place":"campus","name":"生煎包（档口）","cat":"other","role":"side","cui":"家常","price":1,"spicy":1,"tags":["小吃","猪","煎","麦"],"alg":["猪","麦","葱"],"desc":"食堂生煎包，¥1 一个","hot":55},
   ],
   "cities": {
     "baoding": {

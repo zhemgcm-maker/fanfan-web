@@ -11,7 +11,7 @@ import path from 'node:path';
 const args = process.argv.slice(2);
 const flag = n => { const i = args.indexOf('--' + n); return i === -1 ? null : args[i + 1]; };
 const newFile = flag('new'), kbFile = flag('kb'), outDir = flag('out');
-const KEY = process.env.DS_KEY || 'sk-21f864ce09aa412a81b42f06c5d38199';
+const KEY = process.env.DS_KEY || 'dc1d4fbf-8bc7-4693-95ec-9dbed5a14efe';
 if(!newFile || !kbFile || !outDir){ console.error('用法：node gen-kb-records.mjs --new <新菜候选.json> --kb <index.html> --out <目录>'); process.exit(1); }
 
 /* ---------- 从数据文件里取现有词表（保证生成的记录能无缝进库） ---------- */
