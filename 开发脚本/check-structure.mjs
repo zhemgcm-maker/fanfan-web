@@ -30,11 +30,23 @@ console.log('静态标签结构：' + (problems.length ? '❌ ' + problems.join(
 
 const checks = [
   ['viewport 适配手机', /name="viewport"[^>]*width=device-width/],
-  ['没有外链资源（可离线打开）', /^(?![\s\S]*<(?:script|link)[^>]*(?:src|href)="https?:)[\s\S]*$/],
   ['安全区适配（刘海屏）', /env\(safe-area-inset-bottom\)/],
   ['禁用缩放的字体平滑', /-webkit-font-smoothing/],
   ['按钮均有 44px 以上点击区', /\.btn\{[\s\S]*?padding:13px 18px/]
 ];
 checks.forEach(([label, re]) => console.log((re.test(html) ? '✅ ' : '⚠️ ') + label));
+
+/* 「可离线打开」= 双击 index.html 也能用，页面不会去网上取任何东西。
+ * 注意区分两类 https 链接：
+ *   · 会真的去加载的 —— script/img/iframe/link(stylesheet|icon|manifest|preload…)，这些必须没有外链；
+ *   · 只是元数据、不会加载的 —— rel="canonical"、og:image、twitter:card，有 https 是正常的，不算外链。 */
+const LOADING_REL = '(?:stylesheet|icon|apple-touch-icon|manifest|preload|prefetch|modulepreload)';
+const external = [
+  /<script[^>]+src=["']https?:/i,
+  /<(?:img|iframe|video|audio|source|embed)[^>]+src=["']https?:/i,
+  new RegExp('<link[^>]*rel=["\']' + LOADING_REL + '["\'][^>]+href=["\']https?:', 'i'),
+  new RegExp('<link[^>]*href=["\']https?:[^>]*rel=["\']' + LOADING_REL + '["\']', 'i')
+].some(re => re.test(html));
+console.log((external ? '⚠️ 有外链资源（离线打开会缺东西）' : '✅ 没有外链资源（可离线打开）'));
 
 console.log('文件大小：' + (fs.statSync(process.argv[2]).size / 1024).toFixed(1) + ' KB');

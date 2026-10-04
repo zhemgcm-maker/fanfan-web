@@ -6,6 +6,23 @@
 <meta name="theme-color" content="#fff8f2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>饭饭AI 智能体</title>
+<!-- 分享和「装到桌面」用的那几张脸面：微信/浏览器抓的就是下面这些标签 -->
+<meta name="description" content="今天吃什么？问饭饭：大模型＋智能体帮你把这一顿定下来，校内食堂 63 个档口已收录。">
+<meta name="apple-mobile-web-app-title" content="饭饭AI">
+<meta name="application-name" content="饭饭AI">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
+<link rel="canonical" href="https://zhemgcm-maker.github.io/fanfan-web/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="饭饭AI 智能体">
+<meta property="og:title" content="今天吃什么？问饭饭 AI">
+<meta property="og:description" content="大模型 × 智能体 · 校内食堂 63 个档口。点开就能用，不用下载。">
+<meta property="og:image" content="https://zhemgcm-maker.github.io/fanfan-web/assets/share-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="今天吃什么？问饭饭 AI">
+<meta property="og:url" content="https://zhemgcm-maker.github.io/fanfan-web/">
 <style>
   :root{
     --bg:#fff8f2;
@@ -34,6 +51,22 @@
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:520px;margin:0 auto;padding:14px 14px calc(170px + env(safe-area-inset-bottom));}
+
+  /* 「装到桌面」提示：一次性的小卡片，不挡任何操作 */
+  .a2hs{
+    display:flex;align-items:flex-start;gap:9px;margin:2px 2px 10px;padding:10px 12px;
+    background:#fff7ec;border:1px solid #f2ddc6;border-radius:14px;
+    font-size:12.5px;line-height:1.6;color:#5a4636
+  }
+  .a2hs[hidden]{display:none}
+  .a2hs .a2hs-ico{flex:0 0 auto;font-size:15px;line-height:1.5}
+  .a2hs .a2hs-txt{flex:1;min-width:0}
+  .a2hs .a2hs-txt b{color:#c1602f}
+  .a2hs .a2hs-x{
+    flex:0 0 auto;width:34px;height:34px;margin:-4px -6px 0 0;border:none;background:none;
+    color:#b3a394;font-size:14px;line-height:1;cursor:pointer;border-radius:10px;font-family:inherit
+  }
+  .a2hs .a2hs-x:active{background:#f3e7da}
 
   /* ---------- 顶部 ---------- */
   header.top{padding:8px 4px 4px}
@@ -665,8 +698,21 @@
 </style>
 </head>
 <body>
+<!-- 分享缩略图兜底：微信抓不到 og:image 时会去找"页面里第一张图"，
+     所以把分享卡也放一张在这儿，挪出可视区（不是 display:none，隐藏了就不算数）。
+     视觉上完全看不见，也不吃点击。 -->
+<img src="assets/share-card.jpg" alt="" aria-hidden="true" width="1200" height="630"
+     style="position:absolute;left:-9999px;top:0;width:1200px;height:630px;pointer-events:none">
 <div class="wrap">
 <div id="pageHome">
+
+  <!-- 「装到桌面」的一次性提示：只在手机上、没装过、没关过的时候出现。
+       微信里没有这个入口，文案会自动换成"用浏览器打开"，见 maybeShowA2HS()。 -->
+  <div class="a2hs" id="a2hsCard" hidden>
+    <span class="a2hs-ico">📲</span>
+    <span class="a2hs-txt" id="a2hsText"></span>
+    <button class="a2hs-x" id="a2hsClose" type="button" aria-label="知道了">✕</button>
+  </div>
 
   <header class="top">
     <div class="brandline">
@@ -7895,6 +7941,36 @@ function closeLoginSheet(){
 // 开屏调一次：未登录才弹；登录过的人一辈子不弹
 function maybeShowGuestNotice(){ if(guestLocked() && !state._guestNoticeSeen) openLoginSheet(); }
 
+/* 「装到桌面」提示：只提示一次，只在手机上提示，装过了就不再提示。
+ * 微信内置浏览器（X5）根本没有"添加到主屏幕"这个入口，
+ * 所以微信里的文案必须换成"点右上角⋯→在浏览器打开"，不然用户找不到会以为坏了。 */
+const LS_A2HS = 'eatAgent.a2hs.v1';
+function maybeShowA2HS(){
+  const card = $('#a2hsCard'), txt = $('#a2hsText');
+  if(!card || !txt) return;
+  try{
+    if(localStorage.getItem(LS_A2HS)) return;
+    const ua = (navigator && navigator.userAgent) || '';
+    const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                       (navigator && navigator.standalone === true);
+    if(standalone) return;                                      // 已经装过了
+    if(!/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return;    // 电脑上不提示
+    const isWx = /MicroMessenger/i.test(ua);
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    txt.innerHTML = isWx
+      ? '想下次一键打开？点右上角 <b>⋯</b> → <b>在浏览器打开</b> → 添加到主屏幕'
+      : (isIOS
+        ? '想下次一键打开？点底部分享 <b>⬆︎</b> → <b>添加到主屏幕</b>'
+        : '想下次一键打开？点右上角 <b>⋮</b> → <b>添加到主屏幕</b>');
+    card.hidden = false;
+  }catch(e){}
+}
+function closeA2HS(){
+  try{ localStorage.setItem(LS_A2HS, '1'); }catch(e){}
+  const card = $('#a2hsCard');
+  if(card) card.hidden = true;
+}
+
 /* ---------- 聊天 ---------- */
 function aiLlmReady(){
   if(guestLocked()) return false;                 // 未登录：聊天这条线不开（见 GUEST_LLM_LOCK）
@@ -8413,6 +8489,7 @@ function init(){
 
   // 底部 Tab
   $('#tabHome').addEventListener('click', () => switchTab('home'));
+  if($('#a2hsClose')) $('#a2hsClose').addEventListener('click', closeA2HS);
   $('#tabAi').addEventListener('click', () => switchTab('ai'));
   $('#tabFind').addEventListener('click', () => switchTab('find'));
   $('#tabMe').addEventListener('click', () => switchTab('me'));
@@ -8797,6 +8874,7 @@ function init(){
   /* 开屏提醒：没登录的人先说清楚"现在能用什么、登录能多什么"。
    * 直接弹，不等任何异步——这是产品要的"强制提醒"，不是等条件满足才提示。 */
   setTimeout(maybeShowGuestNotice, 450);
+  maybeShowA2HS();          // 「装到桌面」提示（手机上、没关过才出现）
 
   // 商家数据库：进页面就加载一次（有 data/shops.json 就用它，没有就用内置快照；
   // 加载失败也只是"没有真实菜单"，推荐流程照旧）
