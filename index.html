@@ -3875,55 +3875,65 @@ const ROLE_LABEL = { single:'一人食', main:'荤主菜', side:'素菜／凉菜
 const ROLE_EMOJI = { single:'🍽', main:'🍖', side:'🥗', staple:'🍚', soup:'🥣', drink:'🥤' };
 const ROLE_ORDER = ['main','single','side','soup','staple','drink'];
 
-// 各档位想要的一桌菜结构：跟着"锚定菜"的类型走
-//  - 锚定菜是整份荤菜（水煮鱼）→ 要配主食、素菜、汤
-//  - 锚定菜本身是一顿饭（盖饭/面/粉）→ 已经是主食，只需补个小菜
+/* ---------- 一桌菜的结构：每个角色各要几份 ----------
+ * 规则只有两条，剩下的都由它们推出来（以前是"加菜位"的补丁，人多就乱）：
+ *
+ *   ① **一人一份**的东西 → 几个人几份
+ *      盖饭/面/套餐（single）、主食（staple）、饮品（drink）
+ *      4 个人就是 4 份饭、4 碗米饭、4 杯奶茶，不再是"一桌一碗饭"。
+ *   ② **分着吃**的东西 → 两人一样（⌈n/2⌉）
+ *      整份硬菜（main）、素菜（side）：1 人 1、2 人 1、3~4 人 2、5~6 人 3。
+ *
+ * 再叠一层档位：小饭只有主角+主食；中饭加素菜；吃好饭再加汤。
+ * 外卖不配汤（送到就凉了）。
+ *
+ * 返回 { want:{角色:份数}, extras:[角色] }。
+ * want 是"必须凑齐"的，extras 是"有富余才补"的（补位时也按上面的份数规则给）。
+ * 注意：锚定菜本身算在 want 里（buildCombo 先把它放进去，再补差额）。 */
 function comboPlan(tierId, mode, anchor){
   const n = Math.max(1, peopleCount());
   const role = anchor ? (anchor.role || 'single') : 'single';
-  // 甜品/饮品/汤当主角时（比如"想喝奶茶"），就配个小食收尾，别硬塞米饭
-  if(role === 'drink' || role === 'side' || role === 'soup'){
-    return { slots:[role], extras: role === 'drink' ? ['side'] : ['drink'] };
-  }
-  const isMain = role === 'main';
-  // single = 本身就是一顿饭（盖饭/面/饺子/火烧），自带主食；
-  // main   = 整份菜（水煮鱼），必须再配主食才算一顿。
-  const isComplete = role === 'single';
-  let base;
-  if(tierId === 'small'){
-    base = { slots: isMain ? ['main','staple'] : ['single'], extras:['drink','side'] };
-  }else if(tierId === 'mid'){
-    if(isMain) base = { slots:['main','staple'], extras: mode !== 'delivery' ? ['side','soup','drink'] : ['side','drink'] };
-    else if(isComplete) base = { slots:['single','side'], extras:['drink','soup'] };
-    else base = { slots:['single','staple'], extras:['side','drink'] };
+  const shareN = Math.max(1, Math.ceil(n / 2));    // 分着吃的：两人一样
+  const mid = tierId === 'mid', fancy = tierId === 'good';
+  const want = { single:0, main:0, side:0, staple:0, soup:0, drink:0 };
+  const extras = [];
+
+  if(role === 'drink'){
+    // "想喝奶茶"：一人一杯，再配个小食收尾，别硬塞米饭
+    want.drink = n; want.side = 1;
+  }else if(role === 'soup'){
+    // 主角是汤：一人一碗，配主食
+    want.soup = n; want.staple = n;
+    extras.push('drink');
+  }else if(role === 'side'){
+    // 主角是凉菜/素菜：素菜按"分着吃"给（锚定菜本身算一份），再配主食
+    want.side = shareN; want.staple = n;
+    extras.push('drink');
+  }else if(role === 'main'){
+    // 整份硬菜：几人吃就几道，主食一人一份
+    want.main = shareN; want.staple = n;
+    if(mid || fancy) want.side = shareN;
+    if(fancy) want.soup = 1;
   }else{
-    // 吃好饭
-    if(isMain) base = { slots:['main','side','staple'], extras:['soup','drink'] };
-    else if(isComplete) base = { slots:['single','side'], extras:['soup','drink'] };
-    else base = { slots:['single','side','staple'], extras:['soup','drink'] };
+    // 盖饭/面/套餐：本身就是一顿饭，自带主食，别再塞米饭
+    want.single = n;
+    if(mid || fancy) want.side = shareN;
+    if(fancy) want.soup = 1;
   }
-  if(n === 1) return base;
-  /* 人多要加菜位：slots 里同一个 role 出现几次就要几道（buildCombo 按次数填）。
-   * filler = 主食那一档：主角是整份硬菜就再来一道硬菜，主角本身就是一份饭就再来一份。
-   * 份额（米饭 ×2）不在这里处理——那是给 items 加 qty 的那一版。 */
-  const plan = { slots: base.slots.slice(), extras: base.extras.slice() };
-  /* 「一人一份」的主角（盖饭/面/粉/套餐，以及主食）：**几个人就要几份**。
-   * 以前这里跟"整份菜分着吃"共用同一套加位规则（2 人只加一个配菜），
-   * 于是两个人一起吃饭只给一份盖饭、5 个人给 3 份——实测量出来的就是这么错的。
-   * 整份硬菜照旧按"分着吃"算：2 人 1 道、3~4 人 2 道、5 人 3 道。 */
-  const perPerson = (role === 'single' || role === 'staple');
-  const filler = isMain ? 'main' : (role === 'staple' ? 'staple' : 'single');
-  if(perPerson){
-    const have = base.slots.filter(s => s === filler).length;
-    for(let i = have; i < n; i++) plan.slots.push(filler);
-    if(n >= 2) plan.slots.push('side');      // 多人加个配菜分着吃
-    if(n >= 4) plan.slots.push('side');
-    return plan;
+  /* 备选（有富余才补）：让整桌价格尽量贴近区间，而不是压到最低。
+   * 顺序沿用改之前那套——单人场景的配桌结果不该因为这次改动变样。 */
+  if(role === 'single' || role === 'main'){
+    if(tierId === 'small') extras.push('drink', 'side');
+    else if(tierId === 'mid') extras.push(role === 'main' ? 'soup' : 'drink', role === 'main' ? 'drink' : 'soup');
+    else extras.push('drink');                     // 吃好饭：汤已经是必给的了
   }
-  if(n >= 2) plan.slots.push('side');
-  if(n >= 3) plan.slots.push(filler);
-  if(n >= 5){ plan.slots.push(filler); plan.slots.push('side'); }
-  return plan;
+  if(mode === 'delivery') want.soup = 0;                  // 外卖不配汤
+  /* 配着喝的汤是一盆（人特别多才两盆）；但"想喝汤"当主角时是一人一碗，
+   * 上面已经按人数给了，不能在这里被压回 1。 */
+  if(want.soup && role !== 'soup') want.soup = n >= 6 ? 2 : 1;
+  if(mode === 'delivery') { const i = extras.indexOf('soup'); if(i !== -1) extras.splice(i, 1); }
+  if(tierId === 'small' && !want.side && extras.indexOf('side') === -1) extras.push('side');  // 小饭：顺手加个凉菜
+  return { want, extras };
 }
 
 // 在某家店里，围绕"锚定菜"配出一桌菜
@@ -3973,9 +3983,20 @@ function buildCombo(restaurant, anchorDish){
   const items = [];
   const used = new Set();
   const usedMain = new Set();              // 避免两道菜同一个主料（比如两道鱼）
-  const total = () => items.reduce((n,i) => n + i.dish.price, 0);
+  /* qty：这一道要点几份。一人一份的东西（米饭、奶茶）就是靠它，
+   * 而不是把同一个菜在列表里重复列 4 行。价格一律按 单价 × 份数 算。 */
+  const qtyOf = it => Math.max(1, Number(it.qty) || 1);
+  const total = () => items.reduce((n,i) => n + i.dish.price * qtyOf(i), 0);
+  const portions = role => items.filter(i => i.role === role).reduce((s,i) => s + qtyOf(i), 0);
   const mainTagOf = d => (d.tags || []).find(t => ['鱼','猪','牛','羊','鸡','鸭','虾','驴肉'].indexOf(t) !== -1) || null;
 
+  /* 能不能再加这一道：两道菜撞同一个主料（比如全是鸡）就不行——但**不是中断**，
+   * 而是让调用方走"给已有的那道加份数"（这家只有鸡，4 个人就点两份）。 */
+  function cantTake(dish, role){
+    if(used.has(dish.id)) return true;
+    const mt = mainTagOf(dish);
+    return !!(mt && usedMain.has(mt) && role !== 'staple');
+  }
   function tryAdd(entry){
     if(!entry || used.has(entry.dish.id)) return false;
     const mt = mainTagOf(entry.dish);
@@ -3983,6 +4004,46 @@ function buildCombo(restaurant, anchorDish){
     items.push(entry); used.add(entry.dish.id);
     if(mt) usedMain.add(mt);
     return true;
+  }
+
+  /* 把某个角色补到 target 份。两种补法按角色的性质分：
+   *   一人一份的（主食、饮品）—— 挑一道就好，直接给 N 份，别端四种米饭上来；
+   *   分着吃的（硬菜、素菜、汤）以及要有花样的（一人食、套餐）——
+   *     先尽量凑**不同的菜**（4 个人四种盖饭比四份一样的强），菜单不够时
+   *     再给已有的那道加份数（这家只有一种烤鱼，4 个人就点两条）。
+   * 全程受整桌额度约束，加不进去就停在能加的份数上。 */
+  const SAME_ONE = { staple:true, drink:true };
+  function fillRole(role, target){
+    if(!target || target <= 0) return;
+    if(SAME_ONE[role]){
+      const left = target - portions(role);
+      if(left <= 0) return;
+      /* 按分数从高到低找第一道**买得起**的（买不起就退到便宜一点的），
+       * 再按想要的份数给，份数超预算就一份份往下减。 */
+      let pick = null, q = 0;
+      for(const x of byRole(role)){
+        if(cantTake(x.dish, role)) continue;
+        let qq = left;
+        while(qq > 1 && total() + x.dish.price * qq > cap) qq--;
+        if(total() + x.dish.price * qq <= cap){ pick = x; q = qq; break; }
+      }
+      if(!pick) return;
+      tryAdd({ dish:pick.dish, role:role, score:pick.score, reasons:pick.reasons, qty:q });
+      return;
+    }
+    let guard = 30;                       // 防止选不出菜时死循环
+    while(portions(role) < target && guard-- > 0){
+      // 撞主料的不算"有得选"：交给下面那条加份数的路
+      const pick = byRole(role).find(x => !cantTake(x.dish, role) && total() + x.dish.price <= cap);
+      if(pick){
+        if(!tryAdd({ dish:pick.dish, role:role, score:pick.score, reasons:pick.reasons })) break;
+        continue;
+      }
+      // 菜单里没有更多不同的菜了 → 给这道已有的加一份（挑最便宜的加，省预算）
+      const grow = items.filter(i => i.role === role).sort((a,b) => a.dish.price - b.dish.price)[0];
+      if(grow && total() + grow.dish.price <= cap){ grow.qty = qtyOf(grow) + 1; continue; }
+      break;
+    }
   }
 
   // ① 锚定菜（用户当下最想吃的那道）优先，且价格不能一上来就超预算。
@@ -4002,30 +4063,28 @@ function buildCombo(restaurant, anchorDish){
     }
   }
 
-  // ② 按结构补齐主位：在预算内挑分最高的一道（类别优先由 byRole 统一负责）
-  let singleSubstituted = false;   // 主菜位被"一人食"顶掉了
-  /* slots 里同一个 role 出现几次就要几道（人多时会有 2 个 main / 2 个 side）。 */
-  const needSlots = {};
-  for(const role of plan.slots) needSlots[role] = (needSlots[role] || 0) + 1;
-  for(const role of plan.slots){
-    if(items.filter(i => i.role === role).length >= needSlots[role]) continue;
-    // 已经用"一人食"顶掉主菜位：它自己就带主食，不用再配一份米饭
-    if(role === 'staple' && singleSubstituted) continue;
-    const pick = byRole(role).find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
-    if(!tryAdd(pick)){
-      // 该角色没有合适菜：外卖场景用"一人食"顶上，堂食场景尝试用"一人食"当主菜
-      if(role === 'main'){
-        const alt = byRole('single').find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
-        if(tryAdd(alt)) singleSubstituted = true;
-      }
-    }
+  /* ② 按计划补齐：每个角色补到 plan.want 说的份数。
+   * 顺序有讲究——先主菜（它决定整桌的样子、也占预算大头），再一人食，最后主食。
+   * 主菜位实在没人能顶（这家店没有整份硬菜）时，用"一人食"顶上，它自带主食，
+   * 后面的主食位就不补了。 */
+  let singleSubstituted = false;
+  fillRole('main', plan.want.main);
+  if(plan.want.main > 0 && !items.some(i => i.role === 'main')){
+    const alt = byRole('single')[0];
+    if(alt && total() + alt.dish.price <= cap &&
+       tryAdd({ dish:alt.dish, role:'single', score:alt.score, reasons:alt.reasons })) singleSubstituted = true;
   }
+  fillRole('single', plan.want.single);
+  fillRole('side', plan.want.side);
+  if(!singleSubstituted) fillRole('staple', plan.want.staple);
+  fillRole('soup', plan.want.soup);
+  fillRole('drink', plan.want.drink);
 
-  // ③ 有富余再补汤/饮品/小菜，尽量让整桌价格贴近"人均区间"而不是压到最低
+  // ③ 有富余再补饮品/小菜，尽量让整桌价格贴近"人均区间"而不是压到最低。
+  //    补的份数也按规则走：饮品一人一杯，小菜一道。
   for(const role of plan.extras){
     if(items.some(i => i.role === role)) continue;
-    const pick = byRole(role).find(x => !used.has(x.dish.id) && total() + x.dish.price <= cap);
-    if(pick) tryAdd(pick);
+    fillRole(role, role === 'drink' ? peopleCount() : 1);
   }
 
   // ④ 还是空的话（比如这家店压根没有合适的主菜），退一道这家店评分最高的菜
@@ -4055,6 +4114,7 @@ function buildCombo(restaurant, anchorDish){
 
   // 搭配完整度
   const roles = items.map(i => i.role);
+  const nPortions = items.reduce((n,i) => n + qtyOf(i), 0);   // 总份数（米饭 ×4 算 4 份）
   const hasMain = roles.includes('main') || roles.includes('single');
   const hasStaple = roles.includes('staple') || items.some(i => (i.dish.tags || []).indexOf('碳水') !== -1);
   const hasSide = roles.includes('side');
@@ -4062,15 +4122,22 @@ function buildCombo(restaurant, anchorDish){
   const balanceReasons = [];
   if(hasMain && hasStaple){ balance += 10; balanceReasons.push('主食配上了，不会干吃菜'); }
   if(hasSide){ balance += 6; balanceReasons.push('有荤有素，不容易腻'); }
-  if(items.length >= 3){ balance += 4; }
+  if(nPortions >= 3){ balance += 4; }
   if(roles.includes('soup')){ balance += 3; balanceReasons.push('加了汤，收尾舒服'); }
   if(tier.id === 'good' && roles.includes('main')){ balance += 6; balanceReasons.push('有整份硬菜，像正经吃一顿'); }
+
+  // 人多时按人头补齐了没有：差得太多说明这家店给不出这一桌，如实扣分
+  const wantPeople = roles.includes('single') || roles.includes('staple') ? peopleCount() : 0;
+  if(wantPeople >= 2 && nPortions < wantPeople){
+    balanceReasons.push('这家店能给的菜有限，' + peopleCount() + ' 个人只配到 ' + nPortions + ' 份');
+  }
 
   const comboScore = items.reduce((n,i) => n + (i.anchor ? i.score * 0.8 : i.score * 0.35), 0) + budgetScore + balance;
 
   return {
     restaurant, items,
     total: sum,
+    portions: nPortions,                        // 总份数（米饭 ×4 算 4 份）
     perPerson: Math.round(sum / peopleCount()),   // 真人均：整桌合计 ÷ 人数
     score: +comboScore.toFixed(1),
     budgetScore: +budgetScore.toFixed(1),
@@ -5180,8 +5247,10 @@ function mealRated(g){
 function mealHTML(g){
   const open = !!(state.memOpenMeals || {})[g.key];
   const d = new Date(g.ts);
-  const total = g.items.reduce((n,x) => n + (Number(x.price) || 0), 0);
+  const qtyOfHist = x => Math.max(1, Number(x.qty) || 1);
+  const total = g.items.reduce((n,x) => n + (Number(x.price) || 0) * qtyOfHist(x), 0);
   const names = g.items.map(x => dishName(x.id));
+  const portions = g.items.reduce((n,x) => n + qtyOfHist(x), 0);
   const preview = names.slice(0,2).join('、') + (names.length > 2 ? ' 等' : '');
   const rated = mealRated(g);
   return '<div class="meal">' +
@@ -5191,14 +5260,15 @@ function mealHTML(g){
       pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + '</div>' +
     '<button type="button" class="meal-toggle" data-meal="' + esc(g.key) + '">' +
       (open ? '▴ 收起这一顿（' + fmtMoment(g.ts) + '）'
-            : '▾ ' + g.items.length + ' 道菜 · 共 ¥' + total + '（' + esc(preview) + '）') +
+            : '▾ ' + g.items.length + ' 样 · 共 ' + portions + ' 份 ¥' + total + '（' + esc(preview) + '）') +
     '</button>' +
     '<button type="button" class="meal-rate' + (rated ? ' done' : '') + '" data-rate="' + esc(g.key) + '">' +
       (rated ? '⭐ 你给这顿打了 ' + fmtStars(rated) + ' · 点这里改' : '⭐ 还没打分 · 给这顿打个分') +
     '</button>' +
     (open
       ? '<div class="meal-dishes memrows">' +
-          g.items.map(h => memRow('hist', histKey(h), dishName(h.id), h.price ? '当时记的价 ¥' + h.price : '')).join('') +
+          g.items.map(h => memRow('hist', histKey(h), dishName(h.id),
+            h.price ? ('当时记的价 ¥' + h.price + (qtyOfHist(h) > 1 ? ' ×' + qtyOfHist(h) + ' 份' : '')) : '')).join('') +
         '</div>'
       : '') +
   '</div>';
@@ -5700,8 +5770,15 @@ function dishEmoji(dish){
   return '🍢';
 }
 
+/* 整桌的总份数：米饭 ×4 算 4 份。列表长度 ≠ 份数，界面上要说清"几道·几份"。 */
+function comboPortions(combo){
+  if(!combo) return 0;
+  if(typeof combo.portions === 'number') return combo.portions;
+  return (combo.items || []).reduce((n,i) => n + Math.max(1, Number(i.qty) || 1), 0);
+}
 function comboItemRow(item){
   const d = item.dish;
+  const q = Math.max(1, Number(item.qty) || 1);
   return '<div class="combo-item">' +
     '<span class="ci-emoji">' + (ROLE_EMOJI[item.role] || '🍽') + '</span>' +
     '<span class="ci-main">' +
@@ -5711,7 +5788,8 @@ function comboItemRow(item){
       '</span>' +
       '<span class="ci-desc">' + (d.desc || '') + '</span>' +
     '</span>' +
-    '<span class="ci-price">¥' + d.price + '</span>' +
+    /* 一人一份的东西（米饭、奶茶）按份数写清楚：¥1 ×4 = ¥4 */
+    '<span class="ci-price">¥' + d.price + (q > 1 ? ' ×' + q : '') + '</span>' +
   '</div>';
 }
 
@@ -5729,7 +5807,7 @@ function altCardHtml(c, i){
       '<span class="a-emoji">' + (medals[i] || '🏅') + '</span>' +
       '<span class="a-main">' +
         '<span class="a-name">' + r.name + (r.area ? '（' + r.area + '）' : '') + '</span>' +
-        '<span class="a-sub">' + c.items.map(x => x.dish.name).join(' ＋ ') + '</span>' +
+        '<span class="a-sub">' + c.items.map(x => x.dish.name + (Math.max(1, Number(x.qty) || 1) > 1 ? ' ×' + x.qty : '')).join(' ＋ ') + '</span>' +
       '</span>' +
       '<span class="a-score">¥' + c.perPerson + '<span>人均</span></span>' +
       '<span class="a-caret">›</span>' +
@@ -5737,7 +5815,7 @@ function altCardHtml(c, i){
     '<div class="alt-detail hidden">' +
       '<div class="combo-list">' + c.items.map(comboItemRow).join('') + '</div>' +
       '<div class="combo-total" style="margin-top:9px"><span>合计 <b>¥' + c.total + '</b></span>' +
-        '<span>' + c.items.length + ' 道 · ' + diningLabel() + '</span></div>' +
+        '<span>' + c.items.length + ' 道 · 共 ' + comboPortions(c) + ' 份 · ' + diningLabel() + '</span></div>' +
       '<div class="why" style="margin-top:9px"><div class="w-title">为什么这样配</div>' +
         '<ul>' + reasons.slice(0,5).map(x => '<li>' + x + '</li>').join('') + '</ul></div>' +
       '<div style="margin-top:9px">' +
@@ -5851,7 +5929,7 @@ function renderResult(combo, meal, extra, online){
     '<div class="card-main">' +
       '<div class="card-head">' +
         '<div class="kicker">AI 推荐这一桌 · ' + CITY.name + ' · ' + catName(state.cat) + ' · ' + currentPeriod().label + '</div>' +
-        '<div class="dish">🍽 ' + combo.items.length + ' 道菜 · 人均 ¥' + combo.perPerson + '</div>' +
+        '<div class="dish">🍽 ' + combo.items.length + ' 道 · 共 ' + comboPortions(combo) + ' 份 · 人均 ¥' + combo.perPerson + '</div>' +
         '<div class="meta">' + r.name + (r.area ? '（' + r.area + '）' : '') + ' · ' + r.cui.join('/') +
           ' · ' + whereText(r, combo.km) + ' · ' + etaText + '</div>' +
         menuBadge(r) +
@@ -5872,7 +5950,8 @@ function renderResult(combo, meal, extra, online){
           ? '<p class="note" style="margin:8px 0 0;color:#b0461f">⚠️ ' + esc(combo.anchorSkip) +
             '，这一桌改配了这家店能做的菜</p>'
           : '') +
-        '<div class="combo-total"><span>合计 <b>¥' + combo.total + '</b>' + (combo.items.length > 1 ? '（' + combo.items.length + ' 道）' : '') + '</span>' +
+        '<div class="combo-total"><span>合计 <b>¥' + combo.total + '</b>' +
+          (comboPortions(combo) > 1 ? '（' + combo.items.length + ' 道 · ' + comboPortions(combo) + ' 份）' : '') + '</span>' +
           '<span>' + diningLabel() + ' 人均 ¥' + combo.perPerson + '</span></div>' +
         '<div class="kv" style="margin-top:10px"><span class="k">推荐店铺</span><span class="v"><b>' + r.name + '</b>' +
           (r.area ? '（' + r.area + '）' : '') +
@@ -6036,9 +6115,12 @@ function recordCombo(combo){
   const ts = Date.now();
   const shop = combo.restaurant || null;
   combo.items.forEach(it => {
+    /* 一人一份的菜（米饭 ×4）记成一条带 qty 的记录，不拆成 4 条——
+     * 「最近吃过」和打分都是按"这一顿吃了哪几样"看的，拆开会变成四行米饭。 */
+    const q = Math.max(1, Number(it.qty) || 1);
     (it.dish.tags || []).forEach(t => bump(state.profile.likes, t, 1));
     state.profile.history.push({
-      id: it.dish.id, ts, price: it.dish.price,
+      id: it.dish.id, ts, price: it.dish.price, qty: q,
       meal: ts,                                   // 同一顿的组标识（老记录没有，按 45 分钟兜底分组）
       shop: shop ? shop.name : '',                // 饭店名
       shopId: shop ? shop.id : ''
@@ -6157,7 +6239,11 @@ function openRateForMeal(key){
   const withShop = g.items.find(h => h.shopId) || {};
   openRateSheet({
     meal: g.ts, shopId: withShop.shopId || '', shopName: g.shop || '',
-    dishes: g.items.map(h => ({ id:h.id, name:dishName(h.id) }))
+    /* 一人两份的（米饭 ×2）在打分面板里也写出来，不然用户会以为少记了一样 */
+    dishes: g.items.map(h => {
+      const q = Math.max(1, Number(h.qty) || 1);
+      return { id:h.id, name: dishName(h.id) + (q > 1 ? ' ×' + q : '') };
+    })
   });
 }
 
@@ -7381,8 +7467,10 @@ function toolBuildCombo(a){
   const anchorUsed = combo.items.some(i => i.anchor);
   return {
     shop_id: sp.id, shop_name: sp.name,
-    items: combo.items.map(i => ({ dish_id:i.dish.id, name:i.dish.name, role:i.role, price:i.dish.price, anchor:!!i.anchor })),
+    items: combo.items.map(i => ({ dish_id:i.dish.id, name:i.dish.name, role:i.role, price:i.dish.price,
+                                   qty: Math.max(1, Number(i.qty) || 1), anchor:!!i.anchor })),
     total: combo.total, per_person: combo.perPerson,
+    portions: comboPortions(combo),
     anchor_used: anchorUsed,
     anchor_note: anchorUsed ? '' : '⚠️ 这家店做不了「' + dish.name + '」，这一桌换成了别的菜；' +
       'finalize 时不要写「' + dish.name + '」，用 items 里的 dish_id',
@@ -7783,33 +7871,44 @@ function comboFromAgentPlan(r, secs){
   }).filter(x => x.dish);
   if(!items.length) return null;
 
-  const sum = items.reduce((n, x) => n + x.dish.price, 0);
+  /* 份数补齐：模型交上来的是"这一桌点哪几道菜"，但一人一份的东西（米饭、饮料）
+   * 得按人数给份数——不然 4 个人只上一碗米饭。整份硬菜/素菜不补，那是分着吃的。 */
+  const ppl = Math.max(1, peopleCount());
+  items.forEach(it => {
+    if((it.role === 'staple' || it.role === 'drink') && ppl > 1) it.qty = ppl;
+  });
+  const qtyOf = x => Math.max(1, Number(x.qty) || 1);
+  const sum = items.reduce((n, x) => n + x.dish.price * qtyOf(x), 0);
   // 档位兜底：Agent 也会从开发者面板被调起来，那边 state.tier 可能是空的
   const tier = pickTier() || TIERS[1];
-  const cap = Math.min(tier.max, state.budget), floor = tier.min;
+  /* 这里是**整桌**口径：合计是整桌的钱，限额也得是整桌的（人均档位 × 人数）。
+   * 以前拿人均上限去卡整桌合计，4 个人一桌 ¥200 会被判成"超了 ¥60"。 */
+  const cap = tableCap(), floor = tableFloor();
   let budgetScore, budgetReason;
   if(sum <= cap && sum >= floor){
     const span = Math.max(1, cap - floor);
     budgetScore = 14 + 8 * clamp((sum - floor)/span, 0, 1);
-    budgetReason = '整桌 ¥' + sum + '，落在「' + tier.name + '」人均 ¥' + (tier.min === 0 ? '≤' + tier.max : tier.min + '-' + tier.max) + ' 里';
+    budgetReason = '整桌 ¥' + sum + '，落在「' + tier.name + '」的额度里（人均 ¥' +
+      (tier.min === 0 ? '≤' + tier.max : tier.min + '-' + tier.max) + ' × ' + peopleCount() + ' 人 = ¥' + cap + '）';
   }else if(sum < floor){
     budgetScore = Math.max(2, 12 - (floor - sum) * 0.3);
-    budgetReason = '整桌 ¥' + sum + '，比「' + tier.name + '」档省一些';
+    budgetReason = '整桌 ¥' + sum + '，比「' + tier.name + '」这一桌的下限 ¥' + floor + ' 省一些';
   }else{
     budgetScore = Math.max(0, 16 - (sum - cap) * 0.6);
-    budgetReason = '整桌 ¥' + sum + '，略超上限 ¥' + cap;
+    budgetReason = '整桌 ¥' + sum + '，略微超出这一桌的额度 ¥' + cap;
   }
   const roles = items.map(x => x.role);
   let balance = 0; const balanceReasons = [];
   if((roles.includes('main') || roles.includes('single')) && (roles.includes('staple') || roles.includes('single'))){ balance += 10; balanceReasons.push('主食配上了，不会干吃菜'); }
   if(roles.includes('side')){ balance += 6; balanceReasons.push('有荤有素，不容易腻'); }
-  if(items.length >= 3){ balance += 4; }
+  if(items.reduce((n, x) => n + qtyOf(x), 0) >= 3){ balance += 4; }
   if(roles.includes('soup')){ balance += 3; balanceReasons.push('加了汤，收尾舒服'); }
   if(tier.id === 'good' && roles.includes('main')){ balance += 6; balanceReasons.push('有整份硬菜，像正经吃一顿'); }
   const shopScore = scoreRestaurant(restaurant, dishById(anchorId), {}).total;
   const anchorDish = dishById(anchorId);
   const combo = {
     restaurant, items, total:sum, perPerson: Math.round(sum / peopleCount()),
+    portions: items.reduce((n, x) => n + qtyOf(x), 0),
     budgetScore:+budgetScore.toFixed(1), balance,
     reasons:[budgetReason].concat(balanceReasons),
     km:(restaurant.km != null ? restaurant.km : 0),
@@ -8194,8 +8293,10 @@ async function run(){
         tel: combo.restaurant.online ? combo.restaurant.tel : null,
         km: combo.km,
         rating: combo.restaurant.rating,
-        dishes: combo.items.map(i => ({ role: ROLE_LABEL[i.role], name:i.dish.name, price:i.dish.price, highlight: !!i.anchor })),
+        dishes: combo.items.map(i => ({ role: ROLE_LABEL[i.role], name:i.dish.name, price:i.dish.price,
+                                        qty: Math.max(1, Number(i.qty) || 1), highlight: !!i.anchor })),
         total: combo.total,
+        portions: comboPortions(combo),
         perPerson: combo.perPerson,
         pairingReasons: combo.reasons
       },
@@ -8707,8 +8808,9 @@ function aiComboHTML(c){
     (c.geo ? '<div class="ac-geo">' + esc(c.geo) + '</div>' : '') +
     '<div class="ac-items">' + (c.items || []).map(i => '<div class="ac-item">' +
       '<span class="n">' + esc(i.name) + (AI_ROLE_NAME[i.role] ? '<span class="bfoot" style="display:inline;margin-left:6px">' + AI_ROLE_NAME[i.role] + '</span>' : '') + '</span>' +
-      '<span class="p">¥' + i.price + '</span></div>').join('') + '</div>' +
-    '<div class="ac-total"><span>合计 <b>¥' + c.total + '</b>' + ((c.items || []).length > 1 ? '（' + c.items.length + ' 道）' : '') + '</span>' +
+      '<span class="p">¥' + i.price + ((Number(i.qty) || 1) > 1 ? ' ×' + i.qty : '') + '</span></div>').join('') + '</div>' +
+    '<div class="ac-total"><span>合计 <b>¥' + c.total + '</b>' +
+      ((c.items || []).length > 1 ? '（' + c.items.length + ' 道' + (c.portions > c.items.length ? ' · ' + c.portions + ' 份' : '') + '）' : '') + '</span>' +
       '<span>' + (c.perPerson ? '人均 ¥' + c.perPerson : '') + '</span></div>' +
     (c.reason ? '<div class="ai-daily-why">' + esc(c.reason) + '</div>' : '') +
     (c.foot ? '<div class="bfoot">' + esc(c.foot) + '</div>' : '') +
@@ -8958,8 +9060,9 @@ function aiComboCard(built, note, geo){
     id:'c' + (++aiState.seq),
     title:'按咱们聊的配了这一桌',
     shop:{ id:c.restaurant.id, name:c.restaurant.name, area:c.restaurant.area || '', km:c.km, rating:c.restaurant.rating || '', avg:c.restaurant.avg || '' },
-    items:c.items.map(i => ({ dishId:i.dish.id, name:i.dish.name, price:i.dish.price, role:i.role })),
-    total:c.total, perPerson:c.perPerson,
+    items:c.items.map(i => ({ dishId:i.dish.id, name:i.dish.name, price:i.dish.price, role:i.role,
+                              qty: Math.max(1, Number(i.qty) || 1) })),
+    total:c.total, perPerson:c.perPerson, portions: comboPortions(c),
     reason:String(reason || '').slice(0, 180),
     geo:String(geo || ''),
     foot:note || '', accepted:false
@@ -8968,8 +9071,9 @@ function aiComboCard(built, note, geo){
 function aiComboToCombo(c){
   return {
     restaurant:c.shop || null,
-    items:(c.items || []).map(i => ({ dish: dishById(i.dishId) || { id:i.dishId, name:i.name, price:i.price, tags:[] }, role:i.role })),
-    total:c.total, perPerson:c.perPerson
+    items:(c.items || []).map(i => ({ dish: dishById(i.dishId) || { id:i.dishId, name:i.name, price:i.price, tags:[] },
+                                      role:i.role, qty: Math.max(1, Number(i.qty) || 1) })),
+    total:c.total, perPerson:c.perPerson, portions:c.portions
   };
 }
 /* 「饭饭AI」出方案前申请一次定位授权——和「我的 › 定位我」走的是同一个 geolocate()。
