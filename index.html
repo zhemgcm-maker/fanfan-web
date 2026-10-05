@@ -5674,10 +5674,10 @@ const SUBMIT_MAX_IMG = 5;
 const SUBMIT_IMG_BYTES = 300 * 1024;
 const SUBMIT_MAX_QUEUE = 8;              // 本地最多攒 8 条没发出去的
 const SUBMIT_DAILY_MAX = 5;              // 一人一天最多提交 5 家（客户端这道只是"早点告诉用户"）
-/* 整包上限：图片走 base64（体积 ×4/3）塞进 JSON，而队友那台 FC 的 express 现在设的是 2mb，
- * 实测 2.2MB 就 413。这里卡在 1.9MB（约合 1.4MB 图片），留出 JSON 字段的余量。
- * 后端把 limit 提到 8mb 之后可以把这行调大。 */
-const SUBMIT_BODY_BUDGET = Math.round(1.9 * 1024 * 1024);
+/* 整包上限：图片走 base64（体积 ×4/3）塞进 JSON。
+ * 后端（阿里云 FC 上那个 Express）的 body 上限已经提到 8mb，所以这里放到 5MB 就够宽松了——
+ * 5 张都压到 300KB 上限也只有约 2.0MB，日常拍菜单更小。留出余量是给以后加图片张数用的。 */
+const SUBMIT_BODY_BUDGET = 5 * 1024 * 1024;
 const SUBMIT_RETRY_MS = 6 * 3600 * 1000;
 
 let submitQueue = [];
@@ -5924,6 +5924,7 @@ async function doSubmit(){
   const tail = left > 0 ? '（今天还能提交 ' + left + ' 家）' : '（今天 5 家的名额用完了）';
   if(r.sent) toast('已提交「' + shop + '」，谢谢你！' + tail);
   else if(r.why === 'quota') toast('今天的 5 家名额用完了：这条先存手机上，明天自动发');
+  else if(r.why === 'unauthorized') toast('登录状态过期了：重新登录后这条会自动发出去');
   else if(r.why === 'toobig') toast('照片加起来超过后端一次能收的大小了：这张先存手机上');
   else if(r.why === 'guest') toast('已经存到手机上了：登录后会自动发出去');
   else if(r.why === 'nobackend') toast('已经存到手机上了：收件通道还没开通，开通后自动发');
@@ -6008,6 +6009,11 @@ async function flushSubmits(force){
            * 这不是失败：留到明天 0 点再发，也别计失败次数。 */
           s.retryAfter = nextDayStart();
           why = 'quota'; break;
+        }
+        if(st === 401 || st === 403){
+          /* 登录过期了。别当失败、也别反复打：留到下次（重新登录后）再发。 */
+          s.retryAfter = Date.now() + SUBMIT_RETRY_MS;
+          why = 'unauthorized'; break;
         }
         s.fails = (s.fails || 0) + 1;
         if(s.fails >= 5){ s.state = 'failed'; s.err = (e && e.message) || '发送失败'; }
