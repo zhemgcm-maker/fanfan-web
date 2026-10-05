@@ -2290,6 +2290,22 @@ function peopleIdNearest(n){
 function perPersonCap(){ const t = pickTier(); return t ? Math.min(t.max, state.budget) : state.budget; }
 function tableCap(){ return perPersonCap() * peopleCount(); }
 function tableFloor(){ const t = pickTier(); return (t ? t.min : 0) * peopleCount(); }
+/* 整桌预算那行话，**两条决策路共用这一个**（算法引擎的 buildCombo 和 Agent 的 comboFromAgentPlan）。
+ * 规矩：整桌的钱只能跟整桌的额度比，写出来也必须把"人均档位 × 人数 = 一桌额度"说全。
+ * 踩过的坑：
+ *   ① Agent 那条以前拿人均上限去卡整桌合计（4 人花 ¥168 被判"超了 ¥60"）；
+ *   ② 算法引擎这条算得对，但话写成"整桌 ¥168，正好在「中饭」人均 ¥26-60 的区间里"——
+ *      整桌的钱套人均的区间，读起来就是错的。
+ * 两处都收进这里，以后改口径只改一个地方。 */
+function budgetLineText(sum, cap, floor){
+  const t = pickTier();
+  const per = t ? (t.min === 0 ? '≤¥' + t.max : '¥' + t.min + '-' + t.max) : '';
+  const who = t ? ('「' + t.name + '」') : '';
+  const n = peopleCount();
+  if(sum > cap) return '整桌 ¥' + sum + '，超出这一桌的额度 ¥' + cap + '（人均 ' + per + ' × ' + n + ' 人）';
+  if(sum < floor) return '整桌 ¥' + sum + '，比' + who + '这一桌的下限 ¥' + floor + ' 省一些';
+  return '整桌 ¥' + sum + '，在' + who + '的额度 ¥' + cap + ' 里（人均 ' + per + ' × ' + n + ' 人）';
+}
 function dishById(id){ return DISHES.find(d=>d.id===id); }
 function catName(id){ const c = CATS.find(c=>c.id===id); return c ? c.name : ''; }
 
@@ -4103,14 +4119,12 @@ function buildCombo(restaurant, anchorDish){
     const span = Math.max(1, cap - floor);
     const fill = clamp((sum - floor) / span, 0, 1);
     budgetScore = 14 + 8 * fill;
-    budgetReason = '整桌 ¥' + sum + '，正好在「' + tier.name + '」人均 ¥' + (tier.min === 0 ? '≤' + tier.max : tier.min + '-' + tier.max) + ' 的区间里';
   }else if(sum < floor){
     budgetScore = Math.max(2, 12 - (floor - sum) * 0.3);
-    budgetReason = '整桌 ¥' + sum + '，比「' + tier.name + '」档位省一些';
   }else{
     budgetScore = Math.max(0, 16 - (sum - cap) * 0.6);
-    budgetReason = '整桌 ¥' + sum + '，略微超出预算上限 ¥' + cap;
   }
+  budgetReason = budgetLineText(sum, cap, floor);      // 两条路共用同一句话，别各写一份
 
   // 搭配完整度
   const roles = items.map(i => i.role);
@@ -7888,15 +7902,12 @@ function comboFromAgentPlan(r, secs){
   if(sum <= cap && sum >= floor){
     const span = Math.max(1, cap - floor);
     budgetScore = 14 + 8 * clamp((sum - floor)/span, 0, 1);
-    budgetReason = '整桌 ¥' + sum + '，落在「' + tier.name + '」的额度里（人均 ¥' +
-      (tier.min === 0 ? '≤' + tier.max : tier.min + '-' + tier.max) + ' × ' + peopleCount() + ' 人 = ¥' + cap + '）';
   }else if(sum < floor){
     budgetScore = Math.max(2, 12 - (floor - sum) * 0.3);
-    budgetReason = '整桌 ¥' + sum + '，比「' + tier.name + '」这一桌的下限 ¥' + floor + ' 省一些';
   }else{
     budgetScore = Math.max(0, 16 - (sum - cap) * 0.6);
-    budgetReason = '整桌 ¥' + sum + '，略微超出这一桌的额度 ¥' + cap;
   }
+  budgetReason = budgetLineText(sum, cap, floor);      // 和算法引擎那条共用同一句话
   const roles = items.map(x => x.role);
   let balance = 0; const balanceReasons = [];
   if((roles.includes('main') || roles.includes('single')) && (roles.includes('staple') || roles.includes('single'))){ balance += 10; balanceReasons.push('主食配上了，不会干吃菜'); }
