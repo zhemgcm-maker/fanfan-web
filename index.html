@@ -651,6 +651,52 @@
   .meal-rate.done{border-style:solid;border-color:var(--line);background:#fff;color:var(--muted)}
   .meal-rate:active{transform:scale(.99)}
 
+  /* ---------- 提交菜单：缩略图 + 待发角标 ---------- */
+  .submit-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .submit-thumbs .th{position:relative;width:74px;height:74px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#fff}
+  .submit-thumbs .th img{width:100%;height:100%;object-fit:cover;display:block}
+  .submit-thumbs .th .rm{
+    position:absolute;right:2px;top:2px;width:22px;height:22px;border-radius:50%;border:none;
+    background:rgba(43,33,24,.62);color:#fff;font-size:12px;line-height:1;cursor:pointer;display:grid;place-items:center;
+    font-family:inherit;padding:0
+  }
+  .submit-thumbs .th .sz{position:absolute;left:0;right:0;bottom:0;font-size:10px;text-align:center;color:#fff;background:rgba(43,33,24,.5)}
+  .submit-badge{
+    flex:0 0 auto;align-self:center;font-size:11.5px;font-weight:700;color:#fff;background:#e8683a;
+    border-radius:999px;padding:3px 9px
+  }
+  .sub-row{display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .sub-row:last-child{border-bottom:none}
+  .sub-row .s-main{flex:1;min-width:0}
+  .sub-row .s-name{font-size:13.5px;color:#3f3128;word-break:break-word}
+  .sub-row .s-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .sub-row .s-act{flex:0 0 auto;font-size:11.5px;color:var(--brand);background:none;border:none;font-family:inherit;cursor:pointer;padding:6px 2px}
+  .sub-state{font-size:11px;border-radius:999px;padding:2px 8px;flex:0 0 auto}
+  .sub-state.wait{background:#fff3e8;color:#c2571f;border:1px solid #ffd9bb}
+  .sub-state.done{background:#eefaf1;color:#237a45;border:1px solid #c7ead3}
+  .sub-state.bad{background:#fdeceb;color:#b3271c;border:1px solid #f6bdb7}
+
+  /* 发现美食右上角那颗「拍照上传菜单」——压在橙色头部上，做成半透明白胶囊 */
+  /* 发现美食的头部改成两行：第一行头像+标题+按钮，第二行副标题独占整行。
+   * 以前三者挤一行，320px 小屏会把副标题压成七行、头部高 200px。 */
+  #findHead{display:block}
+  .find-head-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;row-gap:8px}
+  .find-head-top .me-avatar{flex:0 0 58px}
+  .find-head-title{flex:1 1 100px;min-width:0}
+  #findHead #findSub{margin-top:8px}
+  .find-upload{
+    flex:0 0 auto;margin-left:auto;
+    display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.55);color:#fff;
+    border-radius:999px;padding:7px 10px;font-size:12.5px;font-weight:700;font-family:inherit;
+    cursor:pointer;line-height:1.2;-webkit-tap-highlight-color:transparent
+  }
+  .find-upload:active{transform:scale(.96);background:rgba(255,255,255,.32)}
+  .find-upload .n{
+    background:#fff;color:#e8683a;border-radius:999px;font-size:11px;font-weight:800;
+    padding:1px 6px;line-height:1.5
+  }
+
   /* ---------- 「我的」页面 ---------- */
   .me-head{
     display:flex;align-items:center;gap:14px;margin-top:4px;padding:18px 16px;border-radius:18px;
@@ -1262,6 +1308,39 @@
   <div class="sheet-card" id="loginSheetCard"></div>
 </div>
 
+<!-- 提交菜单：用户拍自己搜集的菜单 → 传上来 → 我们审核后入库 -->
+<div class="sheet" id="submitSheet" role="dialog" aria-modal="true" aria-label="提交菜单">
+  <div class="sheet-mask" id="submitMask"></div>
+  <div class="sheet-card" id="submitCard">
+    <div class="sheet-grab"></div>
+    <div class="sheet-head">
+      <div class="sheet-face">📷</div>
+      <div style="flex:1;min-width:0">
+        <div class="sheet-name">提交你搜集的菜单</div>
+        <div class="sheet-meta">拍张菜单照片、写上店名就行。审核通过后加进数据库，全校同学都能用上。</div>
+      </div>
+      <button class="sheet-close" id="submitClose" aria-label="关闭">✕</button>
+    </div>
+    <label class="field" for="subShop">店名 / 档口名 <span style="color:#c2571f">*</span></label>
+    <input type="text" id="subShop" placeholder="例如：第三食堂 · 麻辣香锅" autocomplete="off">
+    <label class="field" for="subWhere">在哪儿（选填）</label>
+    <input type="text" id="subWhere" placeholder="例如：华北电力大学（保定）第三食堂 二层" autocomplete="off">
+    <label class="field" for="subNote">备注（选填）</label>
+    <input type="text" id="subNote" placeholder="例如：价格是 2026-10-05 拍的" autocomplete="off">
+    <label class="field">菜单照片（最多 5 张）</label>
+    <input type="file" id="subFiles" accept="image/*" multiple style="display:none">
+    <button class="btn ghost small" id="subPick" type="button">📷 选照片 / 拍照</button>
+    <div id="subThumbs" class="submit-thumbs"></div>
+    <div class="rate-foot">
+      <button class="btn ghost" id="submitCancel" type="button">取消</button>
+      <button class="btn" id="submitSend" type="button">提交</button>
+    </div>
+    <p class="note" id="submitTip">照片会在本机压到 200KB 左右再传（顺便去掉照片里的定位信息）。
+      食堂信号差也没关系：先存手机上，联网后自动发出去。</p>
+    <div id="submitList"></div>
+  </div>
+</div>
+
 <!-- 打分：吃完给这一顿的每道菜和这家店打星（0.5 步进）。从「我的 › 最近吃过」打开 -->
 <div class="sheet" id="rateSheet" role="dialog" aria-modal="true" aria-label="给这一顿打分">
   <div class="sheet-mask" id="rateMask"></div>
@@ -1297,11 +1376,15 @@
 <!-- =================== 发现美食：商家数据 =================== -->
 <div id="pageFind" class="hidden">
   <div class="me-head" id="findHead" style="margin-bottom:10px;position:sticky;top:0;z-index:6">
-    <div class="me-avatar">🧾</div>
-    <div style="flex:1;min-width:0">
-      <div class="mh-name">发现美食</div>
-      <div class="mh-sub" id="findSub">—</div>
+    <!-- 第一行：头像 + 标题 + 右上角那颗「拍照上传菜单」；副标题单独占一行，不被按钮挤窄 -->
+    <div class="find-head-top">
+      <div class="me-avatar">🧾</div>
+      <div class="find-head-title"><div class="mh-name">发现美食</div></div>
+      <button class="find-upload" id="findUpload" type="button">
+        <span>📷 拍照上传菜单</span><span class="n hidden" id="findUploadN"></span>
+      </button>
     </div>
+    <div class="mh-sub" id="findSub">—</div>
   </div>
   <div id="findBody"></div>
   <div id="findStall" class="hidden"></div>
@@ -5511,7 +5594,7 @@ function switchTab(name){
   try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(e){}
   if(name === 'me'){ renderProfile(); renderSettingsUI(); renderServerUI(); renderSpiceSeg(); renderTierSeg(); renderAddrList(); }
   if(name === 'ai'){ renderAiPage(); }
-  if(name === 'find'){ renderFind(); }
+  if(name === 'find'){ renderFind(); flushSubmits(); }   // 进发现页顺手把攒着的提交发一次
 }
 
 /* ------------------------------ 发现（商家数据） ------------------------------
@@ -5526,6 +5609,7 @@ function findShops(){
 function renderFind(){
   const body = $('#findBody'), card = $('#findStall'), sub = $('#findSub');
   if(!body) return;
+  renderFindUpload();
   if(card){ card.classList.add('hidden'); card.innerHTML = ''; }
   body.classList.remove('hidden');
   const list = findShops();
@@ -5535,6 +5619,7 @@ function renderFind(){
       ' · 校外的店 ' + out + ' 家';
   }
   if(!list.length){
+    /* 一家店都没有时也要能提交——用户拍的第一份菜单，往往就是库里还缺的那家 */
     body.innerHTML = '<div class="me-card"><div class="me-block"><div class="me-hint">' +
       (schoolItem() ? esc(schoolName()) + ' 还没有录入食堂档口。' : '先去「我的 › 我的习惯 › 学校」选一所学校。') +
       '</div></div></div>';
@@ -5570,6 +5655,337 @@ function renderFind(){
         '<div class="me-card" data-gbody="' + gi + '">' + rows + '</div>';
   }).join('');
 }
+/* ============================== 发现 · 用户提交菜单 ==============================
+ * 用户拍下自己搜集的菜单 → 传给我们 → 审核 → 跑 开发脚本/import-menu.mjs 识别成结构化菜单
+ * → ingest-menu.mjs 入库 → build-data.mjs 生成 shops.json。这条链是现成的，缺的只是"收件口"。
+ *
+ * 三个设计决定：
+ *   ① **先落本地、再往出发**：食堂信号差，拍完就发经常失败。先存本机，联网/登录后自动重发，
+ *      一张照片都不白拍；发出去之后本机的图片立刻删掉，不留着占地方。
+ *   ② **图片存 IndexedDB，不进 localStorage**：localStorage 只有 5MB，压缩后一张菜单图
+ *      base64 就 300KB 上下，两条提交就撑爆。图片按 Blob 存 IndexedDB（容量按磁盘算），
+ *      队列本身（店名/状态/时间）还是放 localStorage，和其它数据一致。
+ *   ③ **前端压缩**：后端是 express + body-parser，JSON 默认上限 100KB，不压必然 413。
+ *      压到长边 1600、单张 ≤300KB——再小菜单上的小字就糊了，审核时要靠 OCR 认价。
+ *      顺带一个好处：canvas 重编码会丢掉 EXIF，用户照片里的 GPS 定位不会跟着上传。 */
+
+const LS_SUBMITS = 'eatAgent.submits.v1';
+const SUBMIT_MAX_IMG = 5;
+const SUBMIT_IMG_BYTES = 300 * 1024;
+const SUBMIT_MAX_QUEUE = 8;              // 本地最多攒 8 条没发出去的
+const SUBMIT_RETRY_MS = 6 * 3600 * 1000;
+
+let submitQueue = [];
+let submitDraft = { images:[] };         // 正在填的这一条：图片只存 {key,w,h,bytes,name}
+let submitBusy = false, lastSubmitTry = 0;
+
+function loadSubmits(){
+  try{ const a = JSON.parse(localStorage.getItem(LS_SUBMITS) || '[]'); submitQueue = Array.isArray(a) ? a : []; }
+  catch(e){ submitQueue = []; }
+}
+function saveSubmits(){ try{ localStorage.setItem(LS_SUBMITS, JSON.stringify(submitQueue)); }catch(e){} }
+function pendingSubmits(){ return submitQueue.filter(s => s.state !== 'sent'); }
+
+/* ---------- IndexedDB：只放图片 Blob ---------- */
+const IDB_NAME = 'fanfan-submits', IDB_STORE = 'imgs';
+function idbOpen(){
+  return new Promise((res, rej) => {
+    if(typeof indexedDB === 'undefined') return rej(new Error('这台设备不支持本地暂存图片'));
+    const rq = indexedDB.open(IDB_NAME, 1);
+    rq.onupgradeneeded = () => { const db = rq.result; if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE); };
+    rq.onsuccess = () => res(rq.result);
+    rq.onerror = () => rej(rq.error || new Error('打不开本地图片暂存'));
+  });
+}
+async function idbPut(key, blob){
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(blob, key);
+    tx.oncomplete = () => res(true); tx.onerror = () => rej(tx.error);
+  });
+}
+async function idbGet(key){
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const rq = tx.objectStore(IDB_STORE).get(key);
+    rq.onsuccess = () => res(rq.result || null); rq.onerror = () => rej(rq.error);
+  });
+}
+async function idbDel(keys){
+  if(!keys || !keys.length) return true;
+  try{
+    const db = await idbOpen();
+    return await new Promise(res => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      keys.forEach(k => tx.objectStore(IDB_STORE).delete(k));
+      tx.oncomplete = () => res(true); tx.onerror = () => res(false);
+    });
+  }catch(e){ return false; }
+}
+
+/* ---------- 图片压缩 ---------- */
+function loadShot(file){
+  return new Promise((resolve, reject) => {
+    const viaImg = () => {
+      const img = new Image(), url = URL.createObjectURL(file);
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('这张图读不出来')); };
+      img.src = url;
+    };
+    if(typeof createImageBitmap === 'function') createImageBitmap(file).then(resolve).catch(viaImg);
+    else viaImg();
+  });
+}
+const canvasToBlob = (cv, q) => new Promise(res => { try{ cv.toBlob(b => res(b), 'image/jpeg', q); }catch(e){ res(null); } });
+function blobToB64(blob){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(String(fr.result || '').split(',')[1] || '');
+    fr.onerror = () => rej(new Error('图片编码失败'));
+    fr.readAsDataURL(blob);
+  });
+}
+/* 压缩一张照片：先按长边缩到 1600，再逐级降 JPEG 质量，还是超就继续缩尺寸。
+ * 目标是"单张 ≤300KB 且菜单上的小字还认得出来"——审核时要 OCR 认价格。 */
+async function compressShot(file){
+  const src = await loadShot(file);
+  let w = src.width || src.naturalWidth || 0, h = src.height || src.naturalHeight || 0;
+  if(!w || !h) throw new Error('这张图尺寸读不出来');
+  const MAX_SIDE = 1600;
+  if(Math.max(w, h) > MAX_SIDE){ const k = MAX_SIDE / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
+  const cv = document.createElement('canvas'), cx = cv.getContext('2d');
+  let blob = null;
+  for(let round = 0; round < 3; round++){
+    cv.width = w; cv.height = h;
+    cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, w, h);   // 透明 PNG 直接转 JPEG 会变黑底
+    cx.drawImage(src, 0, 0, w, h);
+    let q = 0.82;
+    blob = await canvasToBlob(cv, q);
+    while(blob && blob.size > SUBMIT_IMG_BYTES && q > 0.44){
+      q = +(q - 0.12).toFixed(2);
+      blob = await canvasToBlob(cv, q);
+    }
+    if(!blob || blob.size <= SUBMIT_IMG_BYTES) break;
+    w = Math.round(w * 0.8); h = Math.round(h * 0.8);     // 还是太大就缩小重来
+  }
+  if(!blob) throw new Error('这张图压不了');
+  return { blob, w: cv.width, h: cv.height, bytes: blob.size, name: String(file.name || '菜单照片').slice(0, 60) };
+}
+
+/* ---------- 入口：发现美食右上角那颗按钮（只更新角标，不重画头部） ---------- */
+function renderFindUpload(){
+  const nEl = $('#findUploadN');
+  if(!nEl) return;
+  const pend = pendingSubmits().length;
+  nEl.textContent = pend > 9 ? '9+' : String(pend);
+  nEl.classList.toggle('hidden', pend === 0);
+}
+
+/* ---------- 表单面板 ---------- */
+function openSubmitSheet(){
+  submitDraft = { images:[] };
+  ['#subShop', '#subWhere', '#subNote'].forEach(id => { const el = $(id); if(el) el.value = ''; });
+  const f = $('#subFiles'); if(f) f.value = '';
+  renderSubmitThumbs(); renderSubmitList(); refreshSubmitTip();
+  const sheet = $('#submitSheet'); if(sheet) sheet.classList.add('show');
+  setTimeout(() => { const el = $('#subShop'); if(el) el.focus(); }, 260);
+  flushSubmits();                       // 顺手把以前没发出去的补发一次
+}
+function closeSubmitSheet(){ const s = $('#submitSheet'); if(s) s.classList.remove('show'); }
+
+function refreshSubmitTip(){
+  const el = $('#submitTip'); if(!el) return;
+  const n = submitDraft.images.length;
+  const kb = Math.round(submitDraft.images.reduce((s, m) => s + (m.bytes || 0), 0) / 1024);
+  const pend = pendingSubmits().length;
+  let t = '照片在本机压到 300KB 以内再传（顺便去掉照片里的定位信息）。';
+  if(n) t = n + ' 张 · 压缩后共 ' + kb + ' KB。' + t;
+  if(pend) t += ' 这台手机上还有 ' + pend + ' 条等着发出去' + (loggedIn() ? '，联网就自动发。' : '，登录后自动发。');
+  el.textContent = t;
+}
+function renderSubmitThumbs(){
+  const box = $('#subThumbs'); if(!box) return;
+  box.innerHTML = submitDraft.images.map((m, i) =>
+    '<div class="th" data-thumb="' + i + '">' +
+      '<img src="' + m.url + '" alt="">' +
+      '<button class="rm" type="button" data-rmthumb="' + i + '" aria-label="删掉这张">✕</button>' +
+      '<span class="sz">' + Math.round((m.bytes || 0) / 1024) + 'K</span>' +
+    '</div>').join('');
+}
+function renderSubmitList(){
+  const box = $('#submitList'); if(!box) return;
+  const rows = submitQueue.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 8);
+  if(!rows.length){ box.innerHTML = ''; return; }
+  box.innerHTML = '<div class="mem-sec" style="margin-top:16px">我提交的（' + rows.length + '）</div>' +
+    '<div class="mem-list memrows">' + rows.map(s => {
+      const st = s.state === 'sent' ? ['done', '已提交']
+               : (s.state === 'failed' ? ['bad', '发送失败'] : ['wait', '待发']);
+      return '<div class="sub-row">' +
+        '<div class="s-main"><div class="s-name">' + esc(s.shop || '（没写店名）') + '</div>' +
+          '<div class="s-sub">' + (s.images && s.images.length ? s.images.length + ' 张照片 · ' : '') +
+            relDay(s.at || Date.now()) + (s.state === 'failed' && s.err ? ' · ' + esc(s.err) : '') + '</div></div>' +
+        '<span class="sub-state ' + st[0] + '">' + st[1] + '</span>' +
+        (s.state === 'sent' ? '' : '<button class="s-act" type="button" data-subexport="' + esc(s.id) + '">导出</button>') +
+        (s.state === 'sent' ? '' : '<button class="s-act" type="button" data-subdrop="' + esc(s.id) + '">删掉</button>') +
+      '</div>';
+    }).join('') + '</div>';
+}
+
+/* 选照片 → 压缩 → 暂存 IndexedDB（刷新页面也不丢） */
+async function addSubmitFiles(files){
+  const list = Array.from(files || []).filter(f => /^image\//.test(f.type || ''));
+  if(!list.length) return;
+  const room = SUBMIT_MAX_IMG - submitDraft.images.length;
+  if(room <= 0){ toast('一次最多 ' + SUBMIT_MAX_IMG + ' 张，够说明问题了'); return; }
+  for(const f of list.slice(0, room)){
+    toast('正在压缩照片…');
+    try{
+      const c = await compressShot(f);
+      const key = 'draft-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+      await idbPut(key, c.blob);
+      submitDraft.images.push({ key, name:c.name, w:c.w, h:c.h, bytes:c.bytes, url:URL.createObjectURL(c.blob) });
+    }catch(e){ toast('这张照片处理不了：' + ((e && e.message) || '未知错误')); }
+  }
+  if(list.length > room) toast('只收下了前 ' + room + ' 张（一次最多 ' + SUBMIT_MAX_IMG + ' 张）');
+  renderSubmitThumbs(); refreshSubmitTip();
+}
+async function rmSubmitThumb(i){
+  const m = submitDraft.images[i];
+  if(!m) return;
+  submitDraft.images.splice(i, 1);
+  await idbDel([m.key]);
+  renderSubmitThumbs(); refreshSubmitTip();
+}
+
+/* ---------- 提交 ---------- */
+async function doSubmit(){
+  const shop = String(($('#subShop') || {}).value || '').trim();
+  if(!shop){ toast('先写上店名，不然我们不知道这是哪家'); const el = $('#subShop'); if(el) el.focus(); return; }
+  if(pendingSubmits().length >= SUBMIT_MAX_QUEUE){ toast('本机已经攒了 ' + SUBMIT_MAX_QUEUE + ' 条没发出去，先联网发掉几条再提交'); return; }
+  // 同一家店同一天提过一次就提醒一下（重复提交会让我们重复劳动）
+  const dup = submitQueue.find(s => s.shop === shop && (Date.now() - (s.at || 0)) < 24 * 3600 * 1000);
+  if(dup && !confirm('「' + shop + '」今天已经提交过了，还要再提一份吗？')) return;
+  if(!submitDraft.images.length && !confirm('没附照片的话，我们只能看到店名。确定就这样提交？')) return;
+
+  const s = {
+    id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    at: Date.now(), state: 'pending', fails: 0,
+    shop, where: String(($('#subWhere') || {}).value || '').trim(),
+    note: String(($('#subNote') || {}).value || '').trim(),
+    images: submitDraft.images.slice(),
+    logged: loggedIn() ? (state.identity.username || '') : ''
+  };
+  submitQueue.push(s);
+  saveSubmits();
+  submitDraft.images = [];              // 图片的归属转给这一条了，草稿清空
+  renderSubmitThumbs();
+  const r = await flushSubmits(true);
+  renderSubmitList(); refreshSubmitTip(); renderFind();
+  if(r.sent) toast('已提交「' + shop + '」，谢谢你！我们审核后加进数据库');
+  else if(r.why === 'guest') toast('已经存到手机上了：登录后会自动发出去');
+  else if(r.why === 'nobackend') toast('已经存到手机上了：收件通道还没开通，开通后自动发');
+  else toast('已经存到手机上了，联网后自动发');
+}
+function dropSubmit(id){
+  const i = submitQueue.findIndex(s => s.id === id);
+  if(i === -1) return;
+  const s = submitQueue[i];
+  if(!confirm('删掉「' + (s.shop || '这条') + '」？照片也会从手机上一起清掉。')) return;
+  idbDel((s.images || []).map(m => m.key));
+  submitQueue.splice(i, 1); saveSubmits();
+  renderSubmitList(); renderFind(); refreshSubmitTip();
+  toast('已删掉');
+}
+/* 兜底：收件通道还没开通时，把这一条导出成一个 JSON 文件，微信发给我们也能收。
+ * 图片以 base64 放在里面，配套脚本 开发脚本/解析提交包.mjs 会把图取出来落到磁盘，
+ * 再跑 import-menu.mjs 就能识别成结构化菜单。 */
+async function exportSubmit(id){
+  const s = submitQueue.find(x => x.id === id);
+  if(!s){ toast('这条已经不在了'); return; }
+  const imgs = [];
+  for(const m of (s.images || [])){
+    try{ const b = await idbGet(m.key); if(b) imgs.push({ name:m.name, w:m.w, h:m.h, type:'image/jpeg', data: await blobToB64(b) }); }
+    catch(e){}
+  }
+  const pack = { v:1, exportedAt:new Date().toISOString(),
+    submissions:[{ id:s.id, at:s.at, shop:s.shop, where:s.where, note:s.note, images:imgs }] };
+  const blob = new Blob([JSON.stringify(pack)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '饭饭菜单提交-' + String(s.shop || s.id).replace(/[\\/:*?"<>|]/g, '_') + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast('已导出，微信发给我们也行');
+}
+
+/* ---------- 往出发（带重试和退避） ---------- */
+async function flushSubmits(force){
+  if(submitBusy) return { sent:0, why:'busy' };
+  const pend = pendingSubmits();
+  if(!pend.length) return { sent:0, why:'empty' };
+  if(!loggedIn()) return { sent:0, why:'guest' };
+  if(!apiBase()) return { sent:0, why:'nobase' };
+  if(!force && Date.now() - lastSubmitTry < 60000) return { sent:0, why:'throttled' };
+  lastSubmitTry = Date.now();
+  submitBusy = true;
+  let sent = 0, why = '';
+  try{
+    for(const s of pend){
+      if(s.retryAfter && Date.now() < s.retryAfter) continue;
+      let body;
+      try{
+        const images = [];
+        for(const m of (s.images || [])){
+          const b = await idbGet(m.key);
+          if(b) images.push({ name:m.name, type:'image/jpeg', w:m.w, h:m.h, bytes:m.bytes, data: await blobToB64(b) });
+        }
+        body = { id:s.id, shop:s.shop, where:s.where, note:s.note, images, at:s.at,
+                 logged:s.logged || '', client:'fanfan-web' };
+      }catch(e){ s.retryAfter = Date.now() + SUBMIT_RETRY_MS; why = '图片读取失败'; break; }
+      try{
+        const r = await apiCall('/api/submit', { method:'POST', timeoutMs:120000, body });
+        s.state = 'sent'; s.serverId = (r && (r.id || r.submit_id)) || ''; s.sentAt = Date.now();
+        await idbDel((s.images || []).map(m => m.key));   // 发出去了就把本机图片删掉
+        s.images = [];
+        sent++;
+      }catch(e){
+        const st = e && e.status;
+        if(st === 404 || st === 501){
+          s.retryAfter = Date.now() + SUBMIT_RETRY_MS;     // 收件接口还没上线，别再打了
+          why = 'nobackend'; break;
+        }
+        s.fails = (s.fails || 0) + 1;
+        if(s.fails >= 5){ s.state = 'failed'; s.err = (e && e.message) || '发送失败'; }
+        s.retryAfter = Date.now() + Math.min(SUBMIT_RETRY_MS, 60000 * Math.pow(2, s.fails));
+        why = '网络不通'; break;
+      }
+    }
+  }finally{ submitBusy = false; saveSubmits(); }
+  return { sent, why };
+}
+/* 面板/入口卡的点击统一走这一个入口（列表都是 innerHTML 渲染的，绑不到单个元素上） */
+function onSubmitClick(e){
+  const t = e && e.target;
+  if(!t || !t.closest) return;
+  const rm = t.closest('[data-rmthumb]');
+  if(rm){ rmSubmitThumb(+rm.getAttribute('data-rmthumb')); return; }
+  const ex = t.closest('[data-subexport]');
+  if(ex){ exportSubmit(ex.getAttribute('data-subexport')); return; }
+  const dp = t.closest('[data-subdrop]');
+  if(dp){ dropSubmit(dp.getAttribute('data-subdrop')); return; }
+  if(t.closest('#subPick')){ const f = $('#subFiles'); if(f) f.click(); return; }
+  if(t.closest('#submitSend')){ doSubmit(); return; }
+  if(t.closest('#submitCancel') || t.closest('#submitClose') || t.closest('#submitMask')) closeSubmitSheet();
+}
+function onSubmitFiles(e){
+  const f = e && e.target;
+  if(f && f.files) addSubmitFiles(f.files);
+  if(f) f.value = '';                   // 同一个文件再选一次也要能触发
+}
+
 function openStallMenu(id){
   const s = (SHOP_DB.shops || []).find(x => x.id === id);
   const body = $('#findBody'), card = $('#findStall');
@@ -9266,6 +9682,7 @@ function onAiMsgsClick(e){
 function init(){
   loadIdentity();
   loadStore();
+  loadSubmits();     // 用户提交过的菜单（本地队列；图片在 IndexedDB 里）
   aiLoad();          // 「饭饭AI」的聊天记录与今日推荐（本地，不联网）
 
   // 应用「我的」里保存的偏好
@@ -9303,6 +9720,9 @@ function init(){
   $('#tabFind').addEventListener('click', () => switchTab('find'));
   $('#tabMe').addEventListener('click', () => switchTab('me'));
   /* 「发现」里点一个档口 → 看它全部菜单（事件委托，列表是每次重渲染的） */
+  /* 发现美食右上角：拍照上传菜单 */
+  const findUpload = $('#findUpload');
+  if(findUpload) findUpload.addEventListener('click', openSubmitSheet);
   const findBody = $('#findBody');
   if(findBody) findBody.addEventListener('click', e => {
     const el = e.target;
@@ -9377,6 +9797,11 @@ function init(){
   /* 打分面板：星星 / 保存 / 关闭 / 点遮罩全走这一个入口（星星是 innerHTML 重渲染的） */
   const rateSheet = $('#rateSheet');
   if(rateSheet) rateSheet.addEventListener('click', onRateSheetClick);
+  /* 提交菜单：面板里的缩略图/导出/删掉/选照片全走事件委托 */
+  const submitSheet = $('#submitSheet');
+  if(submitSheet) submitSheet.addEventListener('click', onSubmitClick);
+  const subFiles = $('#subFiles');
+  if(subFiles) subFiles.addEventListener('change', onSubmitFiles);
   // 小特效：点一下就不等了，直接回「今天吃什么」
   const blessBox = $('#bless');
   if(blessBox) blessBox.addEventListener('click', backToPick);
@@ -9722,6 +10147,8 @@ if(typeof document !== 'undefined' && document.addEventListener){
 }
 
 init();
+/* 开机顺手把攒着的菜单提交补发一次（没登录/没网/接口没上线都会被安全跳过） */
+setTimeout(() => { try{ flushSubmits(); }catch(e){} }, 4000);
 </script>
 </body>
 </html>
