@@ -5674,6 +5674,10 @@ const SUBMIT_MAX_IMG = 5;
 const SUBMIT_IMG_BYTES = 300 * 1024;
 const SUBMIT_MAX_QUEUE = 8;              // 本地最多攒 8 条没发出去的
 const SUBMIT_DAILY_MAX = 5;              // 一人一天最多提交 5 家（客户端这道只是"早点告诉用户"）
+/* 整包上限：图片走 base64（体积 ×4/3）塞进 JSON，而队友那台 FC 的 express 现在设的是 2mb，
+ * 实测 2.2MB 就 413。这里卡在 1.9MB（约合 1.4MB 图片），留出 JSON 字段的余量。
+ * 后端把 limit 提到 8mb 之后可以把这行调大。 */
+const SUBMIT_BODY_BUDGET = Math.round(1.9 * 1024 * 1024);
 const SUBMIT_RETRY_MS = 6 * 3600 * 1000;
 
 let submitQueue = [];
@@ -5695,6 +5699,11 @@ function submitsToday(){
 function submitQuotaLeft(){ return Math.max(0, SUBMIT_DAILY_MAX - submitsToday()); }
 // 明天 0 点（本地时间）：后端说"今天名额用完了"时，这条留到那会儿再发
 function nextDayStart(){ const d = new Date(); d.setHours(24, 0, 0, 0); return d.getTime(); }
+// 这些图片转成 base64 之后的字符数（base64 是 4/3，再加上 JSON 里的几个字段）
+function submitBodySize(imgs){
+  const bytes = (imgs || []).reduce((s, m) => s + (m.bytes || 0), 0);
+  return Math.ceil(bytes / 3) * 4 + 512;
+}
 
 /* ---------- IndexedDB：只放图片 Blob ---------- */
 const IDB_NAME = 'fanfan-submits', IDB_STORE = 'imgs';
@@ -5859,6 +5868,12 @@ async function addSubmitFiles(files){
     toast('正在压缩照片…');
     try{
       const c = await compressShot(f);
+      /* 整包别超上限：超了就当场告诉用户，别等发出去了拿 413。
+       * 单张已经压到 300KB 以内，5 张一般 1.2~1.5MB，正常拍菜单不会撞到这条。 */
+      if(submitBodySize(submitDraft.images.concat([c])) > SUBMIT_BODY_BUDGET){
+        toast('这几张加起来太大了（后端一次最多收 ' + Math.round(SUBMIT_BODY_BUDGET / 1024) + 'KB 的包），删掉一张再传');
+        break;
+      }
       const key = 'draft-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
       await idbPut(key, c.blob);
       submitDraft.images.push({ key, name:c.name, w:c.w, h:c.h, bytes:c.bytes, url:URL.createObjectURL(c.blob) });
@@ -5909,6 +5924,7 @@ async function doSubmit(){
   const tail = left > 0 ? '（今天还能提交 ' + left + ' 家）' : '（今天 5 家的名额用完了）';
   if(r.sent) toast('已提交「' + shop + '」，谢谢你！' + tail);
   else if(r.why === 'quota') toast('今天的 5 家名额用完了：这条先存手机上，明天自动发');
+  else if(r.why === 'toobig') toast('照片加起来超过后端一次能收的大小了：这张先存手机上');
   else if(r.why === 'guest') toast('已经存到手机上了：登录后会自动发出去');
   else if(r.why === 'nobackend') toast('已经存到手机上了：收件通道还没开通，开通后自动发');
   else toast('已经存到手机上了，联网后自动发' + tail);
@@ -5970,6 +5986,11 @@ async function flushSubmits(force){
         body = { id:s.id, shop:s.shop, where:s.where, note:s.note, images, at:s.at,
                  logged:s.logged || '', client:'fanfan-web' };
       }catch(e){ s.retryAfter = Date.now() + SUBMIT_RETRY_MS; why = '图片读取失败'; break; }
+      /* 兜一道：整包超了就根本别发（后端会 413），留到后端把上限提上去之后再发 */
+      if(JSON.stringify(body).length > SUBMIT_BODY_BUDGET){
+        s.retryAfter = Date.now() + SUBMIT_RETRY_MS;
+        why = 'toobig'; break;
+      }
       try{
         const r = await apiCall('/api/submit', { method:'POST', timeoutMs:120000, body });
         s.state = 'sent'; s.serverId = (r && (r.id || r.submit_id)) || ''; s.sentAt = Date.now();
