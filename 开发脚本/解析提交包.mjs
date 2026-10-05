@@ -1,8 +1,14 @@
-// 把用户在「发现美食 › 提交你搜集的菜单」里导出的 JSON，还原成"图片 + 菜单骨架"
+// 把「用户提交的菜单」那个 JSON 包，还原成"图片 + 人工核对单"
 //
-// 为什么要有这一步：收件接口（后端 /api/submit）还没开通的时候，
-// 用户可以点「导出」把这一条存成一个 .json 文件，用微信发给我们；
-// 这个脚本把里面的图片取出来落到磁盘，剩下的交给现成的识别/入库链路。
+// 两种包都能吃，格式是一样的：
+//   ① 后端导出的（推荐）：浏览器打开
+//        https://<后端地址>/api/submit/pending?key=<审核密钥>
+//      会自动存成一个 json 文件
+//   ② 用户自己导的：在「发现美食 › 拍照上传菜单」面板里点「导出」，
+//      他用微信发给我们（收件接口挂了、或者没登录时用这条兜底）
+//
+// 这个脚本只做一件事：把 base64 图片取出来落盘，并生成一份核对单；
+// 后面的 OCR / 入库交给现成的 import-menu.mjs → ingest-menu.mjs → build-data.mjs。
 //
 // 用法：
 //   node 开发脚本/解析提交包.mjs <提交包.json> [--out <目录>]
@@ -19,7 +25,19 @@ const flag = n => { const i = args.indexOf('--' + n); return i === -1 ? null : a
 const file = args.find(a => !a.startsWith('--') && args[args.indexOf(a) - 1] !== '--out');
 if(!file){ console.error('用法：node 开发脚本/解析提交包.mjs <提交包.json> [--out <目录>]'); process.exit(1); }
 
-const pack = JSON.parse(fs.readFileSync(file, 'utf8'));
+if(!fs.existsSync(file)){
+  console.error('找不到这个文件：' + file);
+  console.error('（路径里有空格或中文的话，要用引号把整个路径包起来，例如 "D:\\下载\\fanfan-pending.json"）');
+  process.exit(1);
+}
+let pack;
+try{
+  pack = JSON.parse(fs.readFileSync(file, 'utf8'));
+}catch(e){
+  console.error('这个文件不是合法的 JSON：' + file);
+  console.error('（要的是「审核导出」下载的那个 .json，或者用户在面板里点「导出」存下来的 .json）');
+  process.exit(1);
+}
 const subs = Array.isArray(pack.submissions) ? pack.submissions : [];
 if(!subs.length){ console.error('这个包里没有提交记录'); process.exit(1); }
 
