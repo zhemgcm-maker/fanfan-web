@@ -5673,6 +5673,7 @@ const LS_SUBMITS = 'eatAgent.submits.v1';
 const SUBMIT_MAX_IMG = 5;
 const SUBMIT_IMG_BYTES = 300 * 1024;
 const SUBMIT_MAX_QUEUE = 8;              // 本地最多攒 8 条没发出去的
+const SUBMIT_DAILY_MAX = 5;              // 一人一天最多提交 5 家（客户端这道只是"早点告诉用户"）
 const SUBMIT_RETRY_MS = 6 * 3600 * 1000;
 
 let submitQueue = [];
@@ -5685,6 +5686,15 @@ function loadSubmits(){
 }
 function saveSubmits(){ try{ localStorage.setItem(LS_SUBMITS, JSON.stringify(submitQueue)); }catch(e){} }
 function pendingSubmits(){ return submitQueue.filter(s => s.state !== 'sent'); }
+/* 今天已经提交了几家（按自然日算，0 点重置）。不限状态：发出去的、待发的、失败的都算——
+ * 用户"提交过"就是提交过，不能因为发失败就让他再占一个名额。 */
+function submitsToday(){
+  const today = aiDayKey(new Date());
+  return submitQueue.filter(s => aiDayKey(new Date(s.at || 0)) === today).length;
+}
+function submitQuotaLeft(){ return Math.max(0, SUBMIT_DAILY_MAX - submitsToday()); }
+// 明天 0 点（本地时间）：后端说"今天名额用完了"时，这条留到那会儿再发
+function nextDayStart(){ const d = new Date(); d.setHours(24, 0, 0, 0); return d.getTime(); }
 
 /* ---------- IndexedDB：只放图片 Blob ---------- */
 const IDB_NAME = 'fanfan-submits', IDB_STORE = 'imgs';
@@ -5800,10 +5810,16 @@ function refreshSubmitTip(){
   const n = submitDraft.images.length;
   const kb = Math.round(submitDraft.images.reduce((s, m) => s + (m.bytes || 0), 0) / 1024);
   const pend = pendingSubmits().length;
-  let t = '照片在本机压到 300KB 以内再传（顺便去掉照片里的定位信息）。';
+  const left = submitQuotaLeft();
+  let t = '';
+  if(left > 0) t = '今天还能提交 ' + left + ' 家（一天最多 ' + SUBMIT_DAILY_MAX + ' 家）。';
+  else t = '今天 ' + SUBMIT_DAILY_MAX + ' 家已经提交完了，明天再来。';
+  t += '照片在本机压到 300KB 以内再传（顺便去掉照片里的定位信息）。';
   if(n) t = n + ' 张 · 压缩后共 ' + kb + ' KB。' + t;
   if(pend) t += ' 这台手机上还有 ' + pend + ' 条等着发出去' + (loggedIn() ? '，联网就自动发。' : '，登录后自动发。');
   el.textContent = t;
+  const btn = $('#submitSend');
+  if(btn) btn.disabled = left <= 0;
 }
 function renderSubmitThumbs(){
   const box = $('#subThumbs'); if(!box) return;
@@ -5863,6 +5879,12 @@ async function rmSubmitThumb(i){
 async function doSubmit(){
   const shop = String(($('#subShop') || {}).value || '').trim();
   if(!shop){ toast('先写上店名，不然我们不知道这是哪家'); const el = $('#subShop'); if(el) el.focus(); return; }
+  /* 一人一天最多 SUBMIT_DAILY_MAX 家。这道闸门只是"早点告诉用户"，
+   * 真正管用的是后端那一道（见 提交菜单-后端接口.md）——清缓存、换设备就能绕过这里。 */
+  if(submitQuotaLeft() <= 0){
+    toast('今天已经提交 ' + submitsToday() + ' 家了，一天最多 ' + SUBMIT_DAILY_MAX + ' 家，明天再来');
+    return;
+  }
   if(pendingSubmits().length >= SUBMIT_MAX_QUEUE){ toast('本机已经攒了 ' + SUBMIT_MAX_QUEUE + ' 条没发出去，先联网发掉几条再提交'); return; }
   // 同一家店同一天提过一次就提醒一下（重复提交会让我们重复劳动）
   const dup = submitQueue.find(s => s.shop === shop && (Date.now() - (s.at || 0)) < 24 * 3600 * 1000);
@@ -5883,10 +5905,13 @@ async function doSubmit(){
   renderSubmitThumbs();
   const r = await flushSubmits(true);
   renderSubmitList(); refreshSubmitTip(); renderFind();
-  if(r.sent) toast('已提交「' + shop + '」，谢谢你！我们审核后加进数据库');
+  const left = submitQuotaLeft();
+  const tail = left > 0 ? '（今天还能提交 ' + left + ' 家）' : '（今天 5 家的名额用完了）';
+  if(r.sent) toast('已提交「' + shop + '」，谢谢你！' + tail);
+  else if(r.why === 'quota') toast('今天的 5 家名额用完了：这条先存手机上，明天自动发');
   else if(r.why === 'guest') toast('已经存到手机上了：登录后会自动发出去');
   else if(r.why === 'nobackend') toast('已经存到手机上了：收件通道还没开通，开通后自动发');
-  else toast('已经存到手机上了，联网后自动发');
+  else toast('已经存到手机上了，联网后自动发' + tail);
 }
 function dropSubmit(id){
   const i = submitQueue.findIndex(s => s.id === id);
@@ -5956,6 +5981,12 @@ async function flushSubmits(force){
         if(st === 404 || st === 501){
           s.retryAfter = Date.now() + SUBMIT_RETRY_MS;     // 收件接口还没上线，别再打了
           why = 'nobackend'; break;
+        }
+        if(st === 429){
+          /* 后端说今天 5 家已经用完了（可能换过设备、清过缓存，本机数不准）。
+           * 这不是失败：留到明天 0 点再发，也别计失败次数。 */
+          s.retryAfter = nextDayStart();
+          why = 'quota'; break;
         }
         s.fails = (s.fails || 0) + 1;
         if(s.fails >= 5){ s.state = 'failed'; s.err = (e && e.message) || '发送失败'; }
