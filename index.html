@@ -2931,28 +2931,37 @@ function scoreDish(dish, ctx){
   const reasons = [];
   const parts = {};
 
-  // ① 预算匹配：在档位区间内且不超过心理预算 → 满分
+  /* ① 预算匹配：在档位区间内且不超过心理预算 → 满分
+   *
+   * 口径按菜的类型分——这一条必须和 toolFilterDishes / buildCombo 完全一致：
+   *   一人食（盖饭/面/饺子）—— 它就是一个人这一顿的花费 → 跟**人均**额度比
+   *   整份硬菜（烤鱼/水煮鱼/干锅）—— 一桌人分着吃 → 先摊成人均再比，等价于跟**整桌**额度比
+   * 以前两种都按人均比，于是"4 个人点一份 ¥68 的硬菜"被算成"一个人花了 ¥68"，直接扣分：
+   * 人越多、菜越像正经一顿，反而越吃亏。实测 1 人和 4 人的主菜排名一模一样（一桌额度白给了）。 */
   const ignoreBudget = !!(ctx && ctx.ignoreBudget);   // 组一桌菜时，预算按整桌算，单道菜不参与预算打分
-  const lo = tier ? tier.min : 0;
-  const hi = Math.min(tier ? tier.max : 999, state.budget);
+  const share = (dish.role === 'main') ? peopleCount() : 1;      // 这道菜几个人分
+  const lo = (tier ? tier.min : 0) * share;
+  const hi = Math.min(tier ? tier.max : 999, state.budget) * share;
   /* 还没选档位时 tier 是 null（页面那边会拦住"开始推荐"，但工具/内部调用可能先跑起来）。
    * 以前这里直接写 tier.name，没选档位就叫一声崩——推荐理由里给个中性说法就行，别炸。 */
   const tierName = tier ? tier.name : '当前';
+  // 分着吃的菜，推荐理由里把"摊到人均多少"写出来，用户才看得懂为什么它没超预算
+  const shareTxt = share > 1 ? ('摊到人均 ¥' + (dish.price / share).toFixed(0) + '，') : '';
   let budgetFit = 0;
   if(ignoreBudget){
     budgetFit = 18;
   }else if(dish.price <= hi && dish.price >= Math.max(0, lo - 6)){
     budgetFit = 26;
-    reasons.push(`¥${dish.price} 正好落在「${tierName}」区间里`);
+    reasons.push(`¥${dish.price} ${shareTxt}正好落在「${tierName}」区间里`);
   }else if(dish.price < Math.max(0, lo - 6)){
     // 比档位低得越多，越不符合这次「我想吃多大一口」的意图
     const under = Math.max(0, lo - 6) - dish.price;
     budgetFit = +clamp(12 - under * 0.28, -6, 12).toFixed(1);
-    reasons.push(`¥${dish.price} 比「${tierName}」档位低一些，更省但不解馋`);
+    reasons.push(`¥${dish.price} ${shareTxt}比「${tierName}」档位低一些，更省但不解馋`);
   }else{
     const over = dish.price - hi;
     budgetFit = clamp(20 - over * 1.1, 0, 20);
-    reasons.push(`¥${dish.price} 略微超出心理预算`);
+    reasons.push(`¥${dish.price} ${shareTxt}略微超出心理预算`);
   }
   parts['预算匹配'] = { raw:budgetFit, max:26 };
 
@@ -3075,8 +3084,11 @@ function scoreRestaurant(restaurant, dish, ctx){
   parts['评分'] = { raw:+ratingScore.toFixed(1), max:16 };
   if(restaurant.rating && restaurant.rating >= 4.5) reasons.push(`评分 ${restaurant.rating}，口碑不错`);
 
-  // 人均是否匹配预算
-  const gap = Math.abs(restaurant.avg - dish.price);
+  /* 人均是否匹配预算：整份硬菜是一桌人分着吃的，先摊成人均再跟店的人均价比。
+   * 以前直接拿"¥128 的烧肉拼盘"去跟"店人均 ¥45"比，差 83 → 这一项直接归零；
+   * 可 4 个人吃人均才 ¥32，本该是全场最匹配的一档。 */
+  const dishPer = (dish.role === 'main') ? (dish.price / Math.max(1, peopleCount())) : dish.price;
+  const gap = Math.abs(restaurant.avg - dishPer);
   const priceScore = clamp(18 - gap * 0.5, 0, 18);
   parts['人均匹配'] = { raw:+priceScore.toFixed(1), max:18 };
 
