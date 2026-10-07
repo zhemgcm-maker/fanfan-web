@@ -16,15 +16,23 @@ let src = fs.readFileSync(dbFile, 'utf8');
 const records = JSON.parse(fs.readFileSync(recFile, 'utf8')).records;
 if(!records.length){ console.error('没有要插入的记录'); process.exit(1); }
 
-// 已有的 id / 菜名，防重复插入（数据文件里是 JSON 写法："id":"d01"）
-const haveIds = new Set([...src.matchAll(/"id"\s*:\s*"([^"]+)"/g)].map(m => m[1]));
-const haveNames = new Set([...src.matchAll(/"name"\s*:\s*"([^"]+)"/g)].map(m => m[1]));
-const fresh = records.filter(r => !haveIds.has(r.id) && !haveNames.has(r.name));
+/* 防重复插入：id 不能重，**同名也要看库**——
+ * "四喜丸子"在大库和校内档口库里各有一条是正常的（两个菜库严格隔离），
+ * 只按名字去重会把"校内版四喜丸子"当成重复项直接跳过（实测踩到）。
+ * 所以判重键是「库 + 名字」：campus|四喜丸子 和 db|四喜丸子 是两道菜。 */
+const DISHES = new Function(src + '\nreturn FANFAN_DB.dishes;')();
+const keyOf = (name, place) => ((place === 'campus') ? 'campus|' : 'db|') + name;
+const haveIds = new Set(DISHES.map(d => d.id));
+const haveKeys = new Set(DISHES.map(d => keyOf(d.name, d.place)));
+const fresh = records.filter(r => !haveIds.has(r.id) && !haveKeys.has(keyOf(r.name, r.place)));
 if(!fresh.length){ console.log('记录都已经在库里了，无需插入'); process.exit(0); }
 
 const lines = fresh.map(r => {
   const o = { id:r.id, name:r.name, cat:r.cat };
   if(r.role && r.role !== 'single') o.role = r.role;      // single 是默认值，不写
+  /* place 一定要带：'campus' = 食堂档口的菜。以前这里漏了它，
+   * 结果校内档口的新菜全落进"大库"，在校内模式里被 dishInPlace 判定"不能用"。 */
+  if(r.place) o.place = r.place;
   o.cui = r.cui; o.price = r.price; o.spicy = r.spicy;
   o.tags = r.tags || []; o.alg = r.alg || []; o.desc = r.desc || ''; o.hot = r.hot || 60;
   return '    // —— 由「商家数据库」采集写入：' + r.name + '\n    ' + JSON.stringify(o) + ',';

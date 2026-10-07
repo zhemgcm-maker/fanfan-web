@@ -1,0 +1,587 @@
+{
+  "shop": "第二餐厅 优鲜餐厅",
+  "city": "保定",
+  "place": "campus",
+  "campus": "华北电力大学（保定）",
+  "canteen": "第二餐厅",
+  "stall": "优鲜餐厅",
+  "cuisine": "家常",
+  "avg": 12,
+  "items": [
+    {
+      "name": "四喜丸子",
+      "price": 3,
+      "cat": "小吃"
+    },
+    {
+      "name": "香辣鸭翅根",
+      "price": 3,
+      "cat": "小吃"
+    },
+    {
+      "name": "土豆丝",
+      "price": 4,
+      "cat": "小吃"
+    },
+    {
+      "name": "手撕包菜",
+      "price": 4,
+      "cat": "小吃"
+    },
+    {
+      "name": "蚝油生菜",
+      "price": 4,
+      "cat": "小吃"
+    },
+    {
+      "name": "辣炒空心菜",
+      "price": 4,
+      "cat": "小吃"
+    },
+    {
+      "name": "素炒青菜",
+      "price": 4,
+      "cat": "小吃"
+    },
+    {
+      "name": "蒜蓉西兰花",
+      "price": 5,
+      "cat": "小吃"
+    },
+    {
+      "name": "大盘鸡块",
+      "price": 6,
+      "cat": "小吃"
+    },
+    {
+      "name": "总督豆腐",
+      "price": 5,
+      "cat": "小吃"
+    },
+    {
+      "name": "农家一锅香",
+      "price": 6,
+      "cat": "小吃"
+    },
+    {
+      "name": "二丝鸡蛋",
+      "price": 5,
+      "cat": "小吃"
+    },
+    {
+      "name": "孜然肉片",
+      "price": 6,
+      "cat": "小吃"
+    },
+    {
+      "name": "西红柿鸡蛋",
+      "price": 5,
+      "cat": "小吃"
+    },
+    {
+      "name": "干豆腐",
+      "price": 6,
+      "cat": "小吃"
+    },
+    {
+      "name": "爆汁油豆泡",
+      "price": 5,
+      "cat": "小吃"
+    },
+    {
+      "name": "干锅杏鲍菇",
+      "price": 6,
+      "cat": "小吃"
+    },
+    {
+      "name": "香菇油菜",
+      "price": 5,
+      "cat": "小吃"
+    },
+    {
+      "name": "豆豉香茇醺",
+      "price": 5,
+      "cat": "小吃"
+    },
+    {
+      "name": "冬瓜子",
+      "price": 6,
+      "cat": "小吃"
+    },
+    {
+      "name": "茴香鸡蛋水饺（小份）",
+      "price": 10,
+      "cat": "饺子",
+      "sameAs": "茴香鸡蛋水饺"
+    },
+    {
+      "name": "茴香鸡蛋水饺（大份）",
+      "price": 12,
+      "cat": "饺子",
+      "sameAs": "茴香鸡蛋水饺"
+    },
+    {
+      "name": "韭菜鸡蛋水饺（小份）",
+      "price": 10,
+      "cat": "饺子",
+      "sameAs": "韭菜鸡蛋水饺"
+    },
+    {
+      "name": "韭菜鸡蛋水饺（大份）",
+      "price": 12,
+      "cat": "饺子",
+      "sameAs": "韭菜鸡蛋水饺"
+    },
+    {
+      "name": "猪肉大葱水饺（小份）",
+      "price": 10,
+      "cat": "饺子"
+    },
+    {
+      "name": "猪肉大葱水饺（大份）",
+      "price": 12,
+      "cat": "饺子"
+    },
+    {
+      "name": "猪肉白菜水饺（小份）",
+      "price": 10,
+      "cat": "饺子"
+    },
+    {
+      "name": "猪肉白菜水饺（大份）",
+      "price": 12,
+      "cat": "饺子"
+    },
+    {
+      "name": "猪肉玉米水饺（小份）",
+      "price": 10,
+      "cat": "饺子",
+      "sameAs": "猪肉玉米水饺"
+    },
+    {
+      "name": "猪肉玉米水饺（大份）",
+      "price": 12,
+      "cat": "饺子",
+      "sameAs": "猪肉玉米水饺"
+    },
+    {
+      "name": "猪肉香菇水饺（小份）",
+      "price": 10,
+      "cat": "饺子",
+      "sameAs": "猪肉香菇水饺"
+    },
+    {
+      "name": "猪肉香菇水饺（大份）",
+      "price": 12,
+      "cat": "饺子",
+      "sameAs": "猪肉香菇水饺"
+    },
+    {
+      "name": "猪肉酸菜水饺（小份）",
+      "price": 10,
+      "cat": "饺子"
+    },
+    {
+      "name": "猪肉酸菜水饺（大份）",
+      "price": 12,
+      "cat": "饺子"
+    },
+    {
+      "name": "牛肉水饺（小份）",
+      "price": 11,
+      "cat": "饺子"
+    },
+    {
+      "name": "牛肉水饺（大份）",
+      "price": 13,
+      "cat": "饺子"
+    },
+    {
+      "name": "小萌鱼馄饨",
+      "price": 8,
+      "cat": "馄饨"
+    },
+    {
+      "name": "虾仁鲜肉馄饨",
+      "price": 15,
+      "cat": "馄饨"
+    },
+    {
+      "name": "玉米鲜肉馄饨",
+      "price": 15,
+      "cat": "馄饨"
+    },
+    {
+      "name": "纯鲜肉馄饨",
+      "price": 15,
+      "cat": "馄饨"
+    },
+    {
+      "name": "虾仁韭菜馄饨",
+      "price": 15,
+      "cat": "馄饨"
+    },
+    {
+      "name": "担担面（小份）",
+      "price": 9,
+      "cat": "面"
+    },
+    {
+      "name": "担担面（大份）",
+      "price": 11,
+      "cat": "面"
+    },
+    {
+      "name": "重庆小面（小份）",
+      "price": 9,
+      "cat": "面",
+      "sameAs": "重庆小面"
+    },
+    {
+      "name": "重庆小面（大份）",
+      "price": 11,
+      "cat": "面",
+      "sameAs": "重庆小面"
+    },
+    {
+      "name": "肉酱面（小份）",
+      "price": 10,
+      "cat": "面"
+    },
+    {
+      "name": "肉酱面（大份）",
+      "price": 12,
+      "cat": "面"
+    },
+    {
+      "name": "清汤牛肉面（小份）",
+      "price": 12,
+      "cat": "面",
+      "sameAs": "清汤牛肉面"
+    },
+    {
+      "name": "清汤牛肉面（大份）",
+      "price": 14,
+      "cat": "面",
+      "sameAs": "清汤牛肉面"
+    },
+    {
+      "name": "金汤肥牛面（小份）",
+      "price": 12,
+      "cat": "面"
+    },
+    {
+      "name": "金汤肥牛面（大份）",
+      "price": 14,
+      "cat": "面"
+    },
+    {
+      "name": "宜宾燃面（小份）",
+      "price": 9,
+      "cat": "面",
+      "sameAs": "宜宾燃面"
+    },
+    {
+      "name": "宜宾燃面（大份）",
+      "price": 11,
+      "cat": "面",
+      "sameAs": "宜宾燃面"
+    },
+    {
+      "name": "招牌拌面（小份）",
+      "price": 9,
+      "cat": "面",
+      "sameAs": "招牌拌面"
+    },
+    {
+      "name": "招牌拌面（大份）",
+      "price": 11,
+      "cat": "面",
+      "sameAs": "招牌拌面"
+    },
+    {
+      "name": "麻辣拌面（小份）",
+      "price": 9,
+      "cat": "面"
+    },
+    {
+      "name": "麻辣拌面（大份）",
+      "price": 11,
+      "cat": "面"
+    },
+    {
+      "name": "四川凉面（小份）",
+      "price": 10,
+      "cat": "面",
+      "sameAs": "四川凉面"
+    },
+    {
+      "name": "四川凉面（大份）",
+      "price": 12,
+      "cat": "面",
+      "sameAs": "四川凉面"
+    }
+  ],
+  "uncertain": [
+    {
+      "name": "亓示容菜 ] 心",
+      "reason": "OCR文字严重残缺，无法确定菜名，且价格4元可能对应此菜"
+    },
+    {
+      "name": "碰姬",
+      "reason": "OCR文字疑似错别字，无法确定菜名，价格6元可能对应此菜"
+    },
+    {
+      "name": "羊",
+      "reason": "OCR文字不完整，无法确定菜名，价格6元可能对应此菜"
+    },
+    {
+      "name": "椒子",
+      "reason": "OCR文字疑似错别字，无法确定菜名，价格6元可能对应此菜"
+    },
+    {
+      "name": "香",
+      "reason": "OCR文字不完整，无法确定菜名，价格8元可能对应此菜"
+    },
+    {
+      "name": "保鸡乁",
+      "reason": "OCR文字疑似错别字，无法确定菜名，价格6元可能对应此菜"
+    },
+    {
+      "name": "盐豆",
+      "reason": "OCR文字疑似错别字，无法确定菜名，价格8元可能对应此菜"
+    },
+    {
+      "name": "毛豆汾",
+      "reason": "OCR文字疑似错别字，无法确定菜名，无明确价格"
+    },
+    {
+      "name": "素炒青菜",
+      "reason": "这一行的价格被多道菜指到（y=8），需要人工核对",
+      "modelSuggestedPrice": 4
+    },
+    {
+      "name": "蒜蓉西兰花",
+      "reason": "这一行的价格被多道菜指到（y=8），需要人工核对",
+      "modelSuggestedPrice": 5
+    },
+    {
+      "name": "大盘鸡块",
+      "reason": "它指的那一行里没有这个价格",
+      "modelSuggestedPrice": 6
+    },
+    {
+      "name": "总督豆腐",
+      "reason": "这一行的价格被多道菜指到（y=9），需要人工核对",
+      "modelSuggestedPrice": 5
+    },
+    {
+      "name": "农家一锅香",
+      "reason": "这一行的价格被多道菜指到（y=9），需要人工核对",
+      "modelSuggestedPrice": 6
+    },
+    {
+      "name": "二丝鸡蛋",
+      "reason": "这一行的价格被多道菜指到（y=11），需要人工核对",
+      "modelSuggestedPrice": 5
+    },
+    {
+      "name": "孜然肉片",
+      "reason": "这一行的价格被多道菜指到（y=11），需要人工核对",
+      "modelSuggestedPrice": 6
+    },
+    {
+      "name": "干豆腐",
+      "reason": "它指的那一行里没有这个价格",
+      "modelSuggestedPrice": 6
+    },
+    {
+      "name": "干锅杏鲍菇",
+      "reason": "它指的那一行里没有这个价格",
+      "modelSuggestedPrice": 6
+    },
+    {
+      "name": "豆豉香茇醺",
+      "reason": "它指的那一行里没有这个价格",
+      "modelSuggestedPrice": 5
+    },
+    {
+      "name": "冬瓜子",
+      "reason": "它指的那一行里没有这个价格",
+      "modelSuggestedPrice": 6
+    },
+    {
+      "name": "茴香鸡蛋水饺（小份）",
+      "reason": "这一行的价格被多道菜指到（y=2），需要人工核对",
+      "modelSuggestedPrice": 10
+    },
+    {
+      "name": "茴香鸡蛋水饺（大份）",
+      "reason": "这一行的价格被多道菜指到（y=2），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "韭菜鸡蛋水饺（小份）",
+      "reason": "这一行的价格被多道菜指到（y=3），需要人工核对",
+      "modelSuggestedPrice": 10
+    },
+    {
+      "name": "韭菜鸡蛋水饺（大份）",
+      "reason": "这一行的价格被多道菜指到（y=3），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "猪肉大葱水饺（小份）",
+      "reason": "这一行的价格被多道菜指到（y=4），需要人工核对",
+      "modelSuggestedPrice": 10
+    },
+    {
+      "name": "猪肉大葱水饺（大份）",
+      "reason": "这一行的价格被多道菜指到（y=4），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "猪肉白菜水饺（小份）",
+      "reason": "这一行的价格被多道菜指到（y=5），需要人工核对",
+      "modelSuggestedPrice": 10
+    },
+    {
+      "name": "猪肉白菜水饺（大份）",
+      "reason": "这一行的价格被多道菜指到（y=5），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "猪肉玉米水饺（小份）",
+      "reason": "这一行的价格被多道菜指到（y=6），需要人工核对",
+      "modelSuggestedPrice": 10
+    },
+    {
+      "name": "猪肉玉米水饺（大份）",
+      "reason": "这一行的价格被多道菜指到（y=6），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "猪肉香菇水饺（小份）",
+      "reason": "这一行的价格被多道菜指到（y=7），需要人工核对",
+      "modelSuggestedPrice": 10
+    },
+    {
+      "name": "猪肉香菇水饺（大份）",
+      "reason": "这一行的价格被多道菜指到（y=7），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "猪肉酸菜水饺（小份）",
+      "reason": "这一行的价格被多道菜指到（y=8），需要人工核对",
+      "modelSuggestedPrice": 10
+    },
+    {
+      "name": "猪肉酸菜水饺（大份）",
+      "reason": "这一行的价格被多道菜指到（y=8），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "牛肉水饺（小份）",
+      "reason": "这一行的价格被多道菜指到（y=9），需要人工核对",
+      "modelSuggestedPrice": 11
+    },
+    {
+      "name": "牛肉水饺（大份）",
+      "reason": "这一行的价格被多道菜指到（y=9），需要人工核对",
+      "modelSuggestedPrice": 13
+    },
+    {
+      "name": "担担面（大份）",
+      "reason": "这一行的价格被多道菜指到（y=30），需要人工核对",
+      "modelSuggestedPrice": 11
+    },
+    {
+      "name": "重庆小面（大份）",
+      "reason": "这一行的价格被多道菜指到（y=31），需要人工核对",
+      "modelSuggestedPrice": 11
+    },
+    {
+      "name": "肉酱面（小份）",
+      "reason": "这一行的价格被多道菜指到（y=25），需要人工核对",
+      "modelSuggestedPrice": 10
+    },
+    {
+      "name": "肉酱面（大份）",
+      "reason": "这一行的价格被多道菜指到（y=25），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "清汤牛肉面（小份）",
+      "reason": "这一行的价格被多道菜指到（y=26），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "清汤牛肉面（大份）",
+      "reason": "这一行的价格被多道菜指到（y=26），需要人工核对",
+      "modelSuggestedPrice": 14
+    },
+    {
+      "name": "金汤肥牛面（小份）",
+      "reason": "这一行的价格被多道菜指到（y=27），需要人工核对",
+      "modelSuggestedPrice": 12
+    },
+    {
+      "name": "金汤肥牛面（大份）",
+      "reason": "这一行的价格被多道菜指到（y=27），需要人工核对",
+      "modelSuggestedPrice": 14
+    },
+    {
+      "name": "宜宾燃面（小份）",
+      "reason": "这一行的价格被多道菜指到（y=30），需要人工核对",
+      "modelSuggestedPrice": 9
+    },
+    {
+      "name": "宜宾燃面（大份）",
+      "reason": "这一行的价格被多道菜指到（y=30），需要人工核对",
+      "modelSuggestedPrice": 11
+    },
+    {
+      "name": "招牌拌面（小份）",
+      "reason": "这一行的价格被多道菜指到（y=31），需要人工核对",
+      "modelSuggestedPrice": 9
+    },
+    {
+      "name": "招牌拌面（大份）",
+      "reason": "这一行的价格被多道菜指到（y=31），需要人工核对",
+      "modelSuggestedPrice": 11
+    },
+    {
+      "name": "麻辣拌面（小份）",
+      "reason": "这一行的价格被多道菜指到（y=32），需要人工核对",
+      "modelSuggestedPrice": 9
+    },
+    {
+      "name": "麻辣拌面（大份）",
+      "reason": "这一行的价格被多道菜指到（y=32），需要人工核对",
+      "modelSuggestedPrice": 11
+    },
+    {
+      "name": "四川凉面（小份）",
+      "reason": "这一行的价格被多道菜指到（y=33），需要人工核对",
+      "modelSuggestedPrice": 10
+    },
+    {
+      "name": "四川凉面（大份）",
+      "reason": "这一行的价格被多道菜指到（y=33），需要人工核对",
+      "modelSuggestedPrice": 12
+    }
+  ],
+  "note": "OCR 中“水饺系歹刂”“氵笏面系歹刂”“扌半面系歹刂”“早安饣昆饨系列”为分栏标题，未计入菜品；“小份大份”为规格表头，已按行内价格先后对应拆分为小份/大份两条；虾仁韭菜馄饨原文末尾有乱码标点，已按规范菜名处理。",
+  "image": "01_IMG_20261004_173550.jpg",
+  "ocrChars": 680,
+  "source": "自己拍菜单",
+  "collectedAt": "2026-10-07",
+  "priceCheck": {
+    "verified": 7,
+    "dropped": 32
+  },
+  "images": [
+    "01_IMG_20261004_173550.jpg",
+    "02_IMG_20261004_173555.jpg"
+  ]
+}

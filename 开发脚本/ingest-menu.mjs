@@ -46,8 +46,17 @@ if(!DISHES.length){ console.error('data/db.js 里 dishes 是空的？'); process
 
 // 归一化口径要和 build-data.mjs 一致：括号、空格、斜杠都吃掉（"擂辣椒皮蛋(热菜)" → "擂辣椒皮蛋热菜"）
 const norm = s => String(s || '').replace(/[（）()\s]/g, '').replace(/[/·／、.]/g, '');
+/* **只在同一个菜库里比对**：这家店是校内档口（place:'campus'）就只跟校内菜比，
+ * 是校外店就只跟大库比。以前不分库，于是"大库里有道同名菜"会被当成"库里已有"，
+ * 菜单就链到了别的菜库上，校内模式下那道菜根本用不了。 */
+const wantCampus = (raw.place === 'campus');
 const byNorm = new Map();
-DISHES.forEach(d => { const k = norm(d.name); if(!byNorm.has(k)) byNorm.set(k, d); });
+DISHES.forEach(d => {
+  if((d.place === 'campus') !== wantCampus) return;
+  const k = norm(d.name); if(!byNorm.has(k)) byNorm.set(k, d);
+});
+console.log('　（' + (wantCampus ? '校内档口' : '校外店') + '：只跟同库的 ' +
+  DISHES.filter(d => (d.place === 'campus') === wantCampus).length + ' 道菜比对）');
 // 只差规格后缀（(热菜)/(小份)/加蛋…）也算同一道菜
 const SPEC = /^(热菜|凉菜|小份|大份|中份|一份|半份|套餐|加饭|加蛋|加肉|大|小|中)$/;
 function findExisting(name){

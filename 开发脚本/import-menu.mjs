@@ -301,7 +301,9 @@ for(const f of files){
     }catch(e){ process.stdout.write('补价格失败：' + e.message + '）'); }
   }
   parsed.priceCheck = { verified:v1.ok, dropped:v1.bad };
-  fs.writeFileSync(target.replace(/\.json$/, '.ocr.txt'), layoutText, 'utf8');
+  /* OCR 原文按**图片**存一份：一家店两页菜单时，写成 <店名>.ocr.txt 会被后一张覆盖，
+   * 人工补价格时就看不到第一页认出了什么。 */
+  fs.writeFileSync(path.join(outDir, base + '.ocr.txt'), layoutText, 'utf8');
 
   let out;
   if(shopTarget){

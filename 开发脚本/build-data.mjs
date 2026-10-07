@@ -52,34 +52,55 @@ for(const f of files){
    * 注意：带后缀的名字（"米饭（档口）"）norm 之后是"米饭档口"，跟大库的"米饭"不会撞，
    * 那种要在解析结果里写 sameAs 显式指过去（见下面那段注释）。 */
   const wantCampus = (p.place === 'campus');
-  const pickByPlace = arr => (arr && arr.length) ? (arr.find(d => (d.place === 'campus') === wantCampus) || arr[0]) : null;
+  /* **只在同一个菜库里找**：校内档口绝不许链到大库的菜（反之亦然）。
+   * 以前这里兜了个 `|| arr[0]`，于是"大库里有一道同名菜"就被链过去了——
+   * 校内模式下 dishInPlace 判定它不属于校内，这家档口等于做不了那道菜（实测 37 条）。
+   * 找不到就返回 null，让 build-data 把它列进"新菜候选"，再由 gen-kb-records
+   * 生成同库的新条目（它会把 place 带下去）。 */
+  const pickByPlace = arr => (arr && arr.length) ? (arr.find(d => (d.place === 'campus') === wantCampus) || null) : null;
   for(const it of p.items || []){
     const k = norm(it.name);
     /* 采集来的菜单经常跟知识库叫法不一样（菜单写"麻辣水煮鱼"，库里那道菜叫"水煮鱼"）。
      * 这种就在解析结果里写 sameAs:'水煮鱼' 显式指过去——比放宽模糊匹配安全，
      * 因为模糊匹配会出"回锅肉盖浇饭 ↦ 回锅肉"这种错配。 */
-    let hit = it.sameAs ? pickByPlace(kbIndex.get(norm(it.sameAs))) : null;
-    if(!hit && !it.sameAs) hit = pickByPlace(kbIndex.get(k));
+    /* 匹配顺序（都**只在本店里那一侧的菜库里**找）：
+     *   ① 菜单自己的名字精确命中  ← 这条必须在 sameAs 之前：
+     *      解析结果里可能留着一个指向别库的 old sameAs，而本库其实已经有同名菜了
+     *   ② 菜单里显式写的 sameAs
+     *   ③ 只差"（小份）/（大份）"这类规格后缀的前缀匹配
+     */
+    let hit = pickByPlace(kbIndex.get(k));
+    if(!hit && it.sameAs) hit = pickByPlace(kbIndex.get(norm(it.sameAs)));
     if(!hit && it.sameAs){
-      const byName = DISHES.find(d => d.name === it.sameAs && (d.place === 'campus') === wantCampus) ||
-                     DISHES.find(d => d.name === it.sameAs);
+      /* 同样只在**同一个菜库**里找。以前这里第二行是无条件按名字找，
+       * 于是"菜单里写了 sameAs: 四喜丸子"就被链到了大库那道菜上——
+       * 校内档口链大库菜 = 校内模式里做不了它（实测还剩 10 条）。 */
+      const byName = DISHES.find(d => d.name === it.sameAs && (d.place === 'campus') === wantCampus);
       if(byName){ hit = byName; }
-      else console.log('  ⚠️ sameAs 指向的菜不存在：' + it.name + ' → ' + it.sameAs);
+      else console.log('  ⚠️ sameAs 指向的菜在' + (wantCampus ? '校内库' : '大库') + '里不存在：' +
+        it.name + ' → ' + it.sameAs + '（这条会当成新菜处理）');
     }
     /* 允许"只差规格后缀"的前缀匹配，其余一律算新菜。
      * 之前放得太松，出现过"回锅肉盖浇饭"配到"回锅肉"、"卤蛋"配到"卤蛋卤肉饭"这种错配——
      * 菜单上的菜配错库里的菜，比配不上还糟。 */
-    if(!hit && !it.sameAs){
+    if(!hit){
       const specOnly = /^(小份|大份|中份|一份|套餐|加饭|加蛋|加肉|大|小)$/;
       for(const [kk, arr] of kbIndex){
         if(kk.length < 3) continue;
         const extra = k.indexOf(kk) === 0 ? k.slice(kk.length) : (kk.indexOf(k) === 0 ? kk.slice(k.length) : null);
-        if(extra !== null && (extra === '' || specOnly.test(extra))){ hit = arr[0]; break; }
+        /* 这里也不能跨库：以前写的是 arr[0]，于是"四喜丸子"（大库有、校内库没有）
+         * 被这条前缀匹配又链回了大库。 */
+        if(extra !== null && (extra === '' || specOnly.test(extra))){
+          hit = pickByPlace(arr);
+          if(hit) break;
+        }
       }
     }
     const entry = { name: it.name, price: it.price, cat: it.cat || '' };
     if(hit){ entry.dishId = hit.id; entry.kbName = hit.name; }
-    else { entry.isNew = true; newDishes.push({ shop:p.shop || path.basename(f, '.json'), name:it.name, price:it.price, cat:it.cat || '' }); }
+    /* 新菜候选里带上 place：食堂档口的新菜要建成 place:'campus' 的条目，
+     * 不然 gen-kb-records 会把它当大库菜，在校内模式里用不了。 */
+    else { entry.isNew = true; newDishes.push({ shop:p.shop || path.basename(f, '.json'), name:it.name, price:it.price, cat:it.cat || '', place:p.place || '' }); }
     menu.push(entry);
   }
   shops.push({

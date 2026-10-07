@@ -12,6 +12,42 @@ const args = process.argv.slice(2);
 const flag = n => { const i = args.indexOf('--' + n); return i === -1 ? null : args[i + 1]; };
 const newFile = flag('new'), kbFile = flag('kb'), outDir = flag('out');
 const KEY = process.env.DS_KEY || 'dc1d4fbf-8bc7-4693-95ec-9dbed5a14efe';
+
+/* 大模型走哪条通道（和 import-menu 一致）：
+ *   默认 —— 本机直连 DeepSeek，要一把能用的 key（$env:DS_KEY）
+ *   --server + --user/--pass —— 走自己的后端 /api/llm，key 留在服务器，本机不用放 */
+const SERVER = String(flag('server') || process.env.FF_SERVER || '').replace(/\/+$/, '');
+const FF_USER = flag('user') || process.env.FF_USER || '';
+const FF_PASS = flag('pass') || process.env.FF_PASS || '';
+let FF_TOKEN = process.env.FF_TOKEN || '';
+async function ffLogin(){
+  if(FF_TOKEN || !SERVER) return;
+  if(!FF_USER) throw new Error('走 --server 时必须给 --user');
+  const post = (p, b) => fetch(SERVER + p, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(b) });
+  let r = await post('/api/login', { username:FF_USER, password:FF_PASS });
+  if(r.status === 401) r = await post('/api/register', { username:FF_USER, password:FF_PASS });
+  let j = null; try{ j = await r.json(); }catch(e){}
+  if(!r.ok || !j || !j.token) throw new Error('后端登录失败：' + ((j && j.error) || ('HTTP ' + r.status)));
+  FF_TOKEN = j.token;
+  console.log('   （已登录你自己的后端：' + FF_USER + '）');
+}
+async function askLLM(body){
+  if(SERVER){
+    await ffLogin();
+    const r = await fetch(SERVER + '/api/llm', { method:'POST',
+      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + FF_TOKEN },
+      body:JSON.stringify(body) });
+    let j = null; try{ j = await r.json(); }catch(e){}
+    if(!r.ok) throw new Error('后端代理 HTTP ' + r.status + ' ' + JSON.stringify(j || {}).slice(0, 160));
+    return String((j && j.text) || '');
+  }
+  const r = await fetch('https://api.deepseek.com/chat/completions', { method:'POST',
+    headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY },
+    body:JSON.stringify(body) });
+  if(!r.ok) throw new Error('DeepSeek HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200));
+  const j = await r.json();
+  return String((j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '');
+}
 if(!newFile || !kbFile || !outDir){ console.error('用法：node gen-kb-records.mjs --new <新菜候选.json> --kb <index.html> --out <目录>'); process.exit(1); }
 
 /* ---------- 从数据文件里取现有词表（保证生成的记录能无缝进库） ---------- */
@@ -54,21 +90,14 @@ const SYSTEM =
   '注意：同一批菜里若有"面/粉""炒饭/米粉/河粉"这种一道菜多种主食的写法，按面/粉优先（cat=noodle）。';
 
 async function gen(batch){
-  const res = await fetch('https://api.deepseek.com/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + KEY },
-    body: JSON.stringify({
+  const txt = await askLLM({
       model: 'deepseek-chat', temperature: 0.2, max_tokens: 6000,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM },
         { role: 'user', content: JSON.stringify(batch.map(d => ({ 菜名:d.name, 参考价:d.price, 店里分类:d.cat }))) }
       ]
-    })
   });
-  if(!res.ok) throw new Error('DeepSeek HTTP ' + res.status + ' ' + (await res.text()).slice(0, 200));
-  const j = await res.json();
-  const txt = j.choices[0].message.content;
   return JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1)).records || [];
 }
 
@@ -89,7 +118,11 @@ function validate(r, src){
   // 价格一律以采集到的为准
   const price = (src && typeof src.price === 'number') ? src.price : r.price;
   if(typeof price !== 'number') bad.push('没有价格');
-  return { bad, rec:{ ...r, tags, alg, spicy, price } };
+  /* place 从候选里带过来：食堂档口的新菜要是 place:'campus'，
+   * 不然建出来的菜算"大库菜"，在校内模式里会被 dishInPlace 判定不能用。 */
+  const rec = { ...r, tags, alg, spicy, price };
+  if(src && src.place) rec.place = src.place;
+  return { bad, rec };
 }
 
 const records = [], rejected = [];
