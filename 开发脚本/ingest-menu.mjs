@@ -13,6 +13,7 @@
 // 入库后自己手动跑一次 build-data.mjs 生成 data/shops.json 和页面快照（这一步不能省）。
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const args = process.argv.slice(2);
 const flag = n => { const i = args.indexOf('--' + n); return i === -1 ? null : args[i + 1]; };
@@ -27,10 +28,21 @@ const prefix = (flag('prefix') || (raw.idPrefix || '')).trim();
 if(!prefix) { console.error('缺少 --prefix（菜品 id 前缀，比如 lxz），或菜单里给 idPrefix'); process.exit(1); }
 if(!items.length){ console.error('菜单里没有 items'); process.exit(1); }
 
-const html = fs.readFileSync(kbFile, 'utf8');
-const arrBody = /const DISHES = \[([\s\S]*?)\n\];/.exec(html);
-if(!arrBody){ console.error('没找到 DISHES 数组'); process.exit(1); }
-const DISHES = new Function('return [' + arrBody[1] + '];')();
+/* 菜品库住在 index.html 同目录的 data/db.js 里（数据外置之后就在这儿，index.html 里已经没有 DISHES 了）。
+ * db.js 是「var FANFAN_DB = {...};」这种 JS 对象字面量，里面还带注释，所以不能用 JSON.parse——
+ * 直接执行它再把对象取出来，注释和写法都不用管。 */
+const dataDir = String(kbFile).replace(/[^\\/]+$/, '');
+const dbFile = path.join(dataDir, 'data', 'db.js');
+if(!fs.existsSync(dbFile)){ console.error('找不到菜品库：' + dbFile + '\n（--kb 传项目里的 index.html，菜品库在它同级的 data/db.js）'); process.exit(1); }
+let dbSrc = fs.readFileSync(dbFile, 'utf8');
+let DISHES;
+try{
+  DISHES = new Function(dbSrc + '\nreturn FANFAN_DB;')().dishes || [];
+}catch(e){
+  console.error('读不出 data/db.js 里的 dishes：' + e.message);
+  process.exit(1);
+}
+if(!DISHES.length){ console.error('data/db.js 里 dishes 是空的？'); process.exit(1); }
 
 // 归一化口径要和 build-data.mjs 一致：括号、空格、斜杠都吃掉（"擂辣椒皮蛋(热菜)" → "擂辣椒皮蛋热菜"）
 const norm = s => String(s || '').replace(/[（）()\s]/g, '').replace(/[/·／、.]/g, '');
@@ -71,8 +83,12 @@ items.forEach(it => {
     if(!hit.exact) it.sameAs = hit.d.name;      // 菜单叫法多几个字 → 写 sameAs，不新增
     return;
   }
-  if(!it.cui || !it.tags || !it.alg || it.spicy === undefined){
-    missing.push(it);                            // 缺字段的新菜：不动库，列出来让我补
+  /* 新菜必须有：菜系、辣度、标签、食材、**价格**。
+   * 价格尤其不能空——库里 0 道没价格的菜，而前端拿到 price=null 会算成 ¥0：
+   * 预算判定 `null <= 60` 成立（拿满分）、一桌合计里 `1 + null = 1`，这道菜就成了"免费菜"。
+   * 所以缺价格的一律不入库，列出来让人补。 */
+  if(!it.cui || !it.tags || !it.alg || it.spicy === undefined || typeof it.price !== 'number'){
+    missing.push(it);
     return;
   }
   const id = nextId();
@@ -94,33 +110,53 @@ console.log('\n② 新增进菜品库的 ' + added.length + ' 道：');
 added.forEach(d => console.log('   · ' + d.id + ' ' + d.name + ' ¥' + d.price + ' ' + d.cui + '/' + (d.role || '—') +
   ' tags=[' + (d.tags || []).join(',') + '] alg=[' + (d.alg || []).join(',') + ']'));
 if(missing.length){
-  console.log('\n⚠️ 字段不全、这次没入库的 ' + missing.length + ' 道（新菜必须有 cat/cui/spicy/tags/alg）：');
+  console.log('\n⚠️ 字段不全、这次没入库的 ' + missing.length + ' 道（新菜必须有 价格/cat/cui/spicy/tags/alg，缺的补上再跑）：');
   missing.forEach(x => console.log('   · ' + (x.name || JSON.stringify(x))));
 }
 
 if(dry){ console.log('\n（--dry：没有写任何文件）'); process.exit(0); }
 
-// ① 新菜插进 DISHES 末尾
+// ① 新菜插进 data/db.js 的 dishes 数组末尾（写法跟 insert-dishes.mjs 保持一致：JSON 风格 + 一行注释）
 if(added.length){
   const lines = added.map(d => {
-    const role = d.role ? "role:'" + d.role + "', " : '';
-    return "  { id:'" + d.id + "', name:'" + d.name + "', cat:'" + d.cat + "', " + role +
-      "cui:'" + d.cui + "', price:" + d.price + ', spicy:' + d.spicy +
-      ", tags:['" + (d.tags || []).join("','") + "'], alg:" +
-      ((d.alg && d.alg.length) ? "['" + d.alg.join("','") + "']" : '[]') +
-      ", desc:'" + String(d.desc || '').replace(/'/g, "\\'") + "', hot:" + (d.hot === undefined ? 60 : d.hot) + ' },';
+    const o = { id:d.id, name:d.name, cat:d.cat };
+    if(d.role && d.role !== 'single') o.role = d.role;      // single 是默认值，不写
+    o.cui = d.cui; o.price = d.price; o.spicy = d.spicy;
+    o.tags = d.tags || []; o.alg = d.alg || [];
+    o.desc = d.desc || ''; o.hot = (d.hot === undefined ? 60 : d.hot);
+    return '    // 采集入库：' + d.name + '\n    ' + JSON.stringify(o) + ',';
   }).join('\n');
-  const block = '\n\n  /* ===== 采集入库：' + shopName + '（菜单批量录入）===== */\n' + lines;
-  const out = html.replace(/(const DISHES = \[[\s\S]*?)(\n\];)/, (m, body, tail) => body + block + tail);
-  if(out === html){ console.error('插入 DISHES 失败'); process.exit(1); }
-  fs.writeFileSync(kbFile, out, 'utf8');
-  console.log('\n已把 ' + added.length + ' 道新菜写进 ' + kbFile);
+
+  /* 找 dishes 数组的收尾括号：括号配对，跳过字符串里的括号（和 insert-dishes.mjs 一个做法） */
+  const start = dbSrc.indexOf('"dishes": [');
+  if(start === -1){ console.error('data/db.js 里找不到 "dishes": ['); process.exit(1); }
+  let i = dbSrc.indexOf('[', start), depth = 0, str = false, closeIdx = -1;
+  for(; i < dbSrc.length; i++){
+    const c = dbSrc[i];
+    if(str){ if(c === '\\'){ i++; continue; } if(c === '"') str = false; continue; }
+    if(c === '"'){ str = true; continue; }
+    if(c === '['){ depth++; continue; }
+    if(c === ']'){ depth--; if(depth === 0){ closeIdx = i; break; } }
+  }
+  if(closeIdx === -1){ console.error('没找到 dishes 数组的结尾，未插入'); process.exit(1); }
+
+  /* 数组最后一个元素后面通常没有逗号，直接接新元素会变成 `} {` 语法错误，先补一个 */
+  let head = dbSrc.slice(0, closeIdx);
+  const tailChar = /(\S)(\s*)$/.exec(head);
+  if(tailChar && tailChar[1] !== ',' && tailChar[1] !== '['){
+    head = head.slice(0, tailChar.index + 1) + ',' + tailChar[2];
+  }
+  dbSrc = head + '\n\n    /* ===== 采集入库：' + shopName + '（菜单批量录入）===== */\n' + lines +
+          '\n  ' + dbSrc.slice(closeIdx);
+  fs.writeFileSync(dbFile, dbSrc, 'utf8');
+  console.log('\n已把 ' + added.length + ' 道新菜写进 ' + dbFile);
 }
 
 // ② 写/合并 解析结果
 /* 默认写到**脚本所在仓库**的 商家数据库\解析结果（跟 find-shop.mjs 一个口径）。
  * 别按 kb 文件推——kb 可能是别的工作目录里的正本，会把菜单写丢在项目外面（踩过一次）。 */
-const outDir = flag('out') || path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\//, '')), '..', '商家数据库', '解析结果');
+/* 路径用 fileURLToPath：new URL(...).pathname 会把中文/空格转义成 %E9…，项目目录叫 D:\饭饭web 就会写歪 */
+const outDir = flag('out') || path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '商家数据库', '解析结果');
 const target = path.join(outDir, shopName.replace(/[\\/:*?"<>|\s]+/g, '_') + '.json');
 const meta = Array.isArray(raw) ? {} : raw;
 const menuItems = items.filter(it => it.name).map(it => {

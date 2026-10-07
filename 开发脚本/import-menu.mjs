@@ -1,5 +1,9 @@
-// 采集菜单：图片 → Windows OCR → DeepSeek 结构化 → JSON（给"商家数据库"用）
-// 用法：node import-menu.mjs <图片或文件夹> --shop "沙县小吃" [--city 保定] [--out <目录>]
+// 采集菜单：图片 → Windows OCR → 大模型结构化 → JSON（给"商家数据库"用）
+// 用法：
+//   走自己的后端代理（**推荐**，本机不用放 key）：
+//     node import-menu.mjs <图片或文件夹> --shop "店名" --server https://xxx.fcapp.run --user 账号 --pass 密码
+//   或者本机直连 DeepSeek（要一把能用的 key）：
+//     $env:DS_KEY="sk-..."; node import-menu.mjs <图片或文件夹> --shop "店名"
 //
 // 设计原则（重要）：
 //   1) OCR 只负责"看见字"，大模型只负责"把字整理成结构"和"修 OCR 的错别字"（兀→元、甲鸟→鸭）；
@@ -8,17 +12,71 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import cp from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const args = process.argv.slice(2);
 const flag = name => { const i = args.indexOf('--' + name); return i === -1 ? null : args[i + 1]; };
-const inputs = args.filter(a => !a.startsWith('--') && args[args.indexOf(a) - 1] !== '--shop' &&
-                               args[args.indexOf(a) - 1] !== '--city' && args[args.indexOf(a) - 1] !== '--out');
+/* 带值的开关都登记在这里：它们的**下一个参数是值，不是图片路径**。
+ * （以前只登记了 shop/city/out，加了 --server 之后那个网址被当成图片路径，报 ENOENT） */
+const VALUED_FLAGS = new Set(['--shop', '--city', '--out', '--server', '--user', '--pass']);
+const inputs = args.filter((a, i) => !a.startsWith('--') && !VALUED_FLAGS.has(args[i - 1]));
 const shopName = flag('shop') || '';
 const city = flag('city') || '保定';
 const outDir = flag('out') || path.join(process.cwd(), '_解析结果');
 
 const KEY = process.env.DS_KEY || 'sk-21f864ce09aa412a81b42f06c5d38199';
-const OCR_PS1 = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\//, '')), 'ocr-image.ps1');
+/* 大模型走哪条通道：
+ *   默认 —— 本机直连 DeepSeek，要一把能用的 key（环境变量 DS_KEY 覆盖脚本里那把）
+ *   --server + --user/--pass —— 走自己的后端代理 /api/llm，key 留在服务器，本机不用放
+ *     （后端那个 /api/llm 强制登录，所以脚本自己先 /api/login 换 token；账号不存在就注册一个） */
+const SERVER = String(flag('server') || process.env.FF_SERVER || '').replace(/\/+$/, '');
+const FF_USER = flag('user') || process.env.FF_USER || '';
+const FF_PASS = flag('pass') || process.env.FF_PASS || '';
+let FF_TOKEN = process.env.FF_TOKEN || '';
+
+async function ffLogin(){
+  if(FF_TOKEN || !SERVER) return;
+  if(!FF_USER) throw new Error('走 --server 时必须给 --user（没有账号就随便起一个，脚本会自动注册）');
+  const post = (p, body) => fetch(SERVER + p, {
+    method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body)
+  });
+  let r = await post('/api/login', { username:FF_USER, password:FF_PASS });
+  if(r.status === 401) r = await post('/api/register', { username:FF_USER, password:FF_PASS });   // 没这个账号就注册
+  let j = null; try{ j = await r.json(); }catch(e){}
+  if(!r.ok || !j || !j.token) throw new Error('后端登录失败：' + ((j && j.error) || ('HTTP ' + r.status)));
+  FF_TOKEN = j.token;
+  console.log('   （已登录你自己的后端：' + FF_USER + '）');
+}
+
+/* 统一的"问一次大模型"，两条通道都返回纯文本（后面自己从文本里抠 JSON） */
+async function askLLM(body){
+  if(SERVER){
+    await ffLogin();
+    const r = await fetch(SERVER + '/api/llm', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + FF_TOKEN },
+      body:JSON.stringify(body)
+    });
+    let j = null; try{ j = await r.json(); }catch(e){}
+    if(!r.ok) throw new Error('后端代理 HTTP ' + r.status + ' ' + JSON.stringify(j || {}).slice(0, 160));
+    return String((j && j.text) || '');
+  }
+  const r = await fetch('https://api.deepseek.com/chat/completions', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY },
+    body:JSON.stringify(body)
+  });
+  if(!r.ok){
+    const t = (await r.text()).slice(0, 200);
+    throw new Error('DeepSeek HTTP ' + r.status + ' ' + t +
+      (r.status === 401 ? '\n（key 失效了：要么换一把 --server 走自己的后端，要么设 $env:DS_KEY="sk-..."）' : ''));
+  }
+  const j = await r.json();
+  return String((j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '');
+}
+/* 路径一定要用 fileURLToPath 转：new URL(...).pathname 会把中文、空格转义成 %E9%AD…，
+ * 而项目目录就叫 D:\饭饭web —— 以前这行会让 OCR 直接报"找不到 ocr-image.ps1"。 */
+const OCR_PS1 = path.join(path.dirname(fileURLToPath(import.meta.url)), 'ocr-image.ps1');
 
 function listImages(p){
   const st = fs.statSync(p);
@@ -72,14 +130,7 @@ async function structure(ocrText, hintShop){
       { role: 'user', content: (hintShop ? '店名：' + hintShop + '\n' : '') + 'OCR 文字：\n' + ocrText }
     ]
   };
-  const res = await fetch('https://api.deepseek.com/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + KEY },
-    body: JSON.stringify(body)
-  });
-  if(!res.ok) throw new Error('DeepSeek HTTP ' + res.status + ' ' + (await res.text()).slice(0, 200));
-  const j = await res.json();
-  const txt = j.choices[0].message.content;
+  const txt = await askLLM(body);
   const a = txt.indexOf('{'), b = txt.lastIndexOf('}');
   return JSON.parse(txt.slice(a, b + 1));
 }
@@ -108,14 +159,7 @@ async function refillPrices(ocrText, items){
       { role: 'user', content: 'OCR 原文：\n' + ocrText + '\n\n还没配到价格的菜名：\n' + items.map(i => i.name).join('\n') }
     ]
   };
-  const res = await fetch('https://api.deepseek.com/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + KEY },
-    body: JSON.stringify(body)
-  });
-  if(!res.ok) throw new Error('DeepSeek HTTP ' + res.status);
-  const j = await res.json();
-  const txt = j.choices[0].message.content;
+  const txt = await askLLM(body);
   const a = txt.indexOf('{'), b = txt.lastIndexOf('}');
   try{ return JSON.parse(txt.slice(a, b + 1)).filled || []; }catch(e){ return []; }
 }
@@ -200,12 +244,26 @@ fs.mkdirSync(outDir, { recursive: true });
 const files = inputs.flatMap(p => listImages(p));
 console.log('待处理图片 ' + files.length + ' 张');
 
+/* 一家店的**多张照片要合成一份菜单**：菜单常常拍两页，只解析第一张会丢一半。
+ *   · 传了 --shop → 所有图片合并进 <店名>.json
+ *   · 没传 --shop → 每张图各算一家店（老行为）
+ * "是否已解析过"在循环**外面**只判一次：跑之前就存在的话整家跳过（上次跑过了，别重复烧 token），
+ * 但同一轮里的第 2、3 张要继续解析、合并进同一份文件（以前这里判在循环里，第 2 张就被"跳过"了）。 */
+const slugOf = s => String(s || '菜单').replace(/[\\/:*?"<>|\s]+/g, '_');
+const shopTarget = shopName ? path.join(outDir, slugOf(shopName) + '.json') : null;
+if(shopTarget && fs.existsSync(shopTarget)){
+  console.log('  跳过（这家店上次已经解析过）：' + shopName);
+  console.log('  （想重跑就删掉 ' + path.basename(shopTarget) + '，或者用 --out 换个目录）');
+  console.log('完成 0 张，输出目录：' + outDir);
+  process.exit(0);
+}
+const acc = { items: [], uncertain: [], images: [] };      // 传了 --shop 时，多张图累加到这里
+
 let done = 0;
 for(const f of files){
   const base = path.basename(f).replace(/\.[^.]+$/, '');
-  const slug = (shopName || base).replace(/[\\/:*?"<>|\s]+/g, '_');
-  const target = path.join(outDir, slug + '.json');
-  if(fs.existsSync(target)){ console.log('  跳过（已解析过）：' + base); continue; }
+  const target = shopTarget || path.join(outDir, slugOf(base) + '.json');
+  if(!shopTarget && fs.existsSync(target)){ console.log('  跳过（已解析过）：' + base); continue; }
   process.stdout.write('  ' + base + ' → OCR … ');
   let lines = [];
   try{ lines = ocrLayout(f); }catch(e){ console.log('失败：' + e.message); continue; }
@@ -243,10 +301,29 @@ for(const f of files){
     }catch(e){ process.stdout.write('补价格失败：' + e.message + '）'); }
   }
   parsed.priceCheck = { verified:v1.ok, dropped:v1.bad };
-  fs.writeFileSync(target, JSON.stringify(parsed, null, 2), 'utf8');
   fs.writeFileSync(target.replace(/\.json$/, '.ocr.txt'), layoutText, 'utf8');
-  const priced = (parsed.items || []).filter(i => typeof i.price === 'number').length;
-  console.log('得到 ' + (parsed.items || []).length + ' 道菜（其中 ' + priced + ' 道有价格）→ ' + path.basename(target));
+
+  let out;
+  if(shopTarget){
+    /* 多张图：累加后去重（同名保留有价格的那条），写入同一份 <店名>.json */
+    acc.images.push(path.basename(f));
+    acc.items = acc.items.concat(parsed.items || []);
+    acc.uncertain = acc.uncertain.concat(parsed.uncertain || []);
+    out = Object.assign({}, parsed, {
+      items: dedupe(acc.items),
+      uncertain: acc.uncertain,
+      images: acc.images.slice(),
+      image: acc.images[0]        // 兼容只认 image 的老代码
+    });
+  }else{
+    out = parsed;
+  }
+  fs.writeFileSync(target, JSON.stringify(out, null, 2), 'utf8');
+  const priced = (out.items || []).filter(i => typeof i.price === 'number').length;
+  console.log('得到 ' + (parsed.items || []).length + ' 道菜（其中 ' +
+    (parsed.items || []).filter(i => typeof i.price === 'number').length + ' 道有价格）' +
+    (shopTarget ? '；这家店累计 ' + (out.items || []).length + ' 道、' + priced + ' 道有价' : '') +
+    ' → ' + path.basename(target));
   done++;
 }
 console.log('完成 ' + done + ' 张，输出目录：' + outDir);
