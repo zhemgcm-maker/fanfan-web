@@ -1,0 +1,2 @@
+# 批处理文件必须按 CRLF 检出：cmd.exe 遇到 LF 换行会把行拆错（"tle 不是内部命令"那种）
+*.bat text eol=crlf
