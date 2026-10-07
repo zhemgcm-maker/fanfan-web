@@ -2230,7 +2230,6 @@ function computeCuisineRefs(shop){
   if(!SHOP_DB.loaded || !shop) return [];
   const cuis = shop.cui || [];
   if(dbShopFor(shop)) return [];                      // 自己有菜单就不用参考别人的
-  const text = String(shop.name || '') + ' ' + (shop.tags || []).join(' ') + ' ' + (shop.type || '');
   const out = [];
   for(const s of (SHOP_DB.shops || [])){
     const refs = s.cuisineRef || [];
@@ -2238,7 +2237,7 @@ function computeCuisineRefs(shop){
     if(!refs.length && !keys.length) continue;
     if(s.city && normCityName(s.city) !== normCityName(CITY.name)) continue;
     if(refs.length && cuis.some(c => refs.indexOf(c) !== -1)) { out.push(s); continue; }
-    if(keys.length && keys.some(k => k && text.indexOf(k) !== -1)) out.push(s);
+    if(keys.length && refKeyHit(shop, keys)) out.push(s);
   }
   return out;
 }
@@ -3265,14 +3264,34 @@ function scoreRestaurant(restaurant, dish, ctx){
  * 抽出来是因为以前只有 shopCanMake 走了这条路，restaurantServes（配桌用的那个）没走——
  * 于是界面上说"这家店能做你想吃的"，点进去配桌却判"做不了"，最后端出一桌不相关的菜。 */
 function refWholeKeys(ref){ return (ref && (ref.wholeKeys || (ref.cuisineRefWhole ? ref.cuisineRefKeys : null))) || []; }
-function shopTextOf(shop){ return String((shop && shop.name) || '') + ' ' + ((shop && shop.tags) || []).join(' ') + ' ' + ((shop && shop.type) || ''); }
+/* 一家高德店有没有命中参照方声明的关键词（cuisineRefKeys）——**只有这一条路**，
+ * 三条用到它的地方（挑参照 / 整份借菜单 / refServes）必须口径一致。
+ *
+ * 规矩是"店名看包含，类型标签看整词"，不能再像以前那样把 店名+标签+类型 拼成一串做包含：
+ *   高德把小档口到自助餐一律标成「快餐厅」，而那串里含「快餐」——
+ *   于是「比格比萨自助」(type = 餐饮服务;快餐厅;快餐厅) 命中了熊麻婆的「快餐」，
+ *   整份借走了熊麻婆的盖饭菜单，一家披萨自助店里出现了"十八秒猪肝"（用户实测报过来的）。
+ * 店名那条留着包含判断是必须的——这个功能本来就是靠店名认的（"喵探烤鱼"、"老李盖浇饭"），
+ * 而高德的类型里几乎不会出现"盖浇饭""肉蟹煲"这种词。 */
+function refKeyHit(shop, keys){
+  if(!shop || !keys || !keys.length) return false;
+  const name = String(shop.name || '');
+  const toks = [];
+  String(shop.type || '').split(/[;；\/|]/).forEach(t => { t = t.trim(); if(t) toks.push(t); });
+  ((shop && shop.tags) || []).forEach(t => { t = String(t).trim(); if(t) toks.push(t); });
+  return keys.some(k => {
+    if(!k) return false;
+    if(name.indexOf(k) !== -1) return true;      // 店名：包含就算
+    return toks.indexOf(k) !== -1;               // 类型/标签：必须整个词相等
+  });
+}
 /* 这家店是不是"被 cuisineRefKeys 关键词命中的同类店"（烤鱼店、肉蟹煲店这类）？
  * 是的话返回它整份借来的那份菜单，否则 null。 */
 function borrowedMenuFor(shop){
   const ref = cuisineRefFor(shop);
   const keys = refWholeKeys(ref);
   if(!ref || !keys.length) return null;
-  if(!keys.some(k => k && shopTextOf(shop).indexOf(k) !== -1)) return null;
+  if(!refKeyHit(shop, keys)) return null;
   return dbMenuDishes(ref).length ? ref : null;
 }
 function refServes(shop, dish){
@@ -3280,7 +3299,7 @@ function refServes(shop, dish){
   if(!ref) return false;
   const keys = refWholeKeys(ref);
   /* ① 同类店（店名/品类里命中了关键词，比如"烤鱼"店）：整份借，菜单里有什么就借什么 */
-  if(keys.length && keys.some(k => k && shopTextOf(shop).indexOf(k) !== -1) && menuHasDish(ref, dish)) return true;
+  if(keys.length && refKeyHit(shop, keys) && menuHasDish(ref, dish)) return true;
   /* ② 只是"同菜系"（比如川菜馆借川菜参照）：只借通用菜。
    * 参照方可以在数据里写 cuisineRefExclude 把招牌菜排除掉——醉花小岸的烤鱼不该被
    * 保定的每一家川菜馆借走（那家川菜馆多半根本不卖烤鱼，用户照着去会扑空）。 */
@@ -3319,8 +3338,12 @@ function restaurantServes(restaurant, dish){
   if(dish.universal && dishInPlace(dish)) return true;
   const db = dbShopForCached(restaurant);
   if(db) return menuHasDish(db, dish);
-  // 没采集过菜单的店：主食和饮品按"几乎所有店都能提供"算
-  if(dishInPlace(dish) && (dish.role === 'staple' || dish.role === 'drink')) return true;
+  /* 没采集过菜单的店：饮品按"几乎所有店都能提供"算（可乐、茶水这类）。
+   * 主食**不能**一起放行——饺子、包子、刀削面、火烧、粗粮在库里也标着 staple，
+   * 但它们是"这家店是什么店"的标志，不是哪家店都有。以前连它们一起放行，
+   * 于是日料店的主食位被配上了"手工水饺"、汉堡店配上了"山东大包子"（用户实测报过来的）。
+   * 主食改走下面那条"菜系对得上就认"（米饭、花卷／馒头是 universal，上面已经放行）。 */
+  if(dishInPlace(dish) && dish.role === 'drink') return true;
   /* 整份借来菜单的同类店（烤鱼店借烤鱼菜单）：这份菜单就是它的全部，
    * 跟"自己有采集菜单"的店一个口径。不然"标签交集"那条老口径会把
    * 别的菜系的菜也推断进来——实测烤鱼店的可选清单里混进了保定家常菜。 */
@@ -3334,6 +3357,12 @@ function restaurantServes(restaurant, dish){
   // 招牌菜（参照方声明了不借的）：没命中关键词的店一律不认，别再走标签交集那条路
   if(dishExclusiveToRefs(dish)) return false;
   if(!restaurant.cui.includes(dish.cui)) return false;
+  /* 主食放宽一层：饺子/包子/面/火烧这些的标签是「主食/麦/猪/热」，
+   * 跟上高德那套店铺标签（中餐厅/快餐厅/聚餐…）几乎不可能交集，靠标签永远认不出来。
+   * 但它们的**菜系**是能说明问题的：家常饺子馆做手工水饺、西北面馆做刀削面、
+   * 保定火烧店做保定火烧——菜系对得上就认，不再要求标签交集。
+   * 反过来，日料店（日）配不了家常/鲁/西北的主食，这就是"手工水饺"那个 bug 的修法。 */
+  if(dish.role === 'staple') return true;
   // 标签交集：单字标签（如"西""辣"）只允许完全相同，避免"西"误配"西餐"
   return (restaurant.tags || []).some(t => dish.tags.some(dt =>
     dt === t || (t.length >= 2 && dt.indexOf(t) !== -1) || (t.length >= 2 && t.indexOf(dt) !== -1)

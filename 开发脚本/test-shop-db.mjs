@@ -213,6 +213,31 @@ console.log('\n=== 九、菜系参照（同城同菜系借菜单，只做加法�
   ok(!!(refGai && refGai.name.indexOf('熊麻婆') !== -1), '盖浇饭店没采集过 → 借到熊麻婆的菜单当参考');
   ok(D.cuisineRefFor(laMian) === null, '兰州拉面不借（菜系和店名都对不上）');
 
+  /* ---------- 2026-10-08 用户实测报过来的两处"串味"，都在这里锁住 ----------
+   * ① 关键词匹配以前把「店名+标签+类型」拼成一串做**包含**判断，而高德把小档口到自助餐
+   *    一律标成「快餐厅」——里面含「快餐」两个字，正好命中熊麻婆声明的「快餐」，
+   *    于是比格比萨自助（type = 餐饮服务;快餐厅;快餐厅）整份借走了熊麻婆的盖饭菜单，
+   *    一家披萨自助店里出现了"十八秒猪肝"。现在店名看包含、类型/标签只看整词相等。 */
+  const mkShop = (id, name, type) => ({ id, name, type, cui:[D.amapCui(type, name)],
+    tags:[...new Set(D.amapTags({ type, name }))], sig:[] });
+
+  const pizzaShop = mkShop('amap-BG1', '比格比萨自助(保定万博广场店)', '餐饮服务;快餐厅;快餐厅');
+  ok(D.cuisineRefFor(pizzaShop) === null, '披萨自助（高德标成"快餐厅"）不再借熊麻婆的盖饭菜单');
+  ok(D.shopCanMake(pizzaShop, D.dishById('xm01')) === false, '它做不了「十八秒猪肝」');
+  const snackShop = mkShop('amap-SN1', '老王砂锅', '餐饮服务;小吃快餐;小吃');
+  ok(D.cuisineRefFor(snackShop) === null, '「小吃快餐」这种类型词也不再被"快餐"两个字命中');
+  const kfcShop = mkShop('amap-KFC1', '肯德基(裕华路店)', '餐饮服务;快餐厅;快餐厅');
+  ok(!!(D.cuisineRefFor(kfcShop) || {}).name && D.cuisineRefFor(kfcShop).name.indexOf('麦当劳') !== -1,
+     '肯德基照样借得到（按店名认，这条路没被砍掉）');
+
+  /* ② 主食以前是"哪家店都能提供"，于是日料店的主食位被配上"手工水饺"。
+   *    现在主食走菜系：日料店配不了家常/鲁/西北的主食，家常饺子馆照样配得上。 */
+  const jpShop = mkShop('amap-JP1', '和风寿司日本料理', '餐饮服务;中餐厅;日本料理');
+  ok(D.shopCanMake(jpShop, D.dishById('t04')) === false, '日料店不会"能做"手工水饺（家常主食不再无条件送）');
+  ok(D.shopCanMake(jpShop, D.DISHES.find(d => d.name === '米饭')) === true, '但米饭是通用主食，照样给（寿司店本来就有米饭）');
+  const dumplingShop = mkShop('amap-DZ1', '老张饺子馆', '餐饮服务;中餐厅;中餐厅');
+  ok(D.shopCanMake(dumplingShop, D.dishById('t04')) === true, '家常饺子馆照样能做手工水饺（菜系对得上）');
+
   /* 川香苑：点菜型川菜馆，本店确认；同城"川菜参照"现在有两家（女掌柜 + 川香苑），
    * 必须合并成一份，而不是"谁排在前面算谁"。 */
   const cx = D.SHOP_DB.shops.find(s => s.name === '川香苑');
