@@ -68,7 +68,7 @@ for(const s of subs){
     shop: s.shop || '',
     where: s.where || '',
     note: s.note || '',
-    submittedAt: s.at ? new Date(s.at).toISOString() : '',
+    submittedAt: s.at ? new Date(Number(s.at) || s.at).toISOString() : '',
     submittedBy: s.logged || '（未登录）',
     images,
     // 这几行是给审核人填的

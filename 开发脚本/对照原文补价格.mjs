@@ -40,18 +40,27 @@ const yuanLike = /[元无兀]/;
 // "1 1 元" 这种被空格拆开的数字先合上（OCR 常干）
 const joinDigits = t => t.replace(/(\d)\s+(?=\d)/g, '$1');
 
+/* 一行两个价时，谁是"大份"谁是"小份"不能靠位置猜：菜单有写"10 元 12 元"的（小在前），
+ * 也有写"大 10 元小 9 元"的（大在前，实测踩到过，两种都被搞反）。
+ * 所以看每个价格**前面 8 个字里有没有"大/小"**，原文自己会说明白。 */
 function pricesAfter(line, base){
   const t = joinDigits(line);
   const at = t.indexOf(base);
   if(at === -1) return null;
-  const seg = t.slice(at + base.length, at + base.length + 40);
+  const seg = t.slice(at + base.length, at + base.length + 60);
   const out = [];
   const re = /(\d+(?:\.\d+)?)\s*([元无兀])/g;
   let m;
   while((m = re.exec(seg))){
     if(yuanLike.test(m[2])){
       const p = Number(m[1]);
-      if(isFinite(p) && p > 0 && p < 500) out.push(p);
+      if(!isFinite(p) || p <= 0 || p >= 500) continue;
+      /* 取**离这个价格最近**的那个"大/小"标记：
+       * "大 10 元小 9 元" 里，9 前面既有"大"（更远）也有"小"（更近），该算小份。
+       * 用窗口里"有没有大"来判断会把它算成大份（踩过）。 */
+      const before = seg.slice(Math.max(0, m.index - 8), m.index);
+      const d = before.lastIndexOf('大'), x = before.lastIndexOf('小');
+      out.push({ price:p, size: (d === -1 && x === -1) ? '' : (d > x ? '大' : '小') });
     }
   }
   /* 原文里"元"被认丢的情况（"大盘鸡块 6 艹"）：菜名后面紧跟着的孤立数字也收，
@@ -61,7 +70,7 @@ function pricesAfter(line, base){
     const m2 = /^\s*\S{0,2}\s*(\d+(?:\.\d+)?)/.exec(seg);
     if(m2){
       const p = Number(m2[1]);
-      if(isFinite(p) && p > 0 && p < 500) return { list:[p], loose:true };
+      if(isFinite(p) && p > 0 && p < 500) return { list:[{ price:p, size:'' }], loose:true };
     }
     return { list:[], loose:false };
   }
@@ -72,10 +81,15 @@ function pricesAfter(line, base){
  * OCR 经常把菜名认错一个字（水饺→水皎/水茂、猪肉玉米水饺→猪肉玉米水），
  * 所以按"从全名到少两个字"逐级尝试前缀，命中即止（前缀至少 3 个字，避免"猪肉"这种撞车）。 */
 function findPrice(itemName){
-  const mm = /^(.*?)（(小|大)份）$/.exec(itemName);
-  const base = (mm ? mm[1] : itemName).replace(/\s+/g, '');
+  /* 名字里常带括号说明："板面（宽/细，大份）"、"饺子（猪肉大葱）"。
+   * 先剥掉所有括号内容得到"核心菜名"（板面 / 饺子），再去原文里找。 */
+  const base = itemName
+    .replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '')
+    .replace(/[，,、\/／].*$/, '')
+    .replace(/\s+/g, '');
   if(base.length < 2) return null;
-  const wantIdx = (mm && mm[2] === '大') ? 1 : 0;
+  /* 要哪一档：原文里写的是"大份/小份"，有的写成"大/小" */
+  const want = /大份/.test(itemName) ? '大' : (/小份/.test(itemName) ? '小' : '');
   for(const L of lines){
     /* 能砍几个字：长名字（≥4 字）最多砍 2 个，短名字（3 字）只能砍 1 个，
      * 再短就不敢砍了（"干豆"砍成"干"会撞车）。以前一刀切要求前缀≥3 字，
@@ -86,8 +100,19 @@ function findPrice(itemName){
       const got = pricesAfter(L.t, probe);
       if(!got || !got.list.length) continue;
       const list = got.list;
-      const price = list[Math.min(wantIdx, list.length - 1)];
-      if(price != null) return { price, from:L.t, page:L.page, y:L.y, 候选价:list, 没写元:got.loose, 用前缀:probe };
+      /* 要（大份）就找原文标了「大」的那个价，要（小份）就找标了「小」的；
+       * 原文没标大小（"10 元 12 元"）才退回按位置：第 1 个是小份、第 2 个是大份。 */
+      let hit = null;
+      if(want) hit = list.find(x => x.size === want) || null;
+      if(!hit){
+        const idx = want === '大' ? Math.min(1, list.length - 1) : 0;
+        hit = list[idx];
+      }
+      if(hit && hit.price != null){
+        return { price:hit.price, from:L.t, page:L.page, y:L.y,
+                 候选价:list.map(x => x.size ? x.size + ':' + x.price : x.price),
+                 没写元:got.loose, 用前缀:probe };
+      }
     }
   }
   return null;

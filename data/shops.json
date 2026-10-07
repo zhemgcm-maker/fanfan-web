@@ -4182,6 +4182,383 @@
       "uncertain": []
     },
     {
+      "id": "local-安康小吃（酱肉火烧）",
+      "name": "安康小吃（酱肉火烧）",
+      "city": "保定",
+      "place": "",
+      "campus": "",
+      "canteen": "",
+      "stall": "",
+      "floor": "",
+      "cuisine": "小吃",
+      "avg": 10,
+      "scope": "brand",
+      "amapId": "",
+      "branchName": "",
+      "cuisineRef": [],
+      "cuisineRefKeys": [],
+      "cuisineRefWhole": false,
+      "cuisineRefExclude": [],
+      "confidence": "confirmed",
+      "source": "自己拍菜单",
+      "collectedAt": "2026-10-07",
+      "image": "01_IMG_20261005_124211.jpg",
+      "menu": [
+        {
+          "name": "马肉火烧",
+          "price": 8,
+          "cat": "火烧",
+          "dishId": "sx87",
+          "kbName": "马肉火烧"
+        },
+        {
+          "name": "酱肉火烧",
+          "price": 6,
+          "cat": "火烧",
+          "dishId": "sx88",
+          "kbName": "酱肉火烧"
+        },
+        {
+          "name": "焖子加肉火烧",
+          "price": 5,
+          "cat": "火烧",
+          "dishId": "sx89",
+          "kbName": "焖子加肉火烧"
+        },
+        {
+          "name": "焖子火烧",
+          "price": 3,
+          "cat": "火烧",
+          "dishId": "sx90",
+          "kbName": "焖子火烧"
+        },
+        {
+          "name": "猪头肉火烧",
+          "price": 6,
+          "cat": "火烧",
+          "dishId": "sx91",
+          "kbName": "猪头肉火烧"
+        },
+        {
+          "name": "香肠火烧",
+          "price": 4,
+          "cat": "火烧",
+          "dishId": "sx92",
+          "kbName": "香肠火烧"
+        },
+        {
+          "name": "土豆丝火烧",
+          "price": 3,
+          "cat": "火烧",
+          "dishId": "sx93",
+          "kbName": "土豆丝火烧"
+        },
+        {
+          "name": "鸡蛋加肠火烧",
+          "price": 5,
+          "cat": "火烧",
+          "dishId": "sx94",
+          "kbName": "鸡蛋加肠火烧"
+        },
+        {
+          "name": "卤蛋火烧",
+          "price": 3,
+          "cat": "火烧",
+          "dishId": "sx95",
+          "kbName": "卤蛋火烧"
+        },
+        {
+          "name": "丸子火烧",
+          "price": 3,
+          "cat": "火烧",
+          "dishId": "sx96",
+          "kbName": "丸子火烧"
+        },
+        {
+          "name": "豆皮火烧",
+          "price": 3,
+          "cat": "火烧",
+          "dishId": "sx97",
+          "kbName": "豆皮火烧"
+        },
+        {
+          "name": "豆腐火烧",
+          "price": 3,
+          "cat": "火烧",
+          "dishId": "sx98",
+          "kbName": "豆腐火烧"
+        },
+        {
+          "name": "特色刀削面",
+          "price": 10,
+          "cat": "面",
+          "dishId": "sx99",
+          "kbName": "特色刀削面"
+        },
+        {
+          "name": "板面（宽）",
+          "price": 10,
+          "cat": "面",
+          "dishId": "sx100",
+          "kbName": "板面（宽）"
+        },
+        {
+          "name": "板面（细）",
+          "price": 10,
+          "cat": "面",
+          "dishId": "sx101",
+          "kbName": "板面（细）"
+        },
+        {
+          "name": "西红柿鸡蛋面（大份）",
+          "price": 10,
+          "cat": "面",
+          "dishId": "sx102",
+          "kbName": "西红柿鸡蛋面（大份）"
+        },
+        {
+          "name": "西红柿鸡蛋面（小份）",
+          "price": 9,
+          "cat": "面",
+          "dishId": "sx103",
+          "kbName": "西红柿鸡蛋面（小份）"
+        },
+        {
+          "name": "炸酱面（大份）",
+          "price": 10,
+          "cat": "面",
+          "dishId": "sx104",
+          "kbName": "炸酱面（大份）"
+        },
+        {
+          "name": "炸酱面（小份）",
+          "price": 9,
+          "cat": "面",
+          "dishId": "sx105",
+          "kbName": "炸酱面（小份）"
+        },
+        {
+          "name": "尖椒肉丝面（大份）",
+          "price": 10,
+          "cat": "面",
+          "dishId": "sx106",
+          "kbName": "尖椒肉丝面（大份）"
+        },
+        {
+          "name": "尖椒肉丝面（小份）",
+          "price": 9,
+          "cat": "面",
+          "dishId": "sx107",
+          "kbName": "尖椒肉丝面（小份）"
+        },
+        {
+          "name": "酸辣汤",
+          "price": 4,
+          "cat": "汤",
+          "dishId": "p03",
+          "kbName": "酸辣汤"
+        },
+        {
+          "name": "鸡蛋汤",
+          "price": 3,
+          "cat": "汤",
+          "dishId": "sx108",
+          "kbName": "鸡蛋汤"
+        },
+        {
+          "name": "鸡蛋豆腐汤",
+          "price": 4,
+          "cat": "汤",
+          "dishId": "sx109",
+          "kbName": "鸡蛋豆腐汤"
+        },
+        {
+          "name": "馄饨",
+          "price": 6,
+          "cat": "馄饨",
+          "dishId": "sx110",
+          "kbName": "馄饨"
+        },
+        {
+          "name": "方便面",
+          "price": 5,
+          "cat": "面",
+          "dishId": "sx111",
+          "kbName": "方便面"
+        },
+        {
+          "name": "紫菜蛋花汤",
+          "price": 3,
+          "cat": "汤",
+          "dishId": "p02",
+          "kbName": "紫菜蛋花汤"
+        },
+        {
+          "name": "凉皮",
+          "price": 12,
+          "cat": "小吃",
+          "dishId": "c22",
+          "kbName": "凉皮"
+        },
+        {
+          "name": "凉面（大份）",
+          "price": 10,
+          "cat": "面",
+          "dishId": "sx112",
+          "kbName": "凉面（大份）"
+        },
+        {
+          "name": "凉面（小份）",
+          "price": 9,
+          "cat": "面",
+          "dishId": "sx113",
+          "kbName": "凉面（小份）"
+        },
+        {
+          "name": "手工肉水饺",
+          "price": 15,
+          "cat": "饺子",
+          "dishId": "sx114",
+          "kbName": "手工肉水饺"
+        },
+        {
+          "name": "鸡蛋炒面",
+          "price": 10,
+          "cat": "面",
+          "dishId": "sx115",
+          "kbName": "鸡蛋炒面"
+        },
+        {
+          "name": "西红柿鸡蛋炒面",
+          "price": 12,
+          "cat": "面",
+          "dishId": "sx116",
+          "kbName": "西红柿鸡蛋炒面"
+        },
+        {
+          "name": "手工素水饺",
+          "price": 2,
+          "cat": "饺子",
+          "dishId": "sx117",
+          "kbName": "手工素水饺"
+        },
+        {
+          "name": "玉米粥",
+          "price": 0,
+          "cat": "粥",
+          "dishId": "sx118",
+          "kbName": "玉米粥"
+        }
+      ],
+      "uncertain": [
+        {
+          "name": "豆腐火烧",
+          "reason": "未找到对应价格行"
+        },
+        {
+          "name": "凉皮",
+          "reason": "未找到对应价格行"
+        },
+        {
+          "name": "玉米粥",
+          "reason": "标注全天免费，无价格"
+        },
+        {
+          "name": "鸡灼讲",
+          "reason": "OCR文字疑似错别字，价格0元存疑，无法确定菜名"
+        },
+        {
+          "name": "肉丝灼",
+          "reason": "OCR文字疑似错别字，价格2元存疑，无法确定菜名"
+        },
+        {
+          "name": "把子肉",
+          "reason": "未找到对应价格行"
+        },
+        {
+          "name": "鸡腿",
+          "reason": "未找到对应价格行"
+        },
+        {
+          "name": "花干",
+          "reason": "未找到对应价格行"
+        },
+        {
+          "name": "丸子",
+          "reason": "未找到对应价格行"
+        },
+        {
+          "name": "豆干",
+          "reason": "OCR文字不完整，价格无法确定"
+        },
+        {
+          "name": "板面（宽）",
+          "reason": "这一行的价格被多道菜指到（y=27），需要人工核对",
+          "modelSuggestedPrice": 10
+        },
+        {
+          "name": "板面（细）",
+          "reason": "这一行的价格被多道菜指到（y=27），需要人工核对",
+          "modelSuggestedPrice": 10
+        },
+        {
+          "name": "西红柿鸡蛋面（大份）",
+          "reason": "这一行的价格被多道菜指到（y=28），需要人工核对",
+          "modelSuggestedPrice": 10
+        },
+        {
+          "name": "西红柿鸡蛋面（小份）",
+          "reason": "这一行的价格被多道菜指到（y=28），需要人工核对",
+          "modelSuggestedPrice": 9
+        },
+        {
+          "name": "炸酱面（大份）",
+          "reason": "这一行的价格被多道菜指到（y=29），需要人工核对",
+          "modelSuggestedPrice": 10
+        },
+        {
+          "name": "炸酱面（小份）",
+          "reason": "这一行的价格被多道菜指到（y=29），需要人工核对",
+          "modelSuggestedPrice": 9
+        },
+        {
+          "name": "尖椒肉丝面（大份）",
+          "reason": "这一行的价格被多道菜指到（y=30），需要人工核对",
+          "modelSuggestedPrice": 10
+        },
+        {
+          "name": "尖椒肉丝面（小份）",
+          "reason": "这一行的价格被多道菜指到（y=30），需要人工核对",
+          "modelSuggestedPrice": 9
+        },
+        {
+          "name": "凉皮",
+          "reason": "价格需要人工核对",
+          "modelSuggestedPrice": null
+        },
+        {
+          "name": "凉面（大份）",
+          "reason": "这一行的价格被多道菜指到（y=45），需要人工核对",
+          "modelSuggestedPrice": 10
+        },
+        {
+          "name": "凉面（小份）",
+          "reason": "这一行的价格被多道菜指到（y=45），需要人工核对",
+          "modelSuggestedPrice": 9
+        },
+        {
+          "name": "手工肉水饺",
+          "reason": "这一行的价格被多道菜指到（y=45），需要人工核对",
+          "modelSuggestedPrice": 15
+        },
+        {
+          "name": "玉米粥",
+          "reason": "它指的那一行里没有这个价格",
+          "modelSuggestedPrice": null
+        }
+      ]
+    },
+    {
       "id": "local-小江溪",
       "name": "小江溪·山野江西菜(保定万博广场店)",
       "city": "保定",

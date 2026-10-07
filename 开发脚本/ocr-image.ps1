@@ -9,6 +9,13 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+# 强制用 UTF-8 往 stdout 写：这个脚本是被 node 用 spawnSync({encoding:'utf8'}) 调起来的，
+# 而 Windows PowerShell 默认按**当前控制台代码页**输出（中文系统上是 GBK）。
+# 在 cmd / .bat 里跑（代码页 936）时，输出的中文到 node 那边全变成替换字符，
+# 菜单上的"元"没了、菜名成了乱码 —— 大模型看不到字，价格也就全丢了。
+# 这两行让输出永远是 UTF-8，跟在哪跑无关。
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 if(-not (Test-Path -LiteralPath $Path)){ Write-Error "找不到文件：$Path"; exit 1 }
 $full = (Resolve-Path -LiteralPath $Path).Path
 
