@@ -1659,6 +1659,39 @@ const LS_TOKEN = 'eatAgent.token.v1';             // 后端账号的 JWT
 const LS_IDENTITY = 'eatAgent.identity.v1';       // 当前身份（游客 / 已登录用户）
 const SETTINGS_VERSION = 9;   // 换默认服务商 / 内置 Key / 新增设置项时递增，避免浏览器里存的旧配置把新默认值顶掉
 
+/* ---------- 写本机存储：满了先腾地方，别把用户的东西丢掉 ----------
+ * 背景（2026-10-08 用户实测报过来）：浏览器给 localStorage 的额度只有 5 MB 左右，
+ * 而"高德结果缓存"一条 35 KB、以前按 240 条封顶 → 能长到 8.4 MB。
+ * 存储一满，这里的 `catch(e){}` 就把 **评价、忌口、记忆** 的写入静默吞掉了：
+ * 用户打完分、刷新页面，评价就没了，还一点提示都没有。
+ * 所以：写不进去时按"① 清过期的缓存 → ② 把缓存整体扔掉（最坏就是重新搜一次店）
+ * → ③ 清可再生的解析缓存"腾地方再试，全都不行才提示一次。
+ * 注意这里只用字符串常量，不引用后面才声明的 amapCache/AMAP_CACHE_NS，
+ * 免得开机阶段（applyCity 里也会 saveProfile）踩到 TDZ。 */
+let _storeWarned = false;
+const AMAP_CACHE_KEYS = ['ff_amap_cache_v1', 'ff_amap_cache_v1_n'];
+const REGEN_CACHE_KEYS = AMAP_CACHE_KEYS.concat(['eatAgent.craveparse.v1']);
+function dropAmapCacheKeys(){
+  AMAP_CACHE_KEYS.forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
+  try{ amapCache = {}; amapCounter = null; }catch(e){ /* 还没初始化就算了 */ }
+}
+function safeStore(key, str){
+  try{ localStorage.setItem(key, str); return true; }catch(e){}
+  /* 只清过期的：能腾出来就够了，别一上来就把整份缓存扔掉 */
+  try{ if(typeof trimAmapCache === 'function') trimAmapCache(); }catch(e){}
+  try{ localStorage.setItem(key, str); return true; }catch(e){}
+  for(const k of REGEN_CACHE_KEYS){
+    try{ localStorage.removeItem(k); }catch(e){}
+    if(k.indexOf('ff_amap') === 0) dropAmapCacheKeys();
+    try{ localStorage.setItem(key, str); return true; }catch(e){}
+  }
+  if(!_storeWarned){
+    _storeWarned = true;
+    try{ toast('⚠️ 本机存储满了，这条改动可能没存住（去「我的」清一下联网缓存再试）'); }catch(e){}
+  }
+  return false;
+}
+
 /* 后端（阿里云函数计算 FC）：把两个 Key 藏到服务端 + 账号跨设备同步。
  * 留空 = 纯本地模式，直接用下面那两个内置 Key（离线也能跑）。 */
 const DEFAULT_API_BASE = 'https://fanfan-web-qpznnriewb.cn-hangzhou.fcapp.run';
@@ -1818,12 +1851,12 @@ function loadStore(){
   }catch(e){ /* 忽略损坏数据 */ }
 }
 function saveProfile(){
-  try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+  safeStore(LS_PROFILE, JSON.stringify(state.profile));
   state._allergySaved = (state.profile.allergies || []).slice();
   syncToServer('/api/profile', { profile:state.profile });
 }
 function saveSettings(){
-  try{ localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings)); }catch(e){}
+  safeStore(LS_SETTINGS, JSON.stringify(state.settings));
   syncToServer('/api/settings', { settings:state.settings });
 }
 
@@ -1837,8 +1870,9 @@ function saveSettings(){
 
 function apiBase(){ return String((state.settings && state.settings.apiBase) || '').trim().replace(/\/+$/, ''); }
 function getToken(){ try{ return localStorage.getItem(LS_TOKEN) || ''; }catch(e){ return ''; } }
-function setToken(t){ try{ t ? localStorage.setItem(LS_TOKEN, t) : localStorage.removeItem(LS_TOKEN); }catch(e){} }
-function saveIdentity(){ try{ localStorage.setItem(LS_IDENTITY, JSON.stringify(state.identity)); }catch(e){} }
+/* 登录令牌和身份也走 safeStore：存储满的时候写不进去，表现就是"过一会儿自己退登录了" */
+function setToken(t){ t ? safeStore(LS_TOKEN, t) : (function(){ try{ localStorage.removeItem(LS_TOKEN); }catch(e){} })(); }
+function saveIdentity(){ safeStore(LS_IDENTITY, JSON.stringify(state.identity)); }
 function loadIdentity(){
   try{
     const s = JSON.parse(localStorage.getItem(LS_IDENTITY) || 'null');
@@ -1897,7 +1931,7 @@ function syncToServer(path, body){
  * 返回一句能直接 toast 的话，让用户明确知道"存到哪儿了"。 */
 async function saveProfileNow(){
   state._allergySaved = (state.profile.allergies || []).slice();
-  try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+  safeStore(LS_PROFILE, JSON.stringify(state.profile));
   const n = (state.profile.allergies || []).length;
   if(state.identity.type !== 'user' || !getToken() || !apiBase()){
     return '已保存在本机：' + (n ? n + ' 项忌口' : '没有忌口') + '（登录账号后可以同步到云端）';
@@ -1934,15 +1968,59 @@ function pushProfileNow(){
   }catch(e){ /* 后端不通就算了，本机已经存了 */ }
 }
 
+/* ---------- 服务端快照合进本机 ----------
+ * 服务端那份是"上一次成功推送的快照"，可能是旧的（推送失败过、或者在别的设备上先存的）。
+ * 所以分开对待：
+ *   口味/忌口/设置 —— 用户的选择，服务端说了算（换设备就该看到账号里的那份）
+ *   评价/屏蔽/最近吃过/记忆 —— 攒出来的数据，只能"并集 + 谁新听谁的"
+ * 以前是整块被服务端盖掉：本地新打的评价，只要服务端那份旧快照里没有，就没了
+ * （用户实测"同步一下评价就消失"就是这么来的，跟存储写满那个坑叠在一起更难查）。 */
+function mergeByTs(localMap, remoteMap){
+  const out = Object.assign({}, remoteMap || {});
+  Object.keys(localMap || {}).forEach(k => {
+    const l = localMap[k], r = out[k];
+    if(r === undefined){ out[k] = l; return; }
+    const lo = l && typeof l === 'object', ro = r && typeof r === 'object';
+    if(!lo || !ro){ out[k] = Math.max(Number(l) || 0, Number(r) || 0); return; }   // block* 存的是"到期时间戳"
+    if(Number(l.ts || 0) >= Number(r.ts || 0)) out[k] = l;                          // 谁新听谁的
+  });
+  return out;
+}
+function mergeByKey(localArr, remoteArr, keyOf, cap){
+  const out = [], seen = new Set();
+  [].concat(remoteArr || [], localArr || []).forEach(x => {
+    if(!x) return;
+    const k = keyOf(x);
+    if(!k || seen.has(k)) return;
+    seen.add(k); out.push(x);
+  });
+  out.sort((a, b) => ((b && b.ts) || 0) - ((a && a.ts) || 0));
+  return cap ? out.slice(0, cap) : out;
+}
 /* 登录/注册 → 拉服务端数据。服务端为空就把本机的推上去（第一次登录不该把本地偏好弄丢）。 */
 async function pullServerData(){
   const prof = await apiCall('/api/profile').catch(() => null);
   const sett = await apiCall('/api/settings').catch(() => null);
   let pulled = [];
-  if(prof && prof.profile && typeof prof.profile === 'object'){
-    state.profile = Object.assign({}, state.profile, prof.profile);
-    prof.profile.memory = state.profile.memory || [];    // 记忆条目本机优先，别被空值顶掉
-    try{ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }catch(e){}
+  if(prof && prof.profile && typeof prof.profile === 'object' && Object.keys(prof.profile).length){
+    const local = state.profile;
+    const lr = ratings();
+    const rr = (prof.profile.ratings && typeof prof.profile.ratings === 'object') ? prof.profile.ratings : {};
+    const lb = local.banned || {};
+    const rb = (prof.profile.banned && typeof prof.profile.banned === 'object') ? prof.profile.banned : {};
+    state.profile = Object.assign({}, local, prof.profile);
+    state.profile.ratings = {
+      dish: mergeByTs(lr.dish, rr.dish), dishAt: mergeByTs(lr.dishAt, rr.dishAt), shop: mergeByTs(lr.shop, rr.shop),
+      blockDish: mergeByTs(lr.blockDish, rr.blockDish), blockDishAt: mergeByTs(lr.blockDishAt, rr.blockDishAt),
+      blockShop: mergeByTs(lr.blockShop, rr.blockShop)
+    };
+    state.profile.history = mergeByKey(local.history, prof.profile.history,
+      h => (h && h.ts || 0) + '|' + ((h && (h.dishId || h.name)) || ''), 300);
+    state.profile.memory = mergeByKey(local.memory, prof.profile.memory,
+      m => (m && (m.id || ((m.ts || 0) + '|' + (m.text || '')))) || '', 200);
+    state.profile.banned = { dishes: mergeByTs(lb.dishes, rb.dishes), shops: mergeByTs(lb.shops, rb.shops),
+                             shopNames: Object.assign({}, rb.shopNames || {}, lb.shopNames || {}) };
+    safeStore(LS_PROFILE, JSON.stringify(state.profile));
     state._allergySaved = (state.profile.allergies || []).slice();   // 登录后：这个账号的忌口就是已保存状态
     pulled.push('口味画像');
   }
@@ -1951,7 +2029,7 @@ async function pullServerData(){
     state.settings = Object.assign({}, state.settings, sett.settings);
     // Key 是本机的事，服务端不存也不覆盖
     state.settings.key = keepKey; state.settings.amapKey = keepAmap; state.settings.apiBase = keepBase;
-    try{ localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings)); }catch(e){}
+    safeStore(LS_SETTINGS, JSON.stringify(state.settings));
     pulled.push('设置');
   }
   if(!pulled.length){                                    // 服务端还是空的 → 把本机推上去
@@ -2541,11 +2619,33 @@ function loadAmapCache(){
 }
 function saveAmapCache(){
   try{
-    const keys = Object.keys(amapCache);
-    if(keys.length > 240) keys.slice(0, keys.length - 240).forEach(k => { delete amapCache[k]; });
+    trimAmapCache();
     localStorage.setItem(AMAP_CACHE_NS, JSON.stringify(amapCache));
     localStorage.setItem(AMAP_CACHE_NS + '_n', JSON.stringify(amapCounter));
   }catch(e){ /* 存储满了就算了，不影响使用 */ }
+}
+/* 一条搜索结果 ≈ 35 KB（25 家店）。以前只按"条数 ≤ 240"裁 —— 那能长到 8.4 MB，
+ * 而 localStorage 的额度只有 5 MB 左右，撑爆之后连评价都写不进去（见 safeStore 的注释）。
+ * 现在两道闸：① 先把过期的扔掉（搜索/周边 10 分钟、地理编码 24 小时）；
+ * ② 总长度超过 1.2 MB 就从最旧的开始删。缓存本来就只是省高德配额，扔了不影响功能。 */
+const AMAP_CACHE_BUDGET = 1200 * 1024;
+function trimAmapCache(){
+  if(!amapCache || typeof amapCache !== 'object') return 0;
+  const now = Date.now();
+  Object.keys(amapCache).forEach(k => {
+    const hit = amapCache[k];
+    const ttl = (k.indexOf('geo:') === 0) ? AMAP_TTL.geo : AMAP_TTL.search;
+    if(!hit || typeof hit.t !== 'number' || (now - hit.t) > ttl) delete amapCache[k];
+  });
+  let keys = Object.keys(amapCache);
+  let size = JSON.stringify(amapCache).length;
+  while(size > AMAP_CACHE_BUDGET && keys.length){
+    keys.sort((a, b) => (amapCache[a].t || 0) - (amapCache[b].t || 0));   // 最旧的先扔
+    keys.slice(0, Math.max(1, Math.ceil(keys.length / 10))).forEach(k => { delete amapCache[k]; });
+    keys = Object.keys(amapCache);
+    size = JSON.stringify(amapCache).length;
+  }
+  return size;
 }
 function amapCacheGet(key, ttl){
   const hit = loadAmapCache()[key];
@@ -5717,7 +5817,7 @@ function loadSubmits(){
   try{ const a = JSON.parse(localStorage.getItem(LS_SUBMITS) || '[]'); submitQueue = Array.isArray(a) ? a : []; }
   catch(e){ submitQueue = []; }
 }
-function saveSubmits(){ try{ localStorage.setItem(LS_SUBMITS, JSON.stringify(submitQueue)); }catch(e){} }
+function saveSubmits(){ safeStore(LS_SUBMITS, JSON.stringify(submitQueue)); }
 function pendingSubmits(){ return submitQueue.filter(s => s.state !== 'sent'); }
 /* 今天已经提交了几家（按自然日算，0 点重置）。不限状态：发出去的、待发的、失败的都算——
  * 用户"提交过"就是提交过，不能因为发失败就让他再占一个名额。 */
@@ -8937,15 +9037,13 @@ function aiLoad(){
   }catch(e){ /* 数据坏了就当没聊过，不影响其它功能 */ }
 }
 function aiSave(){
-  try{
-    localStorage.setItem(LS_AI, JSON.stringify({
-      msgs: aiState.msgs.slice(-AI_KEEP_MSGS),
-      hist: aiState.hist.slice(-24),
-      day: aiState.day, dishId: aiState.dishId, key: aiState.key,
-      useGeo: !!aiState.useGeo,
-      stories: aiState.stories
-    }));
-  }catch(e){}
+  safeStore(LS_AI, JSON.stringify({
+    msgs: aiState.msgs.slice(-AI_KEEP_MSGS),
+    hist: aiState.hist.slice(-24),
+    day: aiState.day, dishId: aiState.dishId, key: aiState.key,
+    useGeo: !!aiState.useGeo,
+    stories: aiState.stories
+  }));
 }
 function aiTrimStories(){
   const keys = Object.keys(aiState.stories);
