@@ -2037,6 +2037,12 @@ async function pullServerData(){
     await apiCall('/api/settings', { method:'PUT', body:{ settings:state.settings } }).catch(()=>{});
     return '首次登录：已把本机偏好上传到服务端';
   }
+  /* 合完还要**推回服务端**。以前只有"服务端为空"那一次才推，于是：
+   * 账号里已经有数据时，游客先打分再登录，这条评价只活在登录这台设备上——
+   * 换一台设备、同一个账号，看不到它（实测踩过：设备C 游客打的 cn05 没进账号）。
+   * 推回去之后服务端拿到的才是两边交集，换设备登录才拿得全。 */
+  await apiCall('/api/profile', { method:'PUT', body:{ profile:state.profile } }).catch(()=>{});
+  await apiCall('/api/settings', { method:'PUT', body:{ settings:state.settings } }).catch(()=>{});
   state.server.lastSync = Date.now();
   return '已从服务端同步：' + pulled.join('、');
 }
@@ -3724,6 +3730,9 @@ function rateMeal(dishes, shop, meal){
   }
   if(n){
     saveProfile();
+    /* 打分要**立刻**推给账号，不等那 1.2 秒防抖：用户打完分就把页面关掉很常见，
+     * 光靠防抖容易永远发不出去（这条数据是要跟账号走的，丢了最扎心）。 */
+    pushProfileNow();
     state.shownDishIds = []; state.shownShopIds = [];   // 刚打的分要立刻影响下一轮推荐
     renderProfile();
   }
@@ -5513,6 +5522,14 @@ function memHistoryHTML(){
  *   dish    只有菜的（老数据、或者那一顿高德没给店 id），派生出来的那条不重复列
  *   shop    打过分的店
  * 删掉一条 = 忘掉这次评价，连带解除它带来的 1 星屏蔽。 */
+/* 评价存在哪儿，写在页面上让用户看得见 —— 别让人猜"我打的分消失没有"。
+ * 登录了 = 跟账号走（换设备也在）；没登录 = 只在这台设备（登录后自动归到账号）。 */
+function rateWhereText(){
+  if(state.identity.type === 'user' && getToken()){
+    return '☁️ 这些评价归在账号「' + state.identity.username + '」里，换设备登录同一账号就能看到；本机也留一份，断网照样用。';
+  }
+  return '📱 现在只存在这台设备上。登录后会自动归到账号里，换设备登录同一账号也能看到（不登录不影响推荐）。';
+}
 function memRatedHTML(){
   const r = ratings();
   const byNew = (a, b) => (b[1].ts || 0) - (a[1].ts || 0);
@@ -5538,6 +5555,7 @@ function memRatedHTML(){
       (key, rec) => (rec.shop || '某家店') + ' ｜ ' + dishName(dishIdOfRateKey(key))) +
     seg('打得分的菜（不知道是哪家）', onlyRows, 'rateDish', id => dishName(id)) +
     seg('打过分的店', shopRows, 'rateShop', (id, rec) => rec.name || id) +
+    '<p class="note">' + rateWhereText() + '</p>' +
     '<p class="note">分是记在「哪家店的哪道菜」上的：这家做得好、那家做得差，各算各的，不会互相牵连。' +
     '4 星以上更容易再被推；打 1 星的菜在这一家 14 天内不推（自动到期恢复）。' +
     '想撤销就打高一点，或者在这里删掉这条评价。</p>';
