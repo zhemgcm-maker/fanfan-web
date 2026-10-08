@@ -2593,6 +2593,42 @@ function estimateAvg(poi){
   return 40;
 }
 
+/* ===== 高德 POI 的 tag/atag 里藏着"网友推荐菜" =====
+ * 实测（2026-10-09，保定 12 个关键词 × 25 家 = 275 家）：88% 的店有 tag，
+ * 其中 53% 带 ≥2 个像菜名的词。比如：
+ *   相家重庆老火锅(翠园街总店) → 麻辣牛肉、鲜毛肚、鲜鸭肠、牛黄喉、鲜鸭血、小酥肉…（23 个）
+ *   海底捞火锅(万博广场店)     → 捞派滑牛、魔芋丝、包心生菜、捞面、鱿鱼须、鸭掌…（17 个）
+ * 那是网友真点过的菜，比"按菜系推断"硬得多 —— 所以拿它当**正面证据**：
+ * 这道菜在我们菜品库里、又能在 tag 里对上 → 判这家店能做（详见 restaurantServes）。
+ *
+ * 铁的规矩只有一条：**只做加法**。tag 里没写，绝不等于这家店没有这道菜
+ * （tag 很不全：App 里显示 30 道推荐菜，tag 可能只给 9 个），所以它不能否决任何东西。
+ * 另外 tag 很脏，混着"双人餐/招牌/代金券"这类非菜名，先滤掉。
+ * 注意：高德**没有单菜价格**，它的价格只有"这家店人均"（biz_ext.cost，我们用它做"人均匹配"打分）。
+ * tag 认下来的菜，配桌时用的是**我们库里那道菜的参考价**，不是高德的价（高德没有）。 */
+const TAG_NOT_DISH = /^(双人餐|三人餐|四人餐|套餐|自助|自助餐|团购|优惠|代金券|招牌|推荐|新品|特色|地方风味|小吃|主食|凉菜|热菜|甜品|例汤|特价|酒水|饮料|用餐|配送|堂食|包间|包厢|停车|免费|营业|清真|家常|快餐|早餐|午餐|晚餐|早|午|晚|下午茶|夜宵)$/;
+function parseTagDishes(poi){
+  const raw = String((poi && (poi.tag || poi.atag)) || '');
+  if(!raw) return [];
+  const out = [];
+  raw.split(/[,，;；|]/).map(s => s.trim()).forEach(t => {
+    if(!t || t.length < 2 || t.length > 12) return;      // 太短（"面"）跟太长（整句）的都不是菜名
+    if(TAG_NOT_DISH.test(t)) return;
+    if(out.indexOf(t) === -1) out.push(t);
+  });
+  return out;
+}
+/* 这道菜在不在这家店的"网友推荐菜"里？
+ * 匹配方向有讲究：**库里的菜名被 tag 词包含**才算（tag 更具体）。
+ * 反过来不算——不然 tag 里一个笼统的"牛肉"，会让库里的"牛肉面/牛肉粉"全都变成"能做"。 */
+function tagServes(shop, dish){
+  const list = (shop && shop.tagDishes) || [];
+  if(!list.length || !dish || !dish.name) return false;
+  const dn = normDishName(dish.name);
+  if(dn.length < 2) return false;
+  return list.some(t => normDishName(t).indexOf(dn) !== -1);
+}
+
 function haversine(lng1, lat1, lng2, lat2){
   const R = 6371, rad = Math.PI / 180;
   const dLat = (lat2 - lat1) * rad, dLng = (lng2 - lng1) * rad;
@@ -2790,6 +2826,7 @@ function amapPoiToShop(poi, origin){
     area: adname || CITY.name,
     cui:[cui],
     tags: [...new Set(amapTags(poi).concat(CUI_TAGS[cui] || []))],
+    tagDishes: parseTagDishes(poi),          // 高德的"网友推荐菜"（只做加法，见 restaurantServes）
     avg: cost || estimateAvg(poi),
     rating: rating,
     delivery: true,
@@ -3316,6 +3353,13 @@ function scoreRestaurant(restaurant, dish, ctx){
   }
   parts['菜品覆盖'] = { raw:+clamp(cover * 2.4, 0, 16).toFixed(1), max:16 };
   if(cover >= 5) reasons.push('你想吃的 ' + cover + ' 道菜这家店都能做');
+  /* 这条理由专门标出"靠高德网友推荐菜认下来的"——让用户看得见依据从哪来
+   * （自己采集过菜单的店不写：那种店菜单才是准的，tag 只是补充）。 */
+  if(!dbShopForCached(restaurant) && CANDIDATE_DISHES.length){
+    const byTag = CANDIDATE_DISHES.filter(cd => tagServes(restaurant, cd)).map(cd => cd.name);
+    if(byTag.length) reasons.push('高德网友推荐菜里有：' + byTag.slice(0, 4).join('、') +
+      (byTag.length > 4 ? ' 等 ' + byTag.length + ' 道' : ''));
+  }
 
   // 口味契合：店的经营品类 vs 你今天想吃的 + 长期口味画像
   const wantKeys = new Set();
@@ -3450,6 +3494,12 @@ function restaurantServes(restaurant, dish){
    * 于是日料店的主食位被配上了"手工水饺"、汉堡店配上了"山东大包子"（用户实测报过来的）。
    * 主食改走下面那条"菜系对得上就认"（米饭、花卷／馒头是 universal，上面已经放行）。 */
   if(dishInPlace(dish) && dish.role === 'drink') return true;
+  /* 高德的"网友推荐菜"（tag/atag）命中了这道菜 → 这家店能做。
+   * 这是网友真点过的菜，属于**正面证据**，比下面"按菜系/标签推断"硬；
+   * 但必须放在"自己采集过菜单"（上面那条 if(db)）之后 —— 菜单是封闭集合，
+   * 我们自己核实过的菜单说了算，不能让平台的 tag 反过来推翻它。
+   * 也别怕它误判：它只能把"做不了"变成"能做"，tag 里没有的菜一律维持原判。 */
+  if(tagServes(restaurant, dish)) return true;
   /* 整份借来菜单的同类店（烤鱼店借烤鱼菜单）：这份菜单就是它的全部，
    * 跟"自己有采集菜单"的店一个口径。不然"标签交集"那条老口径会把
    * 别的菜系的菜也推断进来——实测烤鱼店的可选清单里混进了保定家常菜。 */

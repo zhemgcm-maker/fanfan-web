@@ -33,7 +33,7 @@ async function mockFetch(url){
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,cuisineRefFor,dishById,menuSourceText,amapCui,amapTags,get CITY(){return CITY}};')
+  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,cuisineRefFor,dishById,menuSourceText,amapCui,amapTags,parseTagDishes,tagServes,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch);
 const D = globalThis.__D;
 
@@ -237,6 +237,34 @@ console.log('\n=== 九、菜系参照（同城同菜系借菜单，只做加法�
   ok(D.shopCanMake(jpShop, D.DISHES.find(d => d.name === '米饭')) === true, '但米饭是通用主食，照样给（寿司店本来就有米饭）');
   const dumplingShop = mkShop('amap-DZ1', '老张饺子馆', '餐饮服务;中餐厅;中餐厅');
   ok(D.shopCanMake(dumplingShop, D.dishById('t04')) === true, '家常饺子馆照样能做手工水饺（菜系对得上）');
+
+  /* ---------- 2026-10-09 高德"网友推荐菜"（tag/atag）当正面证据 ----------
+   * 实测：保定 275 家里 53% 的店 tag 带着 ≥2 个菜名（相家重庆老火锅 23 个）。
+   * 它是**正面证据**：命中 → 判这家能做；但只做加法，tag 里没写绝不否决。 */
+  const tagShop = mkShop('amap-TG1', '某老火锅(测试店)', '餐饮服务;中餐厅;火锅店');
+  tagShop.tagDishes = D.parseTagDishes({ tag: '鲜毛肚,拍黄瓜,双人餐,招牌,代金券,西瓜,牛肉面' });
+  ok(tagShop.tagDishes.indexOf('双人餐') === -1 && tagShop.tagDishes.indexOf('招牌') === -1 &&
+     tagShop.tagDishes.indexOf('代金券') === -1,
+     '非菜名（双人餐/招牌/代金券）被滤掉，剩下：' + JSON.stringify(tagShop.tagDishes));
+  ok(D.restaurantServes(tagShop, D.dishById('s01')) === true,
+     'tag 里有「拍黄瓜」→ 判这家能拍黄瓜（它的菜系是火锅，正常推断是认不下来的）');
+  const noTagShop = mkShop('amap-TG2', '某老火锅(没 tag)', '餐饮服务;中餐厅;火锅店');
+  ok(D.restaurantServes(noTagShop, D.dishById('s01')) === false &&
+     D.restaurantServes(noTagShop, D.dishById('cq58')) === false,
+     '同一家店没有 tag 时维持原判（说明上面那条确实是 tag 带来的）');
+  ok(D.restaurantServes(tagShop, D.dishById('sn31')) === false,
+     'tag 里没写的菜不会被否决成"不能做"以外的东西——即 tag 只做加法，不影响别的判定');
+  /* 采集过菜单的店：菜单是封闭集合，tag 不能反过来推翻它 */
+  const xmShop = mkShop('amap-B0MUH1QNEC', '熊麻婆现炒浇头面·饭(保定市永华北大街店)', '餐饮服务;中餐厅;中餐厅');
+  xmShop.tagDishes = ['佛跳墙', '北京烤鸭'];
+  ok(D.dbShopForCached(xmShop) && D.restaurantServes(xmShop, D.dishById('xm01')) === true &&
+     D.restaurantServes(xmShop, D.dishById('s01')) === false,
+     '自己采集过菜单的店，菜单仍是封闭集合（tag 里的佛跳墙/北京烤鸭不能让它"会做"）');
+  /* 两个菜库仍然隔离：tag 不能把食堂菜端到校外店 */
+  const outShop = mkShop('amap-TG3', '某老火锅(校外)', '餐饮服务;中餐厅;火锅店');
+  outShop.tagDishes = ['小酥肉'];
+  ok(D.restaurantServes(outShop, D.dishById('cp0990')) === false,
+     '食堂那份「小酥肉」不会因为 tag 命中就被校外店认下来（菜库隔离优先）');
 
   /* 川香苑：点菜型川菜馆，本店确认；同城"川菜参照"现在有两家（女掌柜 + 川香苑），
    * 必须合并成一份，而不是"谁排在前面算谁"。 */
