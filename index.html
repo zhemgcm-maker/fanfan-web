@@ -3313,9 +3313,12 @@ function scoreRestaurant(restaurant, dish, ctx){
   const reasons = [];
   const parts = {};
 
-  // 距离：越近越好（联网结果 = 真实直线距离）
-  // 权重重排（2026-09-17）：距离 26→20、人均匹配 12→18，其余不变，合计仍是 100
-  const distScore = 20 * clamp(1 - d.km / 4.5, 0, 1);
+    // 距离：越近越好（联网结果 = 真实直线距离）
+    // 权重重排（2026-09-17）：距离 26→20、人均匹配 12→18，其余不变，合计仍是 100
+    // 2026-10-09：满分的距离范围从 4.5km 放宽到 6km（用户要求——保定城区跑一趟 5km 很常见，
+    // 4.5km 之外一律 0 分会把城里的好店全压死）
+    const DIST_FULL_KM = 6;
+    const distScore = 20 * clamp(1 - d.km / DIST_FULL_KM, 0, 1);
   parts['距离'] = { raw:+distScore.toFixed(1), max:20 };
   if(d.areaMatched){ parts['距离'].raw = Math.min(20, parts['距离'].raw + 5); reasons.push(`就在你说的「${restaurant.area}」这一片`); }
 
