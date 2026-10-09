@@ -2628,6 +2628,51 @@ function tagServes(shop, dish){
   if(dn.length < 2) return false;
   return list.some(t => normDishName(t).indexOf(dn) !== -1);
 }
+/* 品牌通用 tag：同一串词在同城**别的店**上也有（连锁的固定推荐位），那是平台运营位、
+ * 不是这家店真被点过的菜 → 反推菜系时不算证据。 */
+function tagSharedSet(){
+  const out = new Set();
+  const shops = (state.lastOnline && state.lastOnline.shops) || [];
+  const owner = new Map();
+  for(const s of shops){
+    for(const t of (s.tagDishes || [])){
+      if(!owner.has(t)) owner.set(t, s.name);
+      else if(owner.get(t) !== s.name) out.add(t);
+    }
+  }
+  return out;
+}
+/* 用高德"网友推荐菜"反推这家店**主打什么菜系**（用户 2026-10-09 拍板的规矩）：
+ *   ① 某个菜系要攒够 **≥3 道**证据才算数（1~2 道可能是碰巧）；
+ *   ② 品牌通用 tag 不算（见 tagSharedSet）。
+ * 为什么需要它：高德经常把店类型标歪——黄焖鸡店被判成「西」、川菜馆被判成「家常」，
+ * 于是"菜系对口"这一维白丢 11 分。而推荐菜是网友真点过的菜，比店类型更能说明这家做什么。
+ * 用途两处：① restaurantServes：这道菜的菜系 == 反推菜系 → 认它能做（只做加法）
+ *          ② scoreRestaurant：「菜系对口」补 8 分（弱于真对口 11、强于判歪的 0） */
+const _tagCuiCache = new Map();
+function tagCuisine(shop){
+  if(!shop) return { cui:'', n:0 };
+  const key = shop.id || shop.name || '';
+  if(key && _tagCuiCache.has(key)) return _tagCuiCache.get(key);
+  let out = { cui:'', n:0 };
+  const list = shop.tagDishes || [];
+  if(list.length && !dbShopForCached(shop)){
+    const shared = tagSharedSet();
+    const own = list.filter(t => !shared.has(t));
+    const votes = {};
+    for(const d of DISHES){
+      if(!d || !d.cui || !dishInPlace(d)) continue;
+      const dn = normDishName(d.name);
+      if(dn.length < 2) continue;
+      if(!own.some(t => normDishName(t).indexOf(dn) !== -1)) continue;
+      votes[d.cui] = (votes[d.cui] || 0) + 1;
+    }
+    const top = Object.entries(votes).sort((a, b) => b[1] - a[1])[0];
+    if(top && top[1] >= 3) out = { cui:top[0], n:top[1] };
+  }
+  if(key) _tagCuiCache.set(key, out);
+  return out;
+}
 
 function haversine(lng1, lat1, lng2, lat2){
   const R = 6371, rad = Math.PI / 180;
@@ -3341,9 +3386,25 @@ function scoreRestaurant(restaurant, dish, ctx){
   // 距离分占比太大就会把它们排到真正的火锅店前面，所以"菜系对得上"值 12 分。
   const isSignature = restaurant.sig.includes(dish.id);
   const cuiMatch = restaurant.cui.includes(dish.cui);
-  parts['菜系对口'] = { raw: isSignature ? 14 : (cuiMatch ? 11 : 0), max:14 };
+  /* 高德推荐菜的两种用法（2026-10-09 用户拍板）：
+   *   ① 反推出菜系 → 「菜系对口」补 8 分（弱于真对口 11、强于判歪的 0）
+   *   ② 逐道命中候选菜 → 单列一条「推荐菜实锤」：3 分/道、封顶 9
+   * 以前只把②算进「菜品覆盖」的计数里，既不单列也不显示，用户看不出效果。 */
+  const tagHitDishes = CANDIDATE_DISHES.filter(cd => tagServes(restaurant, cd));
+  const tagCui = tagCuisine(restaurant);
+  const tagCuiMatch = !cuiMatch && !!tagCui.cui && tagCui.cui === dish.cui;
+  const cuiCredit = isSignature ? 14
+    : (cuiMatch ? 11
+    : (tagCuiMatch ? 8
+    : (tagHitDishes.length >= 2 ? 6 : 0)));
+  parts['菜系对口'] = { raw: cuiCredit, max:14 };
+  parts['推荐菜实锤'] = { raw:+Math.min(9, tagHitDishes.length * 3).toFixed(1), max:9 };
   if(isSignature) reasons.push('这道是店里的招牌菜');
   else if(cuiMatch) reasons.push('这家店主打' + dish.cui + '菜');
+  else if(tagCuiMatch) reasons.push('高德网友推荐菜里 ' + tagCui.n + ' 道对得上' + tagCui.cui +
+    '菜，这家其实就是做' + tagCui.cui + '菜的（高德把类型标成了' + (restaurant.cui[0] || '别的') + '）');
+  else if(tagHitDishes.length >= 2) reasons.push('高德网友推荐菜里有 ' + tagHitDishes.length +
+    ' 道你想吃的（' + tagHitDishes.slice(0, 3).map(d => d.name).join('、') + '）');
 
   // 菜品覆盖：这家店能做我们今天多少道候选菜（直接回答"你能不能做我想吃的"）
   let cover = 0;
@@ -3503,6 +3564,13 @@ function restaurantServes(restaurant, dish){
    * 我们自己核实过的菜单说了算，不能让平台的 tag 反过来推翻它。
    * 也别怕它误判：它只能把"做不了"变成"能做"，tag 里没有的菜一律维持原判。 */
   if(tagServes(restaurant, dish)) return true;
+  /* 高德推荐菜**反推出来的菜系**：这道菜属于那个菜系 → 也认它能做。
+   * 比上面"只认 tag 里出现过的那几个菜名"宽一层（店里没写在推荐菜上的同菜系菜也认），
+   * 依旧是只做加法；采集过菜单的店在上面那条 `if(db)` 就返回了，走不到这里。 */
+  {
+    const tc = tagCuisine(restaurant);
+    if(tc.cui && tc.cui === dish.cui) return true;
+  }
   /* 整份借来菜单的同类店（烤鱼店借烤鱼菜单）：这份菜单就是它的全部，
    * 跟"自己有采集菜单"的店一个口径。不然"标签交集"那条老口径会把
    * 别的菜系的菜也推断进来——实测烤鱼店的可选清单里混进了保定家常菜。 */
@@ -6599,6 +6667,23 @@ function altCardHtml(c, i){
 /* 结果卡上的菜单来源标记：让人一眼看出这桌菜是"按真实菜单配的"还是"按菜系推断的"。
  * 这既是透明，也是提醒——推断出来的菜单，去之前打个电话确认一下。 */
 function menuBadge(shop){
+  return menuSourceBadge(shop) + tagHitBadge(shop);
+}
+/* 高德推荐菜的两条依据都写在卡片上：命中了几道你想吃的 + 按推荐菜看这家是什么菜系。
+ * （用户反馈"看不出效果"——以前这条只参与算分，界面上一个字都没有） */
+function tagHitBadge(shop){
+  const hit = (typeof CANDIDATE_DISHES !== 'undefined' ? CANDIDATE_DISHES : []).filter(cd => tagServes(shop, cd));
+  const tc = tagCuisine(shop);
+  if(!hit.length && !tc.cui) return '';
+  const bits = [];
+  if(hit.length) bits.push('高德网友推荐菜里有：' + hit.slice(0, 4).map(d => esc(d.name)).join('、') + (hit.length > 4 ? ' 等' : ''));
+  if(tc.cui) bits.push('推荐菜以' + esc(tc.cui) + '菜为主（' + tc.n + ' 道对得上）');
+  return '<div class="meta" style="margin-top:4px">' +
+    '<span class="badge" style="background:#f1f8ee;border-color:#cfe3c8;color:#3d6b2b">🍲 推荐菜实锤 ' +
+    Math.min(9, hit.length * 3) + ' 分</span> ' +
+    '<span style="opacity:.8">' + bits.join('；') + '</span></div>';
+}
+function menuSourceBadge(shop){
   const db = dbShopForCached(shop);
   if(db){
     const isBranch = dbScopeOf(db) === 'branch';
@@ -6626,12 +6711,15 @@ function menuBadge(shop){
 // 备选卡片里用的短句
 function menuSourceText(shop){
   const db = dbShopForCached(shop);
+  const hit = (typeof CANDIDATE_DISHES !== 'undefined' ? CANDIDATE_DISHES : []).filter(cd => tagServes(shop, cd));
+  const tc = tagCuisine(shop);
+  const tagBit = hit.length ? '＋推荐菜命中 ' + hit.length + ' 道' : (tc.cui ? '＋推荐菜看是' + tc.cui + '菜' : '');
   if(!db){
     const ref = cuisineRefFor(shop);
-    return ref ? ('菜系参照 ' + dbMenuSize(ref) + ' 道（参考「' + ref.name + '」）') : '未采集（按菜系推断）';
+    return (ref ? ('菜系参照 ' + dbMenuSize(ref) + ' 道（参考「' + ref.name + '」）') : '未采集（按菜系推断）') + tagBit;
   }
   return (dbScopeOf(db) === 'branch' ? '本店确认 ' : '品牌参照 ') + dbMenuSize(db) + ' 道' +
-    (dbScopeOf(db) === 'branch' ? '' : '（价格每家可能不同）');
+    (dbScopeOf(db) === 'branch' ? '' : '（价格每家可能不同）') + tagBit;
 }
 
 /* 「到这里去」：打开高德网页，搜索这家店并开启导航。

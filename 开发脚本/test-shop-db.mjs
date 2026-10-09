@@ -33,7 +33,7 @@ async function mockFetch(url){
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,cuisineRefFor,dishById,menuSourceText,amapCui,amapTags,parseTagDishes,tagServes,get CITY(){return CITY}};')
+  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,cuisineRefFor,dishById,menuSourceText,amapCui,amapTags,parseTagDishes,tagServes,tagCuisine,tagSharedSet,scoreRestaurant,setCandidateDishes,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch);
 const D = globalThis.__D;
 
@@ -265,6 +265,46 @@ console.log('\n=== 九、菜系参照（同城同菜系借菜单，只做加法�
   outShop.tagDishes = ['小酥肉'];
   ok(D.restaurantServes(outShop, D.dishById('cp0990')) === false,
      '食堂那份「小酥肉」不会因为 tag 命中就被校外店认下来（菜库隔离优先）');
+
+  /* ---------- 2026-10-09 高德推荐菜的第二种用法：反推菜系（用户拍板：证据 ≥3 道） ---------- */
+  {
+    const A = mkShop('amap-TGX1', '某川味馆(测试店)', '餐饮服务;中餐厅;中餐厅');   // 类型判成家常
+    A.tagDishes = ['歌乐山辣子鸡', '酸菜水煮鱼', '磁器口毛血旺', '蒜蓉粉丝虾'];
+    D.state.lastOnline = null;
+    const tc = D.tagCuisine(A);
+    ok(tc.cui === '川' && tc.n === 3, 'tag 里 3 道川菜 → 反推这家做川菜：' + JSON.stringify(tc));
+    ok(D.restaurantServes(A, D.dishById('m04')) === true,
+       '反推菜系后，同菜系的菜也认它能做（鱼香肉丝=川，tag 里并没有写这道）');
+    ok(D.restaurantServes(A, D.dishById('d01')) === false, '但家常菜不会因此被认（黄焖鸡米饭=家常）');
+    const sc = D.scoreRestaurant(A, D.dishById('m04'), {});
+    ok(sc.parts['菜系对口'].raw === 8, '菜系对口按"二手证据"给 8 分（不是真对口的 11）：' + sc.parts['菜系对口'].raw);
+
+    /* 品牌通用 tag：同一串词在同城别的店上也有 → 不拿来反推菜系 */
+    const B = mkShop('amap-TGX2', '某川味馆B(测试店)', '餐饮服务;中餐厅;中餐厅');
+    B.tagDishes = ['歌乐山辣子鸡', '酸菜水煮鱼', '磁器口毛血旺'];
+    D.state.lastOnline = { shops: [
+      { name:'某甲店', tagDishes:['歌乐山辣子鸡', '酸菜水煮鱼', '磁器口毛血旺'] },
+      { name:'某乙店', tagDishes:['歌乐山辣子鸡', '酸菜水煮鱼', '磁器口毛血旺'] },
+    ]};
+    ok(D.tagSharedSet().size === 3, '认出这 3 个词是品牌通用 tag（同城两家店都有）');
+    ok(D.tagCuisine(B).cui === '', '品牌通用 tag 不参与反推菜系（返回空）');
+    D.state.lastOnline = null;
+  }
+  /* ---------- 推荐菜实锤：3 分/道、封顶 9（用户定的数） ---------- */
+  {
+    const C = mkShop('amap-TGX3', '某川味馆C(测试店)', '餐饮服务;中餐厅;中餐厅');
+    C.tagDishes = ['麻婆豆腐', '水煮鱼', '辣子鸡', '宫保虾球'];
+    D.state.lastOnline = null;
+    const cands = ['麻婆豆腐', '水煮鱼', '辣子鸡', '鱼香肉丝', '宫保鸡丁']
+      .map(n => D.DISHES.find(d => d && d.name === n)).filter(Boolean);
+    D.setCandidateDishes({ scored: cands.map(d => ({ dish:d })), mains: [] });
+    const sc = D.scoreRestaurant(C, D.dishById('m04'), {});
+    ok(sc.parts['推荐菜实锤'].raw === 9, '命中 3 道候选菜 × 3 分 = 9（封顶 9）：' + sc.parts['推荐菜实锤'].raw);
+    const D2 = mkShop('amap-TGX4', '某川味馆D(测试店)', '餐饮服务;中餐厅;中餐厅');
+    D2.tagDishes = ['麻婆豆腐'];
+    const sc2 = D.scoreRestaurant(D2, D.dishById('m04'), {});
+    ok(sc2.parts['推荐菜实锤'].raw === 3, '只命中 1 道 = 3 分：' + sc2.parts['推荐菜实锤'].raw);
+  }
 
   /* 川香苑：点菜型川菜馆，本店确认；同城"川菜参照"现在有两家（女掌柜 + 川香苑），
    * 必须合并成一份，而不是"谁排在前面算谁"。 */
