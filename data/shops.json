@@ -4154,8 +4154,8 @@
           "name": "牛肉面",
           "price": 16,
           "cat": "面食",
-          "dishId": "nd04",
-          "kbName": "内江牛肉面"
+          "dishId": "gd103",
+          "kbName": "牛肉面"
         },
         {
           "name": "豌杂面",
@@ -6257,8 +6257,8 @@
           "name": "重庆辣子鸡",
           "price": 36,
           "cat": "精选热销菜",
-          "dishId": "cn04",
-          "kbName": "辣子鸡"
+          "dishId": "gd154",
+          "kbName": "重庆辣子鸡"
         },
         {
           "name": "炝炒豌豆尖",
