@@ -3398,7 +3398,9 @@ function scoreRestaurant(restaurant, dish, ctx){
     : (tagCuiMatch ? 8
     : (tagHitDishes.length >= 2 ? 6 : 0)));
   parts['菜系对口'] = { raw: cuiCredit, max:14 };
-  parts['推荐菜实锤'] = { raw:+Math.min(9, tagHitDishes.length * 3).toFixed(1), max:9 };
+  /* 上限 12 分（4 道命中就满），但**不在卡片上显示分数**——改成在菜名后面标「真实推荐菜」，
+   * 让用户看到的是"这道菜是网友真点过的"这个事实，而不是一个光秃秃的分数。 */
+  parts['推荐菜实锤'] = { raw:+Math.min(12, tagHitDishes.length * 3).toFixed(1), max:12 };
   if(isSignature) reasons.push('这道是店里的招牌菜');
   else if(cuiMatch) reasons.push('这家店主打' + dish.cui + '菜');
   else if(tagCuiMatch) reasons.push('高德网友推荐菜里 ' + tagCui.n + ' 道对得上' + tagCui.cui +
@@ -6607,14 +6609,18 @@ function comboPortions(combo){
   if(typeof combo.portions === 'number') return combo.portions;
   return (combo.items || []).reduce((n,i) => n + Math.max(1, Number(i.qty) || 1), 0);
 }
-function comboItemRow(item){
+/* 一桌菜里的一道。第二个参数是这家店：这道菜如果在高德的"网友推荐菜"里，
+ * 菜名后面标一个「真实推荐菜」——这是"网友真点过"的实锤，比分数直观。 */
+function comboItemRow(item, restaurant){
   const d = item.dish;
   const q = Math.max(1, Number(item.qty) || 1);
+  const isTagDish = !!(restaurant && tagServes(restaurant, d));
   return '<div class="combo-item">' +
     '<span class="ci-emoji">' + (ROLE_EMOJI[item.role] || '🍽') + '</span>' +
     '<span class="ci-main">' +
       '<span class="ci-name">' + d.name +
         (item.anchor ? '<span class="ci-badge">你想吃的</span>' : '') +
+        (isTagDish ? '<span class="ci-badge" style="color:#3d6b2b;background:#f1f8ee">真实推荐菜</span>' : '') +
         '<span class="ci-role">' + (ROLE_LABEL[item.role] || '') + '</span>' +
       '</span>' +
       '<span class="ci-desc">' + (d.desc || '') + '</span>' +
@@ -6644,7 +6650,7 @@ function altCardHtml(c, i){
       '<span class="a-caret">›</span>' +
     '</div>' +
     '<div class="alt-detail hidden">' +
-      '<div class="combo-list">' + c.items.map(comboItemRow).join('') + '</div>' +
+    '<div class="combo-list">' + c.items.map(it => comboItemRow(it, c.restaurant)).join('') + '</div>' +
       '<div class="combo-total" style="margin-top:9px"><span>合计 <b>¥' + c.total + '</b></span>' +
         '<span>' + c.items.length + ' 道 · 共 ' + comboPortions(c) + ' 份 · ' + diningLabel() + '</span></div>' +
       '<div class="why" style="margin-top:9px"><div class="w-title">为什么这样配</div>' +
@@ -6667,21 +6673,9 @@ function altCardHtml(c, i){
 /* 结果卡上的菜单来源标记：让人一眼看出这桌菜是"按真实菜单配的"还是"按菜系推断的"。
  * 这既是透明，也是提醒——推断出来的菜单，去之前打个电话确认一下。 */
 function menuBadge(shop){
-  return menuSourceBadge(shop) + tagHitBadge(shop);
-}
-/* 高德推荐菜的两条依据都写在卡片上：命中了几道你想吃的 + 按推荐菜看这家是什么菜系。
- * （用户反馈"看不出效果"——以前这条只参与算分，界面上一个字都没有） */
-function tagHitBadge(shop){
-  const hit = (typeof CANDIDATE_DISHES !== 'undefined' ? CANDIDATE_DISHES : []).filter(cd => tagServes(shop, cd));
-  const tc = tagCuisine(shop);
-  if(!hit.length && !tc.cui) return '';
-  const bits = [];
-  if(hit.length) bits.push('高德网友推荐菜里有：' + hit.slice(0, 4).map(d => esc(d.name)).join('、') + (hit.length > 4 ? ' 等' : ''));
-  if(tc.cui) bits.push('推荐菜以' + esc(tc.cui) + '菜为主（' + tc.n + ' 道对得上）');
-  return '<div class="meta" style="margin-top:4px">' +
-    '<span class="badge" style="background:#f1f8ee;border-color:#cfe3c8;color:#3d6b2b">🍲 推荐菜实锤 ' +
-    Math.min(9, hit.length * 3) + ' 分</span> ' +
-    '<span style="opacity:.8">' + bits.join('；') + '</span></div>';
+  /* 2026-10-10：卡片上不写"推荐菜实锤 N 分"了（用户觉得跟桌子对不上、看着奇怪），
+   * 改成在菜名后面标「真实推荐菜」——见 comboItemRow()。分数仍然参与排序，只是不显示。 */
+  return menuSourceBadge(shop);
 }
 function menuSourceBadge(shop){
   const db = dbShopForCached(shop);
@@ -6711,15 +6705,12 @@ function menuSourceBadge(shop){
 // 备选卡片里用的短句
 function menuSourceText(shop){
   const db = dbShopForCached(shop);
-  const hit = (typeof CANDIDATE_DISHES !== 'undefined' ? CANDIDATE_DISHES : []).filter(cd => tagServes(shop, cd));
-  const tc = tagCuisine(shop);
-  const tagBit = hit.length ? '＋推荐菜命中 ' + hit.length + ' 道' : (tc.cui ? '＋推荐菜看是' + tc.cui + '菜' : '');
   if(!db){
     const ref = cuisineRefFor(shop);
-    return (ref ? ('菜系参照 ' + dbMenuSize(ref) + ' 道（参考「' + ref.name + '」）') : '未采集（按菜系推断）') + tagBit;
+    return ref ? ('菜系参照 ' + dbMenuSize(ref) + ' 道（参考「' + ref.name + '」）') : '未采集（按菜系推断）';
   }
   return (dbScopeOf(db) === 'branch' ? '本店确认 ' : '品牌参照 ') + dbMenuSize(db) + ' 道' +
-    (dbScopeOf(db) === 'branch' ? '' : '（价格每家可能不同）') + tagBit;
+    (dbScopeOf(db) === 'branch' ? '' : '（价格每家可能不同）');
 }
 
 /* 「到这里去」：打开高德网页，搜索这家店并开启导航。
@@ -6794,7 +6785,7 @@ function renderResult(combo, meal, extra, online){
           ? '<p class="note" style="margin:0 0 10px;color:#b0461f">↔️ 你想吃的在「' + catName(state.cat) +
             '」类里没有找到，这几道是从其它类别补进来的：' + state.lastCrossCat.slice(0,4).join('、') + '。</p>'
           : '') +
-        '<div class="combo-list">' + combo.items.map(comboItemRow).join('') + '</div>' +
+    '<div class="combo-list">' + combo.items.map(it => comboItemRow(it, combo.restaurant)).join('') + '</div>' +
         /* 锚定菜被换掉时如实说明（辣度 / 忌口 / 预算 / 这家店不会做）——
          * 以前什么都不说，用户只会觉得"我要的菜怎么没了"。 */
         (combo.anchorSkip

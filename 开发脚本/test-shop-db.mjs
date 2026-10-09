@@ -33,7 +33,7 @@ async function mockFetch(url){
 }
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,cuisineRefFor,dishById,menuSourceText,amapCui,amapTags,parseTagDishes,tagServes,tagCuisine,tagSharedSet,scoreRestaurant,setCandidateDishes,get CITY(){return CITY}};')
+  code + '\nglobalThis.__D={state,loadShopDb,SHOP_DB,dbShopFor,dbShopForCached,shopCanMake,shopMenuSource,menuHasDish,dbMenuDishes,restaurantServes,buildCombo,recommend,pickAnchors,applyCity,DISHES,clearAmapCache,onlineSearch,recommendRestaurantsSmart,DEFAULT_AMAP_KEY,buildShopDbIndex,dbScopeOf,cuisineRefFor,dishById,menuSourceText,amapCui,amapTags,parseTagDishes,tagServes,tagCuisine,tagSharedSet,scoreRestaurant,setCandidateDishes,comboItemRow,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), mockFetch);
 const D = globalThis.__D;
 
@@ -299,11 +299,26 @@ console.log('\n=== 九、菜系参照（同城同菜系借菜单，只做加法�
       .map(n => D.DISHES.find(d => d && d.name === n)).filter(Boolean);
     D.setCandidateDishes({ scored: cands.map(d => ({ dish:d })), mains: [] });
     const sc = D.scoreRestaurant(C, D.dishById('m04'), {});
-    ok(sc.parts['推荐菜实锤'].raw === 9, '命中 3 道候选菜 × 3 分 = 9（封顶 9）：' + sc.parts['推荐菜实锤'].raw);
+    ok(sc.parts['推荐菜实锤'].raw === 9 && sc.parts['推荐菜实锤'].max === 12,
+       '命中 3 道候选菜 × 3 分 = 9（上限 12，2026-10-10 用户从 9 提到 12）：' + sc.parts['推荐菜实锤'].raw);
     const D2 = mkShop('amap-TGX4', '某川味馆D(测试店)', '餐饮服务;中餐厅;中餐厅');
     D2.tagDishes = ['麻婆豆腐'];
     const sc2 = D.scoreRestaurant(D2, D.dishById('m04'), {});
     ok(sc2.parts['推荐菜实锤'].raw === 3, '只命中 1 道 = 3 分：' + sc2.parts['推荐菜实锤'].raw);
+    /* 5 道命中就该顶到 12（15 → 封顶） */
+    const E = mkShop('amap-TGX5', '某川味馆E(测试店)', '餐饮服务;中餐厅;中餐厅');
+    E.tagDishes = ['麻婆豆腐', '水煮鱼', '辣子鸡', '宫保虾球', '回锅肉', '水煮肉片'];
+    D.setCandidateDishes({ scored: ['麻婆豆腐', '水煮鱼', '辣子鸡', '回锅肉', '水煮肉片']
+      .map(n => D.DISHES.find(d => d && d.name === n)).filter(Boolean).map(d => ({ dish:d })), mains: [] });
+    const sc3 = D.scoreRestaurant(E, D.dishById('m04'), {});
+    ok(sc3.parts['推荐菜实锤'].raw === 12, '命中 5 道 = 15 → 封顶 12：' + sc3.parts['推荐菜实锤'].raw);
+    /* 菜名后面的「真实推荐菜」标记（2026-10-10 用户要求：分数不写在卡片上，改标在菜名后） */
+    const hitDish = D.dishById('m04');                       // 鱼香肉丝（C 店 tag 里没有它）
+    const tagDish = D.DISHES.find(d => d && d.name === '麻婆豆腐');
+    const rowHit = D.comboItemRow({ dish:hitDish, role:'main', qty:1 }, C);
+    const rowTag = D.comboItemRow({ dish:tagDish, role:'main', qty:1 }, C);
+    ok(rowTag.indexOf('真实推荐菜') !== -1, '在 tag 里的菜，菜名后面标「真实推荐菜」');
+    ok(rowHit.indexOf('真实推荐菜') === -1, '不在 tag 里的菜不标（鱼香肉丝）');
   }
 
   /* 川香苑：点菜型川菜馆，本店确认；同城"川菜参照"现在有两家（女掌柜 + 川香苑），
