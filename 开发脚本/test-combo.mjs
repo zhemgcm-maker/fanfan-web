@@ -14,7 +14,7 @@ const store=new Map();
 const localStorage={getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};
 
 new Function('document','localStorage','requestAnimationFrame','fetch',
-  code + '\nglobalThis.T={state,recommend,planMeal,buildCombo,restaurantServes,hardFilter,ROLE_LABEL,ROLE_EMOJI,DISHES,RESTAURANTS,recommendRestaurantsSmart,TIERS,sourceLabel,get CITY(){return CITY}};')
+  code + '\nglobalThis.T={state,recommend,planMeal,buildCombo,restaurantServes,hardFilter,ROLE_LABEL,ROLE_EMOJI,DISHES,RESTAURANTS,recommendRestaurantsSmart,TIERS,sourceLabel,shopMenuSource,craveHits,tableCap,get CITY(){return CITY}};')
   (document, localStorage, (f)=>setTimeout(f,0), ()=>Promise.reject(new Error('no net')));
 
 const T = globalThis.T;
@@ -72,6 +72,26 @@ function scenario(name, patch){
   // 断言 5：总价不超过预算上限
   const cap = Math.min(T.pickTierMax ? 999 : 999, T.state.budget);
   ok(c.total <= cap, '整桌 ¥' + c.total + ' 没超预算上限 ¥' + cap);
+
+  /* 断言 6（2026-10-10 新规矩 B 方案）：「今天想吃」是硬需求——锚定菜之外的**主菜/素菜/汤**
+   * 也要优先挑命中的；只有"这家没得选"或"买不起"时才允许放宽。主食/饮品豁免（米饭可乐不带口味）。
+   * 这里只抓"有得选、也买得起、却没用"的真漏网。 */
+  {
+    const craving = (T.state.craveTags || []).length || (T.state.craveAuto || []).length ||
+                    !!String(T.state.craveText || '').trim();
+    if(craving){
+      const pool = (T.shopMenuSource(c.restaurant) || { dishes:[] }).dishes || [];
+      const bad = c.items.filter(i => !i.anchor && ['main','side','soup'].indexOf(i.role) !== -1 &&
+          T.craveHits(i.dish).crave === 0)
+        .filter(i => {
+          const room = T.tableCap() - c.total + i.dish.price;   // 换掉它还能花的钱
+          return pool.some(d => (d.role || 'single') === i.role && T.craveHits(d).crave > 0 &&
+            T.restaurantServes(c.restaurant, d) && T.hardFilter(d, c.restaurant.id).ok && d.price <= room);
+        });
+      ok(bad.length === 0, '配菜也顺着「今天想吃」（有得选、买得起的都用了）' +
+        (bad.length ? '：漏了 ' + bad.map(i => i.dish.name + '/' + i.role).join('、') : ''));
+    }
+  }
 
   // 备选组合
   if(meal.list.length > 1){

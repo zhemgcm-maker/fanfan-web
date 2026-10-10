@@ -4339,13 +4339,19 @@ function topUpByBudget(restaurant, items, pool, cap, floor, canAdd, times){
         .filter(x => x.role === role && x.dish && !used.has(x.dish.id) &&
                      (!canAdd || canAdd(x.dish, role)) && sum() + x.dish.price <= cap);
       if(!cands.length) continue;
+      /* 预算补位同样先照顾"今天想吃"：补进来的荤/素/汤也要命中你的口味要求，
+       * 只有实在没有命中的才用其它菜（补位只加 main/side/soup，没有主食/饮品豁免问题） */
+      const cravingOn = !!((state.craveTags || []).length || (state.craveAuto || []).length ||
+                           String(state.craveText || '').trim());
+      const hitCands = cravingOn ? cands.filter(x => craveHits(x.dish).crave > 0) : [];
+      const useCands = hitCands.length ? hitCands : cands;
       /* 别用一堆便宜菜把预算堆上去（2 个人 9 道菜就离谱了）：
        * 先挑"离目标还差多少"之内最贵的，实在放不进就拿最便宜的收尾。 */
       const room = Math.max(0, aim - sum());
-      const fits = cands.filter(x => x.dish.price <= room);
+      const fits = useCands.filter(x => x.dish.price <= room);
       const pick = fits.length
         ? fits.sort((a, b) => (b.dish.price - a.dish.price) || ((b.score || 0) - (a.score || 0)))[0]
-        : cands.sort((a, b) => a.dish.price - b.dish.price)[0];
+        : useCands.sort((a, b) => a.dish.price - b.dish.price)[0];
       if(!pick) continue;
       items.push({ dish:pick.dish, role:role, score:pick.score, reasons:pick.reasons || [], qty:1, topUp:true });
       used.add(pick.dish.id);
@@ -4393,12 +4399,24 @@ function buildCombo(restaurant, anchorDish){
    * 以前只有"主食"位做了类别过滤，主菜位／一人食位／配菜位都从全量菜单按分挑，
    * 于是「小饭」档（¥25 上限、库里几乎没有 ≤25 的整份荤菜）主菜位填不上时，
    * 兜底会挑到成都担担面这种面，主食位又按"吃饭"配了米饭 → 出现"面＋米饭"。 */
+  /* 「今天想吃」是硬需求（2026-10-10 用户拍板 B 方案）：
+   * 配每个位置时**先只在"命中今日想吃"的菜里挑**，这个位置确实没有命中菜（或都超预算）
+   * 才放宽到全量。主食/饮品豁免——米饭、可乐本来就不带口味，硬要求它们"辣"没意义。
+   * 仍然保留"先本类别、再跨类"的老口径（放在 craving 之后，作为第二关键字）。 */
+  const cravingOn = !!(state.craveTags || []).length || !!state.craveAuto && state.craveAuto.length ||
+                    !!String(state.craveText || '').trim();
+  const craveOk = d => !cravingOn || craveHits(d).crave > 0;
+  const cravesExempt = role => role === 'staple' || role === 'drink';
   const byRole = role => {
     const all = pool.filter(x => x.role === role).sort((a,b) => b.score - a.score);
-    if(!state.cat || !CATS.some(c => c.id === state.cat)) return all;
+    const withCraveFirst = list => (cravingOn && !cravesExempt(role))
+      ? list.filter(x => craveOk(x.dish)).concat(list.filter(x => !craveOk(x.dish)))
+      : list;
+    if(!state.cat || !CATS.some(c => c.id === state.cat)) return withCraveFirst(all);
     // 本类别内的排前面，跨类兜底的排后面，调用方 find 取第一个即可
-    return all.filter(x => inCat(x.dish, state.cat))
-              .concat(all.filter(x => !inCat(x.dish, state.cat)));
+    const inCatList = all.filter(x => inCat(x.dish, state.cat));
+    const outCatList = all.filter(x => !inCat(x.dish, state.cat));
+    return withCraveFirst(inCatList).concat(withCraveFirst(outCatList));
   };
 
   const items = [];
