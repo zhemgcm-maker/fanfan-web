@@ -2455,14 +2455,16 @@ function peopleIdNearest(n){
 }
 function perPersonCap(){ const t = pickTier(); return t ? Math.min(t.max, state.budget) : state.budget; }
 function tableCap(){ return perPersonCap() * peopleCount(); }
-/* 整桌下限（人均口径）：用档位自己的 floor，而不是它区间的下界 min。
- * 两者是两回事 ——
- *   min   = "档位区间下界"（界面显示、单道菜的"理想价位带"都用它）
- *   floor = "这一桌至少该花多少"（只影响整桌：预算契合打分 + 预算补位的目标）
- * 2026-10-10 用户要求"下限高一点"，抬的是 floor：小饭 0→10、中饭 26→38、吃好饭 61→88。
- * 没写 floor 的档位退回 min，老数据/老存档都不会炸。 */
-function tierFloorPer(t){ return t ? (typeof t.floor === 'number' ? t.floor : t.min) : 0; }
-function tableFloor(){ return tierFloorPer(pickTier()) * peopleCount(); }
+/* 整桌下限（2026-10-10 用户定的口径）：**下限 = 上限的一半**，跟着滑杆一起涨。
+ *   人均 ¥150 × 2 人 = 上限 ¥300  →  下限 ¥150（= 300 ÷ 2）
+ *   人均 ¥200 × 2 人 = 上限 ¥400  →  下限 ¥200（= 400 ÷ 2）
+ * "我设 150 就得有 150 的下限"（2 人时）说的就是这个。
+ * 低于下限照旧扣分（斜率 0.8，最多 14 分）；落在 [下限, 上限] 里按"用掉多少预算"给 20~40 分；
+ * 预算补位（topUpByBudget）的目标 = 下限 + 30% 区间宽，整桌口径、人多一起涨。
+ * 注：人均上限仍受档位封顶（perPersonCap = min(档位上限, 滑杆)），下限永远只有它的一半，
+ *     所以不会出现"上限比下限还低"。 */
+/* 取整：小饭档 25÷2 会算出 12.5，界面上写"最少 ¥12.5"太别扭，整桌下限统一取到元。 */
+function tableFloor(){ return Math.round(perPersonCap() / 2 * peopleCount()); }
 /* 整桌预算那行话，**两条决策路共用这一个**（算法引擎的 buildCombo 和 Agent 的 comboFromAgentPlan）。
  * 规矩：整桌的钱只能跟整桌的额度比，写出来也必须把"人均档位 × 人数 = 一桌额度"说全。
  * 踩过的坑：
@@ -4870,7 +4872,6 @@ function renderTiers(){
     b.onclick = () => {
       state.tier = t.id;
       state.budget = t.max >= 200 ? 150 : t.max;
-      $('#budgetRange').min = String(tierFloorPer(t));   // 滑杆不许拖到"整桌下限"以下
       $('#budgetRange').value = state.budget;
       renderTiers(); renderBudgetNote(); updateSummary(); revealNext();
     };
@@ -4880,23 +4881,14 @@ function renderTiers(){
 
 function renderBudgetNote(){
   const t = pickTier();
-  /* 滑杆下限跟着"整桌下限的人均口径"走：选了中饭就不该把人均预算拖到 ¥38 以下，
-   * 否则会出现"上限比下限还低"的自相矛盾状态（打分公式里 sum ∈ [floor, cap] 那条永远进不去）。 */
-  const range = $('#budgetRange');
-  if(range){
-    const lo = t ? tierFloorPer(t) : 10;
-    if(+range.min !== lo) range.min = String(lo);
-    if(+range.value < lo) range.value = String(lo);
-    const v = +range.value;
-    if(isFinite(v) && v > 0) state.budget = v;   // 滑杆没挂/还没渲染时不覆盖内存里的值
-  }
   $('#budgetLabel').textContent = '¥' + state.budget;
   if(!t){ $('#tierNote').textContent = '先选上面三个档位之一。'; return; }
   const per = perPersonCap();
   const p = peopleItem();
-  /* 把公式直接写出来：人均 × 人数 = 一桌额度。用户老是分不清"150 是每人还是整桌"。 */
+  /* 把公式直接写出来：人均 × 人数 = 一桌额度。用户老是分不清"150 是每人还是整桌"。
+   * 下限（= 上限的一半）也一起写出来，省得再问一遍"下限到底是多少"。 */
   $('#tierNote').textContent = '当前档位「' + t.name + '」按人均算：人均 ¥' + per + ' × ' +
-    p.label + ' = 这一桌最多 ¥' + tableCap() + '；这一桌最少 ¥' + tableFloor() +
+    p.label + ' = 这一桌最多 ¥' + tableCap() + '、最少 ¥' + tableFloor() +
     '（整份硬菜按够 ' + peopleCount() + ' 个人吃来算）' +
     (p.note ? '；' + p.note : '') + '。';
 }
@@ -9858,15 +9850,12 @@ function aiNormalizeIntent(raw, src, text, ms){
   const clean = normalizeParsed(r, allowed);     // 复用"用一句话说说"那套校验：标签只在词表内
   const tier = ['small', 'mid', 'good'].indexOf(r.tier) !== -1 ? r.tier : 'mid';
   const b = Number(r.budget);
-  /* 预算不许低于这一档的"整桌下限的人均口径"：不然整桌上限会低于下限，
-   * 打分公式里 sum ∈ [floor, cap] 那条永远进不去（聊天里说"吃好饭，50 块"就会踩到）。 */
-  const floorPer = tierFloorPer(TIERS.find(t => t.id === tier));
   /* 人数：模型填 0 或乱填就当"没说"，这一轮沿用界面上选的那个 */
   const ppl = Number(r.people);
   return {
     cat, tier,
     people:(isFinite(ppl) && ppl >= 1 && ppl <= 20) ? Math.round(ppl) : 0,
-    budget:Math.max(floorPer, (isFinite(b) && b > 0) ? Math.round(b) : (TIERS.find(t => t.id === tier) || TIERS[1]).max),
+    budget:(isFinite(b) && b > 0) ? Math.round(b) : (TIERS.find(t => t.id === tier) || TIERS[1]).max,
     tags:clean.tags, keywords:clean.keywords,
     note:String(r.note || clean.note || '').slice(0, 30),
     src, text, ms:ms || 0
@@ -10171,7 +10160,6 @@ function init(){
     if(dt){
       state.tier = dt.id;
       state.budget = dt.max >= 200 ? 150 : dt.max;
-      $('#budgetRange').min = String(tierFloorPer(dt));
       $('#budgetRange').value = state.budget;
     }
   }
