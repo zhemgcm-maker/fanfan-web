@@ -1,3 +1,8 @@
+/* 饭饭AI 数据文件：菜品知识库 / 城市表 / 标签词表都在这里，改数据只改这个文件。
+ * index.html 用 script src 加载它，所以这是一条赋值语句而不是纯 JSON
+ * （纯 JSON 用 script src 会被当 JS 执行、直接报错）。
+ * 加一道菜 → dishes；加一个城市 → cities；加一个口味标签 → vocab.catCraveTags。
+ * 改完刷新页面即可，不需要任何构建步骤。 */
 var FANFAN_DB = {
   "version": 1,
   "updatedAt": "2026-09-30",
