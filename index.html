@@ -7833,7 +7833,14 @@ async function traceCravingParse(){
 
   const canLLM = state.settings.enabled === 'on' && (serverLlmOn() || !!String(state.settings.key || '').trim());
   if(!canLLM){
-    state.craveAutoInfo = { src:'rules', text, tags:[], keywords:[], note:'没开大模型，用本地词表', model:'', ms:0 };
+    /* 以前这里只说"没开大模型"，四种完全不同的原因共用一个说法，用户根本不知道该去改哪里
+     * （2026-10-10 用户就被这句绕了半天：他明明登录了，实际是"账号里同步下来的设置把大模型关了"）。
+     * 现在按真实原因分别写清楚 + 告诉去哪儿改。 */
+    const why = guestLocked() ? '没登录——大模型要登录后才解锁，去「我的」登录一下'
+      : state.settings.enabled !== 'on' ? '设置里「启用大模型」是关的，去「我的 › 技术参数」打开'
+      : state.settings.useServerLlm === 'off' ? '设置里选的是「强制本机直连」，但本机没填 Key（改成"登录就走后端"或自己填一把 Key）'
+      : '本机没有可用的大模型通道';
+    state.craveAutoInfo = { src:'rules', text, tags:[], keywords:[], note:why + '；这次按本地词表切词', model:'', ms:0 };
     lastParseDebug = { request:null, response:'（大模型未开启，直接用本地词表）' };
     renderCraveParse();
     return;
