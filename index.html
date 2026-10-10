@@ -4550,14 +4550,16 @@ function buildCombo(restaurant, anchorDish){
     // 在区间内还要看"用掉了多少预算"：吃好饭就该吃得像样一点，别配出一桌 ¥70
     const span = Math.max(1, cap - floor);
     const fill = clamp((sum - floor) / span, 0, 1);
-    /* 权重比原来高一点（22 → 28）：用户反馈"选了好饭却配出一桌很便宜的菜"，
-     * 分给预算契合的权重大了，选桌时才会优先挑"能把预算用起来"的那一桌。 */
-    budgetScore = 16 + 12 * fill;
+    /* 权重一路加猛（22 → 28 → 40）：用户反馈"选了好饭却配出一桌很便宜的菜"。
+     * 落在区间里就得 20 分起步，用满预算到 40 分——现在它和"一桌菜的分"是同一个量级，
+     * 选桌时会明显偏向"把钱花在该花的地方"的那一桌。 */
+    budgetScore = 20 + 20 * fill;
   }else if(sum < floor){
-    // 低于下限：差得越远扣得越狠（原来是 0.3 的斜率，太温柔了，压不住"离下限很远"的桌子）
-    budgetScore = Math.max(0, 10 - (floor - sum) * 0.45);
+    // 低于下限：差得越远扣得越狠（斜率 0.45 → 0.8：差 10 元就扣 8 分，差 18 元扣光）
+    budgetScore = Math.max(0, 14 - (floor - sum) * 0.8);
   }else{
-    budgetScore = Math.max(0, 16 - (sum - cap) * 0.6);
+    // 超上限也扣得更狠（0.6 → 1.0）
+    budgetScore = Math.max(0, 20 - (sum - cap) * 1.0);
   }
   budgetReason = budgetLineText(sum, cap, floor);      // 两条路共用同一句话，别各写一份
 
@@ -6780,7 +6782,7 @@ function renderResult(combo, meal, extra, online){
   const bars = [
     { k:'主菜契合', raw: Math.round((combo.anchorDish
         ? scoreDish(combo.anchorDish, { ignoreBudget:true, shopId:(combo.restaurant || {}).id }).total : 50) / 90 * 100) },
-      { k:'预算契合', raw: Math.round((combo.budgetScore || 0) / 28 * 100) },
+      { k:'预算契合', raw: Math.round((combo.budgetScore || 0) / 40 * 100) },
     { k:'搭配完整', raw: Math.round((combo.balance || 0) / 23 * 100) },
     { k:'店铺靠谱', raw: Math.round((combo.shopScore || 0) / 100 * 100) }
   ].map(b => ({ k:b.k, raw: Math.floor(clamp(b.raw, 0, 100)) }));
@@ -8770,11 +8772,11 @@ function comboFromAgentPlan(r, secs){
   let budgetScore, budgetReason;
   if(sum <= cap && sum >= floor){
     const span = Math.max(1, cap - floor);
-    budgetScore = 16 + 12 * clamp((sum - floor)/span, 0, 1);
+    budgetScore = 20 + 20 * clamp((sum - floor)/span, 0, 1);
   }else if(sum < floor){
-    budgetScore = Math.max(0, 10 - (floor - sum) * 0.45);
+    budgetScore = Math.max(0, 14 - (floor - sum) * 0.8);
   }else{
-    budgetScore = Math.max(0, 16 - (sum - cap) * 0.6);
+    budgetScore = Math.max(0, 20 - (sum - cap) * 1.0);
   }
   budgetReason = budgetLineText(sum, cap, floor);      // 和算法引擎那条共用同一句话
   const roles = items.map(x => x.role);
