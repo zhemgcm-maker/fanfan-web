@@ -4324,6 +4324,12 @@ function comboPlan(tierId, mode, anchor, restaurant){
  * 三道闸：① 只加 main/side/soup（主食、饮品是一人一份的，不重复加）
  *        ② 绝不超整桌额度 cap ③ 汤只在"这家店适合配汤"时加（外卖、快餐甜品店不加）。
  * 目标定在 floor + 60% 区间宽，不是压着下限；最多补 8 道，补不动就停。 */
+/* 这道菜的"主料"标签（一桌里同主料只出现一次：两道鱼 / 两道鸭 会被挡）。
+ * 抽成顶层函数是为了让 buildCombo 和 topUpByBudget 用同一份判断 —— 以前各写一份，
+ * topUpByBudget 那份干脆没有，才补出了"北京烤鸭 + 果木烤鸭"（两道都是鸭）。 */
+const MAIN_TAG_WORDS = ['鱼','猪','牛','羊','鸡','鸭','虾','驴肉'];
+function dishMainTag(d){ return ((d && d.tags) || []).find(t => MAIN_TAG_WORDS.indexOf(t) !== -1) || null; }
+
 function topUpByBudget(restaurant, items, pool, cap, floor, canAdd, times){
   const sum = () => items.reduce((n, x) => n + x.dish.price * Math.max(1, Number(x.qty) || 1), 0);
   const span = Math.max(0, cap - floor);
@@ -4331,6 +4337,13 @@ function topUpByBudget(restaurant, items, pool, cap, floor, canAdd, times){
    * 定太高（试过 60%）会逼着 2 个人点 7~8 道菜，反而离谱。 */
   const aim = Math.min(cap, floor + span * 0.3);
   const used = new Set(items.map(x => x.dish.id));
+  /* 主料也要防重。canAdd()（buildCombo 传进来的 cantTake）读的是 buildCombo 自己的 usedMain，
+   * 而"这一轮补进来的菜"不会回写到那边 —— 所以这里自己再记一份，否则同一次补位里
+   * 能补出两道同主料的菜（实测：北京烤鸭 + 果木烤鸭，两道都是鸭）。
+   * 规则抄 buildCombo 的 cantTake：主食豁免，其余角色一视同仁。 */
+  const usedMain = new Set();
+  items.forEach(x => { const t = dishMainTag(x.dish); if(t) usedMain.add(t); });
+  const mainFree = (d, role) => { const t = dishMainTag(d); return !(t && usedMain.has(t) && role !== 'staple'); };
   const soupOk = soupFits(restaurant);
   /* 补位道数和人数挂钩：2 人最多补 2 道、4 人最多 3 道、6 人 4 道…
    * 一来避免"2 个人 8 道菜"，二来保证人多时补得比人少时更多（份数不该倒退）。 */
@@ -4346,6 +4359,7 @@ function topUpByBudget(restaurant, items, pool, cap, floor, canAdd, times){
       if(role === 'soup' && !soupOk) continue;
       const cands = (pool || [])
         .filter(x => x.role === role && x.dish && !used.has(x.dish.id) &&
+                     mainFree(x.dish, role) &&
                      (!canAdd || canAdd(x.dish, role)) && sum() + x.dish.price <= cap);
       if(!cands.length) continue;
       /* 预算补位同样先照顾"今天想吃"：补进来的荤/素/汤也要命中你的口味要求，
@@ -4364,6 +4378,7 @@ function topUpByBudget(restaurant, items, pool, cap, floor, canAdd, times){
       if(!pick) continue;
       items.push({ dish:pick.dish, role:role, score:pick.score, reasons:pick.reasons || [], qty:1, topUp:true });
       used.add(pick.dish.id);
+      { const t = dishMainTag(pick.dish); if(t) usedMain.add(t); }
       added = true;
       break;
     }
@@ -4436,7 +4451,7 @@ function buildCombo(restaurant, anchorDish){
   const qtyOf = it => Math.max(1, Number(it.qty) || 1);
   const total = () => items.reduce((n,i) => n + i.dish.price * qtyOf(i), 0);
   const portions = role => items.filter(i => i.role === role).reduce((s,i) => s + qtyOf(i), 0);
-  const mainTagOf = d => (d.tags || []).find(t => ['鱼','猪','牛','羊','鸡','鸭','虾','驴肉'].indexOf(t) !== -1) || null;
+  const mainTagOf = dishMainTag;      // 和 topUpByBudget 共用同一份判断（见文件上方 dishMainTag）
 
   /* 能不能再加这一道：两道菜撞同一个主料（比如全是鸡）就不行——但**不是中断**，
    * 而是让调用方走"给已有的那道加份数"（这家只有鸡，4 个人就点两份）。 */
